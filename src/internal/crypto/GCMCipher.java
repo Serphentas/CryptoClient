@@ -39,23 +39,27 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
  */
 public final class GCMCipher {
 
+    // cryptographic constants
     private static final String CIPHER = "AES/GCM/NoPadding";
     //private static final String KDF = "PBKDF2WithHmacSHA1UTF8";
     private static final String CRYPTO_PROVIDER = "BC";
     private static final int CIPHER_KEY_BITS = 256;
-    private static final int GCM_NONCE_BYTES = 12;
+    private static final int GCM_NONCE_BYTES = 16;
     private static final int GCM_TAG_BITS = 128;
     /*private static final int KDF_ITERATION_COUNT = 1000;
      private static final int SALT_BYTES = CIPHER_KEY_BITS / 8;*/
     private static final int BUFFER_SIZE = 1024;
 
-    //public long time;
+    private static final SecureRandom rand = new SecureRandom();
+    private static final byte[] buffer = new byte[BUFFER_SIZE];
     private final Cipher cipher;
     private byte[] nonce = null;
-    private File input = null;
     private SecretKey key = null;
+    private File input = null;
+    private File output = null;
     private CipherInputStream cis;
     private FileOutputStream fos;
+    public long time;
 
     /**
      * Instantiates a Cipher, allowing subsequent use for encryption and
@@ -75,10 +79,10 @@ public final class GCMCipher {
                     .getDeclaredField("isRestricted");
             field.setAccessible(true);
             field.set(null, java.lang.Boolean.FALSE);
-        } catch (Exception ex) {
+        } catch (Exception e) {
         }
         // instantiating AES-256 w/ GCM from Bouncy Castle
-        cipher = Cipher.getInstance(CIPHER, CRYPTO_PROVIDER);
+        this.cipher = Cipher.getInstance(CIPHER, CRYPTO_PROVIDER);
     }
 
     /**
@@ -101,9 +105,9 @@ public final class GCMCipher {
         // cipher initialization
         this.cipher.init(Cipher.ENCRYPT_MODE, this.key, new GCMParameterSpec(GCM_TAG_BITS, nonce, 0, GCM_NONCE_BYTES));
         // output file creation
-        File output = new File(input.getPath() + ".encrypted");
-        output.createNewFile();
-        this.fos = new FileOutputStream(output.getPath());
+        this.output = new File(input.getPath() + ".encrypted");
+        this.output.createNewFile();
+        this.fos = new FileOutputStream(this.output.getPath());
 
         // finishing the encryption job
         finishJob();
@@ -132,10 +136,10 @@ public final class GCMCipher {
         this.cipher.init(Cipher.DECRYPT_MODE, this.key, new GCMParameterSpec(GCM_TAG_BITS,
                 this.nonce, 0, GCM_NONCE_BYTES));
 
-        File output = new File(input.getPath().substring(0, input.getPath().
+        this.output = new File(input.getPath().substring(0, input.getPath().
                 length() - 10) + ".decrypted");
-        output.createNewFile();
-        this.fos = new FileOutputStream(output.getPath());
+        this.output.createNewFile();
+        this.fos = new FileOutputStream(this.output.getPath());
 
         finishJob();
     }
@@ -153,19 +157,20 @@ public final class GCMCipher {
      * @throws Exception
      */
     private void finishJob() throws Exception {
+        this.time = System.nanoTime();
         if (this.input.length() > Math.pow(2, 20)) {
             this.cis = new CipherInputStream(new FileInputStream(this.input), this.cipher);
-            byte[] buffer = new byte[BUFFER_SIZE];
             int r;
-            while ((r = cis.read(buffer)) > 0) {
+            while ((r = this.cis.read(buffer)) > 0) {
                 this.fos.write(buffer, 0, r);
             }
             GPCrypto.sanitize(nonce, 1000);
             this.cis.close();
             this.fos.close();
         } else {
-            this.fos.write(cipher.doFinal(Files.readAllBytes(this.input.toPath())));
+            this.fos.write(this.cipher.doFinal(Files.readAllBytes(this.input.toPath())));
         }
+        this.key.destroy();
     }
 
     /**
@@ -176,7 +181,7 @@ public final class GCMCipher {
      */
     private SecretKey keyGen() throws Exception {
         KeyGenerator keygen = KeyGenerator.getInstance("AES", "BC");
-        keygen.init(CIPHER_KEY_BITS, new SecureRandom());
+        keygen.init(CIPHER_KEY_BITS, rand);
         return keygen.generateKey();
     }
 

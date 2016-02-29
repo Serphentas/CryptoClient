@@ -16,10 +16,14 @@ public class GCMCipherTest {
     @Test
     public void testDecrypt() throws Exception {
         gcmc = new GCMCipher();
-        gcmc.encrypt(new File("testPlaintext"));
-        gcmc.decrypt(new File("testPlaintext.encrypted"));
-        byte[] testPlaintextDecryptedBytes = Files.readAllBytes(new File("testPlaintext.decrypted").toPath());
-        byte[] testPlaintextBytes = Files.readAllBytes(new File("testPlaintext").toPath());
+        File p = new File("testPlaintext");
+        File c = new File("testPlaintext.encrypted");
+        File dc = new File("testPlaintext.decrypted");
+        p.createNewFile();
+        gcmc.encrypt(p);
+        gcmc.decrypt(c);
+        byte[] testPlaintextDecryptedBytes = Files.readAllBytes(dc.toPath());
+        byte[] testPlaintextBytes = Files.readAllBytes(p.toPath());
         assertTrue(Arrays.equals(testPlaintextBytes, testPlaintextDecryptedBytes));
     }
 

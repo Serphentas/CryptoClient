@@ -47,6 +47,7 @@ public class DefaultFrame extends javax.swing.JFrame {
     public DefaultFrame() throws Exception {
         gcmc = new GCMCipher();
         initComponents();
+        setLocationRelativeTo(null);
     }
 
     /**
@@ -88,9 +89,9 @@ public class DefaultFrame extends javax.swing.JFrame {
 
         errorDialog.setTitle("Error");
         errorDialog.setIconImage(null);
-        errorDialog.setLocation(new java.awt.Point(100, 100));
+        errorDialog.setLocation(new java.awt.Point(0, 0));
         errorDialog.setResizable(false);
-        errorDialog.setSize(new java.awt.Dimension(306, 181));
+        errorDialog.setSize(new java.awt.Dimension(200, 130));
         errorDialog.addComponentListener(new java.awt.event.ComponentAdapter() {
             public void componentShown(java.awt.event.ComponentEvent evt) {
                 errorDialogComponentShown(evt);
@@ -113,23 +114,22 @@ public class DefaultFrame extends javax.swing.JFrame {
         errorDialogLayout.setHorizontalGroup(
             errorDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(errorDialogLayout.createSequentialGroup()
-                .addGroup(errorDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(errorDialogLayout.createSequentialGroup()
-                        .addGap(119, 119, 119)
-                        .addComponent(errorDialogButton))
-                    .addGroup(errorDialogLayout.createSequentialGroup()
-                        .addGap(90, 90, 90)
-                        .addComponent(errorDialogLabel)))
+                .addGap(77, 77, 77)
+                .addComponent(errorDialogButton)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, errorDialogLayout.createSequentialGroup()
+                .addContainerGap(53, Short.MAX_VALUE)
+                .addComponent(errorDialogLabel)
+                .addGap(49, 49, 49))
         );
         errorDialogLayout.setVerticalGroup(
             errorDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, errorDialogLayout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(errorDialogLayout.createSequentialGroup()
+                .addContainerGap(43, Short.MAX_VALUE)
                 .addComponent(errorDialogLabel)
-                .addGap(47, 47, 47)
+                .addGap(18, 18, 18)
                 .addComponent(errorDialogButton)
-                .addGap(24, 24, 24))
+                .addGap(29, 29, 29))
         );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -222,35 +222,32 @@ public class DefaultFrame extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(actionLog, javax.swing.GroupLayout.DEFAULT_SIZE, 376, Short.MAX_VALUE))
+                        .addComponent(actionLog)
+                        .addContainerGap())
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addGap(116, 116, 116)
                                 .addComponent(encryptButton, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(decryptButton))
-                            .addGroup(layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(actionLogLabel)))
-                        .addGap(0, 0, Short.MAX_VALUE)))
-                .addContainerGap())
+                            .addComponent(actionLogLabel))
+                        .addGap(12, 345, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(107, Short.MAX_VALUE)
+                .addGap(90, 90, 90)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
                     .addComponent(decryptButton)
                     .addComponent(encryptButton))
-                .addGap(50, 50, 50)
+                .addGap(59, 59, 59)
                 .addComponent(actionLogLabel)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(actionLog, javax.swing.GroupLayout.PREFERRED_SIZE, 66, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
@@ -274,17 +271,16 @@ public class DefaultFrame extends javax.swing.JFrame {
                     gcmc.encrypt(f);
                     actionLogTextArea.append("Done encrypting " + f.getName() + "\n");
                 }
-
             } else {
-                actionLogTextArea.append("Error, please check file.");
+                errorDialogLabel.setText("No file specified");
+                errorDialog.setVisible(true);
             }
-
         } catch (Exception e) {
             if (e instanceof NullPointerException) {
                 errorDialogLabel.setText("No file specified");
             } else {
+                errorDialogLabel.setText("Unexpected error:\n");
                 actionLogTextArea.append(e.toString()+"\n");
-                errorDialogLabel.setText("Unexpected error");
             }
             errorDialog.setVisible(true);
         }
@@ -307,8 +303,13 @@ public class DefaultFrame extends javax.swing.JFrame {
         try {
             if (fd.getFiles().length != 0) {
                 for (File f : fd.getFiles()) {
-                    gcmc.decrypt(f);
-                    actionLogTextArea.append("Done decrypting " + f.getName() + "\n");
+                    if(f.getName().endsWith(".encrypted")){
+                        gcmc.decrypt(f);
+                        actionLogTextArea.append("Done decrypting " + f.getName() + "\n");  
+                    } else {
+                        errorDialogLabel.setText("Wrong encrypted file");
+                        errorDialog.setVisible(true);
+                    }
                 }
             } else {
                 actionLogTextArea.setText("Error");

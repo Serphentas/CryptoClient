@@ -29,16 +29,20 @@ public class Main {
 
     public static void main(String args[]) throws Exception {
         // starting GUI
-        visual.DefaultFrame.main(null);
-        /*
+        visual.LoginForm.main(null);
+        /*GCMCipher gcmc = new GCMCipher();
          //for(int i = 1; i <10000; i*=10){
-         //System.out.println("***"+Integer.toString(i)+"Mb***");
-         System.out.println("Beginning encryption...");
-         //c.encrypt(f=new File("E:/test/"+Integer.toString(i)+"Mb"));
-         c.encrypt(new File("E:/test/100Mb"));
-         System.out.println("Done in " + (System.nanoTime()-c.time)/1e6 + "ms with avg. speed of " + (f.length()/((System.nanoTime()-c.time)/1e9))/(Math.pow(2, 20)) + " MiB/s");
-         //c.decrypt(f=new File("E:/test/"+Integer.toString(i)+"Mb.encrypted"));
-         c.decrypt(new File("E:/test/100Mb.encrypted"));
-         //}*/
+        //System.out.println("***"+Integer.toString(i)+"Mb***");
+
+        //c.encrypt(f=new File("E:/test/"+Integer.toString(i)+"Mb"));
+        File f1 = new File("E:/test/test");
+        File f2 = new File("E:/test/1000Mb.encrypted");
+        System.out.println("Beginning encryption...");
+        gcmc.encrypt(f1);
+        System.out.println("Done in " + (System.nanoTime() - gcmc.time) / 1e6 + "ms with avg. speed of " + (f1.length() / ((System.nanoTime() - gcmc.time) / 1e9)) / (Math.pow(2, 20)) + " MiB/s");
+        System.out.println("Beginning decryption...");
+        gcmc.decrypt(f2);
+        System.out.println("Done in " + (System.nanoTime() - gcmc.time) / 1e6 + "ms with avg. speed of " + (f2.length() / ((System.nanoTime() - gcmc.time) / 1e9)) / (Math.pow(2, 20)) + " MiB/s");
+        */
     }
 }

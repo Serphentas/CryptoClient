@@ -13,6 +13,7 @@ import java.security.SecureRandom;
  * so that the GCMCipher class only contains encryption/decryption-related code.
  */
 public final class GPCrypto {
+    private static final SecureRandom rand = new SecureRandom();
      /**
      * Generates a random array of bytes
      * 
@@ -22,7 +23,6 @@ public final class GPCrypto {
      *      a random array of bytes, of length size
      */
     public static byte[] randomGen(int size){
-        SecureRandom rand = new SecureRandom();
         byte[] randBytes = new byte[size];
         rand.nextBytes(randBytes);
         return randBytes;
@@ -38,7 +38,6 @@ public final class GPCrypto {
      *      number of passes to make
      */
     public static void sanitize(byte[] array, int passCount){
-        SecureRandom rand = new SecureRandom();
         for(int i=0; i<passCount; i++){
             rand.nextBytes(array);
         }
@@ -55,15 +54,14 @@ public final class GPCrypto {
      * @throws Exception 
      */
     public static void sanitize(File input, int passCount) throws Exception{
-        SecureRandom rand = new SecureRandom();
-        FileOutputStream fos = new FileOutputStream(input);
+        final FileOutputStream fos = new FileOutputStream(input);
 
         if(input.length()>Math.pow(2,20)){
             FileInputStream fis = new FileInputStream(input);
             byte[] buffer = new byte[1024];
             int r;
             while((r=fis.read(buffer))>0){
-                //fos.write(,0,r);
+                fos.write(buffer,0,r);
             }
             fos.close();
             fis.close();
@@ -73,15 +71,5 @@ public final class GPCrypto {
             }
             fos.close();
         }
-    }
-    
-    /**
-     * Returns a SecureRandom object
-     * 
-     * @return 
-     *      a SecureRandom object
-     */
-    public static SecureRandom secRand(){
-        return new SecureRandom();
     }
 }
