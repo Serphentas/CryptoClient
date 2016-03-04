@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2016 Dreadlockyx
+ * Copyright (C) 2016 Serphentas
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,20 +29,26 @@ public class Main {
 
     public static void main(String args[]) throws Exception {
         // starting GUI
-        visual.LoginForm.main(null);
+        long time = System.nanoTime();
+        for (int i = 1; i < 8; i++) {
+            new Thread(new testConcurrent(i)).start();
+        }
+
+        System.out.println("Time taken: " + (System.nanoTime() - time) / 1e12 + "ms");
+        //visual.LoginForm.main(null);
         /*GCMCipher gcmc = new GCMCipher();
          //for(int i = 1; i <10000; i*=10){
-        //System.out.println("***"+Integer.toString(i)+"Mb***");
+         //System.out.println("***"+Integer.toString(i)+"Mb***");
 
-        //c.encrypt(f=new File("E:/test/"+Integer.toString(i)+"Mb"));
-        File f1 = new File("E:/test/test");
-        File f2 = new File("E:/test/1000Mb.encrypted");
-        System.out.println("Beginning encryption...");
-        gcmc.encrypt(f1);
-        System.out.println("Done in " + (System.nanoTime() - gcmc.time) / 1e6 + "ms with avg. speed of " + (f1.length() / ((System.nanoTime() - gcmc.time) / 1e9)) / (Math.pow(2, 20)) + " MiB/s");
-        System.out.println("Beginning decryption...");
-        gcmc.decrypt(f2);
-        System.out.println("Done in " + (System.nanoTime() - gcmc.time) / 1e6 + "ms with avg. speed of " + (f2.length() / ((System.nanoTime() - gcmc.time) / 1e9)) / (Math.pow(2, 20)) + " MiB/s");
-        */
+         //c.encrypt(f=new File("E:/test/"+Integer.toString(i)+"Mb"));
+         File f1 = new File("E:/test/test");
+         File f2 = new File("E:/test/1000Mb.encrypted");
+         System.out.println("Beginning encryption...");
+         gcmc.encrypt(f1);
+         System.out.println("Done in " + (System.nanoTime() - gcmc.time) / 1e6 + "ms with avg. speed of " + (f1.length() / ((System.nanoTime() - gcmc.time) / 1e9)) / (Math.pow(2, 20)) + " MiB/s");
+         System.out.println("Beginning decryption...");
+         gcmc.decrypt(f2);
+         System.out.println("Done in " + (System.nanoTime() - gcmc.time) / 1e6 + "ms with avg. speed of " + (f2.length() / ((System.nanoTime() - gcmc.time) / 1e9)) / (Math.pow(2, 20)) + " MiB/s");
+         */
     }
 }

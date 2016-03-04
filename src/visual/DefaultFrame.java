@@ -18,16 +18,10 @@ package visual;
 
 import internal.crypto.GCMCipher;
 import java.awt.event.WindowEvent;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.stage.FileChooser;
-import javax.swing.JFileChooser;
-import internal.file.FileHandler;
 import java.awt.FileDialog;
-import java.io.FileNotFoundException;
+import java.io.File;
 import javax.swing.UIManager;
 
 /**
@@ -63,11 +57,14 @@ public class DefaultFrame extends javax.swing.JFrame {
         errorDialog = new javax.swing.JDialog();
         errorDialogButton = new javax.swing.JButton();
         errorDialogLabel = new javax.swing.JLabel();
-        actionLog = new javax.swing.JScrollPane();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        jSeparator1 = new javax.swing.JSeparator();
+        jSeparator2 = new javax.swing.JSeparator();
+        jButton1 = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
         actionLogTextArea = new javax.swing.JTextArea();
-        encryptButton = new javax.swing.JButton();
-        decryptButton = new javax.swing.JButton();
-        actionLogLabel = new javax.swing.JLabel();
         menuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
         openButton = new javax.swing.JMenuItem();
@@ -138,28 +135,29 @@ public class DefaultFrame extends javax.swing.JFrame {
         setLocation(new java.awt.Point(100, 100));
         setMaximumSize(new java.awt.Dimension(400, 302));
         setResizable(false);
+        setSize(new java.awt.Dimension(940, 570));
 
-        actionLogTextArea.setEditable(false);
+        jLabel1.setText("Local");
+
+        jLabel2.setText("Remote");
+
+        jButton1.setText("jButton1");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        jButton2.setText("jButton2");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+
         actionLogTextArea.setColumns(20);
         actionLogTextArea.setRows(5);
-        actionLogTextArea.setFocusable(false);
-        actionLog.setViewportView(actionLogTextArea);
-
-        encryptButton.setText("Encrypt");
-        encryptButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                encryptButtonActionPerformed(evt);
-            }
-        });
-
-        decryptButton.setText("Decrypt");
-        decryptButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                decryptButtonActionPerformed(evt);
-            }
-        });
-
-        actionLogLabel.setText("Action log");
+        jScrollPane1.setViewportView(actionLogTextArea);
 
         fileMenu.setText("File");
 
@@ -222,35 +220,50 @@ public class DefaultFrame extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(actionLog)
-                        .addContainerGap())
+                        .addContainerGap()
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 401, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 38, Short.MAX_VALUE)
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, 391, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(encryptButton, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(decryptButton))
-                            .addComponent(actionLogLabel))
-                        .addGap(12, 345, Short.MAX_VALUE))))
+                                .addGap(215, 215, 215)
+                                .addComponent(jButton1)
+                                .addGap(78, 78, 78)
+                                .addComponent(jButton2))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(135, 135, 135)
+                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 658, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(90, 90, 90)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
-                    .addComponent(decryptButton)
-                    .addComponent(encryptButton))
-                .addGap(59, 59, 59)
-                .addComponent(actionLogLabel)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(actionLog, javax.swing.GroupLayout.PREFERRED_SIZE, 66, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel1)
+                        .addComponent(jLabel2))
+                    .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 261, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton1)
+                    .addComponent(jButton2))
+                .addGap(87, 87, 87)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(82, 82, 82))
         );
 
         pack();
+        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     private void exitButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitButtonActionPerformed
@@ -264,7 +277,27 @@ public class DefaultFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_openButtonActionPerformed
 
 
-    private void encryptButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_encryptButtonActionPerformed
+    private void benchmarkButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_benchmarkButtonActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_benchmarkButtonActionPerformed
+
+    private void errorDialogButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_errorDialogButtonActionPerformed
+        errorDialog.setVisible(false);
+    }//GEN-LAST:event_errorDialogButtonActionPerformed
+
+    private void errorDialogComponentShown(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_errorDialogComponentShown
+
+    }//GEN-LAST:event_errorDialogComponentShown
+
+    private void editMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editMenuActionPerformed
+
+    }//GEN-LAST:event_editMenuActionPerformed
+
+    private void preferencesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_preferencesButtonActionPerformed
+
+    }//GEN-LAST:event_preferencesButtonActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         try {
             if (fd.getFiles().length != 0) {
                 for (File f : fd.getFiles()) {
@@ -280,32 +313,19 @@ public class DefaultFrame extends javax.swing.JFrame {
                 errorDialogLabel.setText("No file specified");
             } else {
                 errorDialogLabel.setText("Unexpected error:\n");
-                actionLogTextArea.append(e.toString()+"\n");
+                actionLogTextArea.append(e.toString() + "\n");
             }
             errorDialog.setVisible(true);
         }
+    }//GEN-LAST:event_jButton1ActionPerformed
 
-    }//GEN-LAST:event_encryptButtonActionPerformed
-
-    private void benchmarkButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_benchmarkButtonActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_benchmarkButtonActionPerformed
-
-    private void errorDialogButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_errorDialogButtonActionPerformed
-        errorDialog.setVisible(false);
-    }//GEN-LAST:event_errorDialogButtonActionPerformed
-
-    private void errorDialogComponentShown(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_errorDialogComponentShown
-
-    }//GEN-LAST:event_errorDialogComponentShown
-
-    private void decryptButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_decryptButtonActionPerformed
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         try {
             if (fd.getFiles().length != 0) {
                 for (File f : fd.getFiles()) {
-                    if(f.getName().endsWith(".encrypted")){
+                    if (f.getName().endsWith(".encrypted")) {
                         gcmc.decrypt(f);
-                        actionLogTextArea.append("Done decrypting " + f.getName() + "\n");  
+                        actionLogTextArea.append("Done decrypting " + f.getName() + "\n");
                     } else {
                         errorDialogLabel.setText("Wrong encrypted file");
                         errorDialog.setVisible(true);
@@ -318,20 +338,12 @@ public class DefaultFrame extends javax.swing.JFrame {
             if (e instanceof NullPointerException) {
                 errorDialogLabel.setText("No file specified");
             } else {
-                actionLogTextArea.append(e.toString()+"\n");
+                actionLogTextArea.append(e.toString() + "\n");
                 errorDialogLabel.setText("Unexpected error");
             }
             errorDialog.setVisible(true);
         }
-    }//GEN-LAST:event_decryptButtonActionPerformed
-
-    private void editMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editMenuActionPerformed
-
-    }//GEN-LAST:event_editMenuActionPerformed
-
-    private void preferencesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_preferencesButtonActionPerformed
-
-    }//GEN-LAST:event_preferencesButtonActionPerformed
+    }//GEN-LAST:event_jButton2ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -374,13 +386,9 @@ public class DefaultFrame extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JScrollPane actionLog;
-    private javax.swing.JLabel actionLogLabel;
     private javax.swing.JTextArea actionLogTextArea;
     private javax.swing.JMenuItem benchmarkButton;
-    private javax.swing.JButton decryptButton;
     private javax.swing.JMenu editMenu;
-    private javax.swing.JButton encryptButton;
     private javax.swing.JDialog errorDialog;
     private javax.swing.JButton errorDialogButton;
     private javax.swing.JLabel errorDialogLabel;
@@ -388,6 +396,13 @@ public class DefaultFrame extends javax.swing.JFrame {
     private javax.swing.JFileChooser fileChooser;
     private javax.swing.JMenu fileMenu;
     private javax.swing.JMenu helpMenu;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JSeparator jSeparator2;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JMenuItem openButton;
     private javax.swing.JMenuItem preferencesButton;

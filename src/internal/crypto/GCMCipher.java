@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2016 Dreadlockyx
+ * Copyright (C) 2016 Serphentas
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
  * For more information on the encryption scheme, please check the
  * <a href="https://theswissbay.ch">documentation</a>.
  */
-public final class GCMCipher {
+public final class GCMCipher{
 
     // cryptographic constants
     private static final String CIPHER = "AES/GCM/NoPadding";
@@ -170,7 +170,7 @@ public final class GCMCipher {
         } else {
             this.fos.write(this.cipher.doFinal(Files.readAllBytes(this.input.toPath())));
         }
-        this.key.destroy();
+        //this.key.destroy();
     }
 
     /**

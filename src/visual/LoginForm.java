@@ -1,5 +1,5 @@
-/*
- * Copyright (C) 2016 Dreadlockyx
+/* 
+ * Copyright (C) 2016 Serphentas
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -152,7 +152,7 @@ public class LoginForm extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void loginButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginButtonActionPerformed
-        if(usernameField.getText().equals("asd") && passwordField.getText().equals("asd")){
+        if (usernameField.getText().equals("asd") && passwordField.getText().equals("asd")) {
             this.setVisible(false);
             DefaultFrame.main(null);
         } else {
@@ -165,7 +165,7 @@ public class LoginForm extends javax.swing.JFrame {
     }//GEN-LAST:event_errorFrameOKButtonActionPerformed
 
     private void passwordFieldKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_passwordFieldKeyPressed
-        if(evt.getKeyCode() == KeyEvent.VK_ENTER){
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
             loginButtonActionPerformed(null);
         }
     }//GEN-LAST:event_passwordFieldKeyPressed
