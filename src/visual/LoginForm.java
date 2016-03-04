@@ -158,6 +158,7 @@ public class LoginForm extends javax.swing.JFrame {
         } else {
             errorFrame.setVisible(true);
         }
+        
     }//GEN-LAST:event_loginButtonActionPerformed
 
     private void errorFrameOKButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_errorFrameOKButtonActionPerformed

@@ -14,26 +14,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package Main;
+package visual;
 
-import internal.crypto.GCMCipher;
-import java.io.File;
+import java.awt.TrayIcon;
+import javax.swing.JOptionPane;
+import javax.swing.UIManager;
 
-public class testConcurrent implements Runnable {
-    int i = 0;
-    
-    public testConcurrent(int i){
-        this.i=i;
-    }
+public final class ErrorHandler {
 
-    @Override
-    public void run() {
+    public void showError(Exception e) {
         try {
-            GCMCipher gcmc = new GCMCipher();
-            gcmc.encrypt(new File("H:/test"+i));           
-        } catch (Exception e) {
-            System.out.println(e);
+            javax.swing.UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e_ui) {
+            JOptionPane.showMessageDialog(null, "Error initializing UI style: "
+                    + e_ui.getMessage() + "\nPlease contact support.", "Error",
+                    TrayIcon.MessageType.ERROR.ordinal());
         }
-    }
+        JOptionPane.showMessageDialog(null, "Error: " + e.getMessage(),
+                "Error", TrayIcon.MessageType.ERROR.ordinal());
 
+    }
 }

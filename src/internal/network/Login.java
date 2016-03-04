@@ -16,6 +16,7 @@
  */
 package internal.network;
 
+import internal.crypto.GPCrypto;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -23,34 +24,30 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import javax.management.remote.JMXConnectorFactory;
 import javax.swing.JOptionPane;
 
-public class Client {
+public final class Login {
     private static final int SERVER_PORT = 440;
     private static final String SERVER_NAME = "localhost";
     private final String FILENAME = null;
-    Socket socket;
-    BufferedReader read;
-    PrintWriter output;
+    private Socket socket;
+    private BufferedReader read;
+    private PrintWriter output;
 
-    public void startClient() throws UnknownHostException, IOException{
+    public void connect(String username, String password) throws Exception{
         //Create socket connection
         socket = new Socket(SERVER_NAME, SERVER_PORT);
 
         //create printwriter for sending login to server
         output = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
 
-        //prompt for user name
-        String username = JOptionPane.showInputDialog(null, "Enter User Name:");
 
-        //send user name to server
+        //send username to server
         output.println(username);
 
-        //prompt for password
-        String password = JOptionPane.showInputDialog(null, "Enter Password");
-
         //send password to server
-        output.println(password);
+        output.println(GPCrypto.passHash(password));
         output.flush();
 
         //create Buffered reader for reading response from server
@@ -62,22 +59,5 @@ public class Client {
 
         //display response
         JOptionPane.showMessageDialog(null, response);
-    }
-
-    public void fileInfo(){
-
-    }
-
-    public static void main(String args[]){
-        Client client = new Client();
-        try {
-            client.startClient();
-        } catch (UnknownHostException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
     }
 }

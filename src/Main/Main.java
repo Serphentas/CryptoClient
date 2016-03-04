@@ -29,13 +29,13 @@ public class Main {
 
     public static void main(String args[]) throws Exception {
         // starting GUI
-        long time = System.nanoTime();
+        /*long time = System.nanoTime();
         for (int i = 1; i < 8; i++) {
             new Thread(new testConcurrent(i)).start();
         }
 
-        System.out.println("Time taken: " + (System.nanoTime() - time) / 1e12 + "ms");
-        //visual.LoginForm.main(null);
+        System.out.println("Time taken: " + (System.nanoTime() - time) / 1e12 + "ms");*/
+        visual.LoginForm.main(null);
         /*GCMCipher gcmc = new GCMCipher();
          //for(int i = 1; i <10000; i*=10){
          //System.out.println("***"+Integer.toString(i)+"Mb***");
