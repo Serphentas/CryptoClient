@@ -54,9 +54,6 @@ public class DefaultFrame extends javax.swing.JFrame {
     private void initComponents() {
 
         fileChooser = new javax.swing.JFileChooser();
-        errorDialog = new javax.swing.JDialog();
-        errorDialogButton = new javax.swing.JButton();
-        errorDialogLabel = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jSeparator1 = new javax.swing.JSeparator();
@@ -83,51 +80,6 @@ public class DefaultFrame extends javax.swing.JFrame {
         fileChooser.setFont(new java.awt.Font("Consolas", 0, 10)); // NOI18N
         fileChooser.setMinimumSize(new java.awt.Dimension(1024, 1024));
         fileChooser.setPreferredSize(new java.awt.Dimension(1024, 1024));
-
-        errorDialog.setTitle("Error");
-        errorDialog.setIconImage(null);
-        errorDialog.setLocation(new java.awt.Point(0, 0));
-        errorDialog.setResizable(false);
-        errorDialog.setSize(new java.awt.Dimension(200, 130));
-        errorDialog.addComponentListener(new java.awt.event.ComponentAdapter() {
-            public void componentShown(java.awt.event.ComponentEvent evt) {
-                errorDialogComponentShown(evt);
-            }
-        });
-
-        errorDialogButton.setText("OK");
-        errorDialogButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        errorDialogButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                errorDialogButtonActionPerformed(evt);
-            }
-        });
-
-        errorDialogLabel.setText("Error: no file selected");
-        errorDialogLabel.setToolTipText("");
-
-        javax.swing.GroupLayout errorDialogLayout = new javax.swing.GroupLayout(errorDialog.getContentPane());
-        errorDialog.getContentPane().setLayout(errorDialogLayout);
-        errorDialogLayout.setHorizontalGroup(
-            errorDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(errorDialogLayout.createSequentialGroup()
-                .addGap(77, 77, 77)
-                .addComponent(errorDialogButton)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, errorDialogLayout.createSequentialGroup()
-                .addContainerGap(53, Short.MAX_VALUE)
-                .addComponent(errorDialogLabel)
-                .addGap(49, 49, 49))
-        );
-        errorDialogLayout.setVerticalGroup(
-            errorDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(errorDialogLayout.createSequentialGroup()
-                .addContainerGap(43, Short.MAX_VALUE)
-                .addComponent(errorDialogLabel)
-                .addGap(18, 18, 18)
-                .addComponent(errorDialogButton)
-                .addGap(29, 29, 29))
-        );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("CryptoClient");
@@ -281,14 +233,6 @@ public class DefaultFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_benchmarkButtonActionPerformed
 
-    private void errorDialogButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_errorDialogButtonActionPerformed
-        errorDialog.setVisible(false);
-    }//GEN-LAST:event_errorDialogButtonActionPerformed
-
-    private void errorDialogComponentShown(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_errorDialogComponentShown
-
-    }//GEN-LAST:event_errorDialogComponentShown
-
     private void editMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editMenuActionPerformed
 
     }//GEN-LAST:event_editMenuActionPerformed
@@ -299,49 +243,35 @@ public class DefaultFrame extends javax.swing.JFrame {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         try {
-            if (fd.getFiles().length != 0) {
-                for (File f : fd.getFiles()) {
-                    gcmc.encrypt(f);
-                    actionLogTextArea.append("Done encrypting " + f.getName() + "\n");
-                }
-            } else {
-                errorDialogLabel.setText("No file specified");
-                errorDialog.setVisible(true);
+            for (File f : fd.getFiles()) {
+                gcmc.encrypt(f);
+                actionLogTextArea.append("Done encrypting " + f.getName() + "\n");
             }
         } catch (Exception e) {
             if (e instanceof NullPointerException) {
-                errorDialogLabel.setText("No file specified");
+                visual.ErrorHandler.showError("no file specified.");
             } else {
-                errorDialogLabel.setText("Unexpected error:\n");
-                actionLogTextArea.append(e.toString() + "\n");
+                visual.ErrorHandler.showError(e);
             }
-            errorDialog.setVisible(true);
         }
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         try {
-            if (fd.getFiles().length != 0) {
-                for (File f : fd.getFiles()) {
-                    if (f.getName().endsWith(".encrypted")) {
-                        gcmc.decrypt(f);
-                        actionLogTextArea.append("Done decrypting " + f.getName() + "\n");
-                    } else {
-                        errorDialogLabel.setText("Wrong encrypted file");
-                        errorDialog.setVisible(true);
-                    }
+            for (File f : fd.getFiles()) {
+                if (f.getName().endsWith(".encrypted")) {
+                    gcmc.decrypt(f);
+                    actionLogTextArea.append("Done decrypting " + f.getName() + "\n");
+                } else {
+                    visual.ErrorHandler.showError("wrong encrypted file.");
                 }
-            } else {
-                actionLogTextArea.setText("Error");
             }
         } catch (Exception e) {
             if (e instanceof NullPointerException) {
-                errorDialogLabel.setText("No file specified");
+                visual.ErrorHandler.showError("no file specified.");
             } else {
-                actionLogTextArea.append(e.toString() + "\n");
-                errorDialogLabel.setText("Unexpected error");
+                visual.ErrorHandler.showError(e);
             }
-            errorDialog.setVisible(true);
         }
     }//GEN-LAST:event_jButton2ActionPerformed
 
@@ -389,9 +319,6 @@ public class DefaultFrame extends javax.swing.JFrame {
     private javax.swing.JTextArea actionLogTextArea;
     private javax.swing.JMenuItem benchmarkButton;
     private javax.swing.JMenu editMenu;
-    private javax.swing.JDialog errorDialog;
-    private javax.swing.JButton errorDialogButton;
-    private javax.swing.JLabel errorDialogLabel;
     private javax.swing.JMenuItem exitButton;
     private javax.swing.JFileChooser fileChooser;
     private javax.swing.JMenu fileMenu;

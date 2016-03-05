@@ -22,7 +22,7 @@ import javax.swing.UIManager;
 
 public final class ErrorHandler {
 
-    public void showError(Exception e) {
+    public static void showError(Exception e) {
         try {
             javax.swing.UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e_ui) {
@@ -30,8 +30,20 @@ public final class ErrorHandler {
                     + e_ui.getMessage() + "\nPlease contact support.", "Error",
                     TrayIcon.MessageType.ERROR.ordinal());
         }
-        JOptionPane.showMessageDialog(null, "Error: " + e.getMessage(),
-                "Error", TrayIcon.MessageType.ERROR.ordinal());
+        JOptionPane.showMessageDialog(null, "Error: " + e.getMessage()
+                + "\nPlease contact support.", "Error", TrayIcon.MessageType.ERROR.ordinal());
 
+    }
+
+    public static void showError(String message) {
+        try {
+            javax.swing.UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e_ui) {
+            JOptionPane.showMessageDialog(null, "Error initializing UI style: "
+                    + e_ui.getMessage() + "\nPlease contact support.", "Error",
+                    TrayIcon.MessageType.ERROR.ordinal());
+        }
+        JOptionPane.showMessageDialog(null, "Error: " + message,
+                "Error", TrayIcon.MessageType.ERROR.ordinal());
     }
 }

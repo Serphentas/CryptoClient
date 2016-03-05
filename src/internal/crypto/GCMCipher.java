@@ -37,7 +37,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
  * For more information on the encryption scheme, please check the
  * <a href="https://theswissbay.ch">documentation</a>.
  */
-public final class GCMCipher{
+public final class GCMCipher {
 
     // cryptographic constants
     private static final String CIPHER = "AES/GCM/NoPadding";
@@ -74,13 +74,11 @@ public final class GCMCipher{
          suppresses the restriction over keys larger than 128 bits due to the
          JCE Unlimited Strength Jurisdiction Policy
          */
-        try {
-            Field field = Class.forName("javax.crypto.JceSecurity")
-                    .getDeclaredField("isRestricted");
-            field.setAccessible(true);
-            field.set(null, java.lang.Boolean.FALSE);
-        } catch (Exception e) {
-        }
+        Field field = Class.forName("javax.crypto.JceSecurity").
+                getDeclaredField("isRestricted");
+        field.setAccessible(true);
+        field.set(null, java.lang.Boolean.FALSE);
+
         // instantiating AES-256 w/ GCM from Bouncy Castle
         this.cipher = Cipher.getInstance(CIPHER, CRYPTO_PROVIDER);
     }

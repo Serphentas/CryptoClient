@@ -16,9 +16,12 @@
  */
 package visual;
 
+import internal.network.Login;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.scene.input.KeyCode;
 import javax.swing.UIManager;
 
@@ -45,48 +48,11 @@ public class LoginForm extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        errorFrame = new javax.swing.JFrame();
-        errorFrameOKButton = new javax.swing.JButton();
-        jLabel1 = new javax.swing.JLabel();
         usernameLabel = new javax.swing.JLabel();
         passwordLabel = new javax.swing.JLabel();
         passwordField = new javax.swing.JPasswordField();
         usernameField = new javax.swing.JFormattedTextField();
         loginButton = new javax.swing.JButton();
-
-        errorFrame.setLocationByPlatform(true);
-        errorFrame.setResizable(false);
-        errorFrame.setSize(new java.awt.Dimension(187, 115));
-
-        errorFrameOKButton.setText("OK");
-        errorFrameOKButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                errorFrameOKButtonActionPerformed(evt);
-            }
-        });
-
-        jLabel1.setText("Wrong login");
-
-        javax.swing.GroupLayout errorFrameLayout = new javax.swing.GroupLayout(errorFrame.getContentPane());
-        errorFrame.getContentPane().setLayout(errorFrameLayout);
-        errorFrameLayout.setHorizontalGroup(
-            errorFrameLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(errorFrameLayout.createSequentialGroup()
-                .addGap(62, 62, 62)
-                .addGroup(errorFrameLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(errorFrameOKButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(68, Short.MAX_VALUE))
-        );
-        errorFrameLayout.setVerticalGroup(
-            errorFrameLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, errorFrameLayout.createSequentialGroup()
-                .addContainerGap(25, Short.MAX_VALUE)
-                .addComponent(jLabel1)
-                .addGap(27, 27, 27)
-                .addComponent(errorFrameOKButton)
-                .addGap(23, 23, 23))
-        );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
@@ -140,7 +106,7 @@ public class LoginForm extends javax.swing.JFrame {
                     .addComponent(usernameLabel)
                     .addComponent(usernameField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(20, 20, 20)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(passwordLabel)
                     .addComponent(passwordField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -152,18 +118,18 @@ public class LoginForm extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void loginButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginButtonActionPerformed
-        if (usernameField.getText().equals("asd") && passwordField.getText().equals("asd")) {
-            this.setVisible(false);
-            DefaultFrame.main(null);
-        } else {
-            errorFrame.setVisible(true);
+        try {
+            if (Login.connect(usernameField.getText(), passwordField.getText()) == 1) {
+                this.dispose();
+                DefaultFrame.main(null);
+            } else {
+                visual.ErrorHandler.showError("Wrong login");
+            }
+        } catch (Exception e) {
+            visual.ErrorHandler.showError(e);
         }
-        
-    }//GEN-LAST:event_loginButtonActionPerformed
 
-    private void errorFrameOKButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_errorFrameOKButtonActionPerformed
-        errorFrame.setVisible(false);
-    }//GEN-LAST:event_errorFrameOKButtonActionPerformed
+    }//GEN-LAST:event_loginButtonActionPerformed
 
     private void passwordFieldKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_passwordFieldKeyPressed
         if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
@@ -207,9 +173,6 @@ public class LoginForm extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JFrame errorFrame;
-    private javax.swing.JButton errorFrameOKButton;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JButton loginButton;
     private javax.swing.JPasswordField passwordField;
     private javax.swing.JLabel passwordLabel;

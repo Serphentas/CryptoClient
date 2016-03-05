@@ -18,46 +18,41 @@ package internal.network;
 
 import internal.crypto.GPCrypto;
 import java.io.BufferedReader;
-import java.io.IOException;
+import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.net.UnknownHostException;
-import javax.management.remote.JMXConnectorFactory;
+import java.util.Arrays;
 import javax.swing.JOptionPane;
 
 public final class Login {
+
     private static final int SERVER_PORT = 440;
     private static final String SERVER_NAME = "localhost";
     private final String FILENAME = null;
-    private Socket socket;
-    private BufferedReader read;
-    private PrintWriter output;
+    private static Socket socket;
+    private static BufferedReader read;
+    private static DataOutputStream output;
 
-    public void connect(String username, String password) throws Exception{
+    public static int connect(String username, String password) throws Exception {
         //Create socket connection
         socket = new Socket(SERVER_NAME, SERVER_PORT);
 
         //create printwriter for sending login to server
-        output = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
-
+        output = new DataOutputStream(socket.getOutputStream());
 
         //send username to server
-        output.println(username);
+        output.writeBytes(username);
 
         //send password to server
-        output.println(GPCrypto.passHash(password));
+        output.write(GPCrypto.passHash(password));
         output.flush();
 
         //create Buffered reader for reading response from server
         read = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-        //read response from server
-        String response = read.readLine();
-        System.out.println("Server says: " + response);
-
         //display response
-        JOptionPane.showMessageDialog(null, response);
+        return Integer.parseInt(read.readLine());
     }
 }
