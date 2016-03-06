@@ -43,7 +43,7 @@ public final class Login {
         output = new DataOutputStream(socket.getOutputStream());
 
         //send username to server
-        output.writeBytes(username);
+        output.write(username.getBytes("UTF-8"));
 
         //send password to server
         output.write(GPCrypto.passHash(password));

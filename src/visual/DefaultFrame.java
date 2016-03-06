@@ -242,15 +242,15 @@ public class DefaultFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_preferencesButtonActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        try {
-            for (File f : fd.getFiles()) {
-                gcmc.encrypt(f);
-                actionLogTextArea.append("Done encrypting " + f.getName() + "\n");
-            }
-        } catch (Exception e) {
-            if (e instanceof NullPointerException) {
-                visual.ErrorHandler.showError("no file specified.");
-            } else {
+        if (fd == null) {
+            visual.ErrorHandler.showError("no file specified.");
+        } else {
+            try {
+                for (File f : fd.getFiles()) {
+                    gcmc.encrypt(f);
+                    actionLogTextArea.append("Done encrypting " + f.getName() + "\n");
+                }
+            } catch (Exception e) {
                 visual.ErrorHandler.showError(e);
             }
         }

@@ -30,7 +30,7 @@ public class testConcurrent implements Runnable {
     public void run() {
         try {
             GCMCipher gcmc = new GCMCipher();
-            gcmc.encrypt(new File("H:/test"+i));           
+            gcmc.encrypt(new File("E:/test/test"+i));           
         } catch (Exception e) {
             System.out.println(e);
         }

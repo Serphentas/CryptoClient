@@ -37,7 +37,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
  * For more information on the encryption scheme, please check the
  * <a href="https://theswissbay.ch">documentation</a>.
  */
-public final class GCMCipher {
+public final class GCMCipher implements Runnable{
 
     // cryptographic constants
     private static final String CIPHER = "AES/GCM/NoPadding";
@@ -109,6 +109,10 @@ public final class GCMCipher {
 
         // finishing the encryption job
         finishJob();
+    }
+    
+    public final void encrypt(File[] input) throws Exception{
+        
     }
 
     /**
@@ -199,5 +203,10 @@ public final class GCMCipher {
         this.fos.write(this.nonce);
         this.fos = new FileOutputStream(keyf.getPath());
         this.fos.write(this.key.getEncoded());
+    }
+
+    @Override
+    public void run() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

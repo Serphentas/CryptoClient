@@ -18,11 +18,6 @@ package visual;
 
 import internal.network.Login;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.WindowEvent;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javafx.scene.input.KeyCode;
 import javax.swing.UIManager;
 
 /**
@@ -55,6 +50,7 @@ public class LoginForm extends javax.swing.JFrame {
         loginButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Login");
         setResizable(false);
         setSize(new java.awt.Dimension(380, 250));
 
@@ -123,7 +119,7 @@ public class LoginForm extends javax.swing.JFrame {
                 this.dispose();
                 DefaultFrame.main(null);
             } else {
-                visual.ErrorHandler.showError("Wrong login");
+                visual.ErrorHandler.showError("Wrong login, please check your credentials.");
             }
         } catch (Exception e) {
             visual.ErrorHandler.showError(e);
