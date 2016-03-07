@@ -14,26 +14,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package Main;
+package internal;
 
-import visual.DefaultFrame;
+public final class Settings {
 
-/**
- * Main method
- * <p>
- * Sets up the GUI, so that the user can login in and start using the cloud.
- */
-public class Main {
+    private static boolean parallelCrypto = false;
+    private static int parallelCryptoThreads = 2;
 
-    public static void main(String args[]) throws Exception {
-        // starting GUI
-        /*long time = System.nanoTime();
-         File[] dasd = new File[8];
-         for (int i = 1; i < 8; i++) {
-         dasd[i-1]=new File("E:/test/test"+i);
-         }
-         GCMParallel.encrypt(dasd);
-         System.out.println("Time taken: " + (System.nanoTime() - time) / 1e12 + "ms");*/
-        DefaultFrame.main(null);
+    public static boolean isParallelCrypto() {
+        return parallelCrypto;
     }
+
+    public static void setParallelCrypto(boolean newParallelCrypto) {
+        parallelCrypto = newParallelCrypto;
+    }
+
+    public static int getParallelCryptoThreads() {
+        return parallelCryptoThreads;
+    }
+
+    public static void setParallelCryptoThreads(int newParallelCryptoThreads) {
+        parallelCryptoThreads = newParallelCryptoThreads;
+    }
+
 }

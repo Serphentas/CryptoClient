@@ -14,23 +14,41 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package Main;
+package internal.crypto;
 
-import internal.crypto.GCMCipher;
 import java.io.File;
 
-public class testConcurrent implements Runnable {
-    int i = 0;
-    
-    public testConcurrent(int i){
-        this.i=i;
+public class GCMParallel implements Runnable {
+
+    private final File input;
+    private final int mode;
+
+    private GCMParallel(File input, int mode) {
+        this.input = input;
+        this.mode = mode;
+    }
+
+    public static void encryptParallel(File[] input) {
+        for (File f : input) {
+            new Thread(new GCMParallel(f, 0)).start();
+        }
+    }
+
+    public static void decryptParallel(File[] input) {
+        for (File f : input) {
+            new Thread(new GCMParallel(f, 1)).start();
+        }
     }
 
     @Override
     public void run() {
         try {
             GCMCipher gcmc = new GCMCipher();
-            gcmc.encrypt(new File("E:/test/test"+i));           
+            if (mode == 0) {
+                gcmc.encrypt(input);
+            } else {
+                gcmc.decrypt(input);
+            }
         } catch (Exception e) {
             System.out.println(e);
         }

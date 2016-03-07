@@ -23,6 +23,8 @@ import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.security.SecureRandom;
 import java.security.Security;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.KeyGenerator;
@@ -37,7 +39,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
  * For more information on the encryption scheme, please check the
  * <a href="https://theswissbay.ch">documentation</a>.
  */
-public final class GCMCipher implements Runnable{
+public final class GCMCipher {
 
     // cryptographic constants
     private static final String CIPHER = "AES/GCM/NoPadding";
@@ -50,8 +52,8 @@ public final class GCMCipher implements Runnable{
      private static final int SALT_BYTES = CIPHER_KEY_BITS / 8;*/
     private static final int BUFFER_SIZE = 1024;
 
-    private static final SecureRandom rand = new SecureRandom();
-    private static final byte[] buffer = new byte[BUFFER_SIZE];
+    private final SecureRandom rand = new SecureRandom();
+    private final byte[] buffer = new byte[BUFFER_SIZE];
     private final Cipher cipher;
     private byte[] nonce = null;
     private SecretKey key = null;
@@ -70,6 +72,7 @@ public final class GCMCipher implements Runnable{
     public GCMCipher() throws Exception {
         // add Bouncy Castle as cryptographic provider
         Security.addProvider(new BouncyCastleProvider());
+
         /*
          suppresses the restriction over keys larger than 128 bits due to the
          JCE Unlimited Strength Jurisdiction Policy
@@ -89,7 +92,7 @@ public final class GCMCipher implements Runnable{
      * @param input file to be encrypted
      * @throws Exception
      */
-    public final void encrypt(File input) throws Exception {
+    public void encrypt(File input) throws Exception {
         /*
          setting the input file so that the finishJob method will be able to
          encrypt the current file (and not one that has been set by a
@@ -110,18 +113,22 @@ public final class GCMCipher implements Runnable{
         // finishing the encryption job
         finishJob();
     }
-    
-    public final void encrypt(File[] input) throws Exception{
-        
-    }
 
+    /*public final void encrypt(File[] input) throws Exception {
+     for (File fasd : input) {
+     new Thread() {
+     GCMCipher gcmc = new GCMCipher();
+     gcmc.encrypt();
+     };
+     }
+     }*/
     /**
      * Decrypts a given file with AES-256 in GCM mode of operation
      *
      * @param input file to be decrypted
      * @throws Exception
      */
-    public final void decrypt(File input) throws Exception {
+    public void decrypt(File input) throws Exception {
         /*
          setting the input file so that the finishJob method will be able to
          decrypt the current file (and not one that has been set by a
@@ -166,12 +173,12 @@ public final class GCMCipher implements Runnable{
             while ((r = this.cis.read(buffer)) > 0) {
                 this.fos.write(buffer, 0, r);
             }
-            GPCrypto.sanitize(nonce, 1000);
+            //GPCrypto.sanitize(nonce, 1000);
             this.cis.close();
-            this.fos.close();
         } else {
             this.fos.write(this.cipher.doFinal(Files.readAllBytes(this.input.toPath())));
         }
+        this.fos.close();
         //this.key.destroy();
     }
 
@@ -183,7 +190,7 @@ public final class GCMCipher implements Runnable{
      */
     private SecretKey keyGen() throws Exception {
         KeyGenerator keygen = KeyGenerator.getInstance("AES", "BC");
-        keygen.init(CIPHER_KEY_BITS, rand);
+        keygen.init(CIPHER_KEY_BITS, GPCrypto.getRNG());
         return keygen.generateKey();
     }
 
@@ -203,10 +210,5 @@ public final class GCMCipher implements Runnable{
         this.fos.write(this.nonce);
         this.fos = new FileOutputStream(keyf.getPath());
         this.fos.write(this.key.getEncoded());
-    }
-
-    @Override
-    public void run() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

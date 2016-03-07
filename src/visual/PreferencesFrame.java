@@ -16,6 +16,7 @@
  */
 package visual;
 
+import javax.swing.JComboBox;
 import javax.swing.UIManager;
 
 /**
@@ -24,11 +25,18 @@ import javax.swing.UIManager;
  */
 public class PreferencesFrame extends javax.swing.JFrame {
 
+    private int defaultParallelCryptoThreadsCount = internal.Settings.getParallelCryptoThreads();
+    private boolean defaultIsParallelCrypto = internal.Settings.isParallelCrypto();
+
+    private int newParallelCryptoThreadsCount;
+    private boolean newIsParallelCrypto;
+
     /**
      * Creates new form PreferencesFrame
      */
     public PreferencesFrame() {
         initComponents();
+        setLocationRelativeTo(null);
     }
 
     /**
@@ -44,45 +52,121 @@ public class PreferencesFrame extends javax.swing.JFrame {
         cancelButton = new javax.swing.JButton();
         OKButton = new javax.swing.JButton();
         jTabbedPane1 = new javax.swing.JTabbedPane();
-        generalSettingsPane = new javax.swing.JPanel();
-        jPanel2 = new javax.swing.JPanel();
+        generalSettingsPanel = new javax.swing.JPanel();
+        networkSettingsPanel = new javax.swing.JPanel();
+        securitySettingsPannel = new javax.swing.JPanel();
+        parallelCryptoChoiceLabel = new javax.swing.JLabel();
+        parallelCryptoChoiceMenu = new javax.swing.JComboBox();
+        parallelCryptoThreadsLabel = new javax.swing.JLabel();
+        parallelCryptoThreadsMenu = new javax.swing.JComboBox();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Preferences");
         setResizable(false);
         setSize(new java.awt.Dimension(570, 440));
 
         applyButton.setText("Apply");
+        applyButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                applyButtonActionPerformed(evt);
+            }
+        });
 
         cancelButton.setText("Cancel");
+        cancelButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cancelButtonActionPerformed(evt);
+            }
+        });
 
         OKButton.setText("OK");
+        OKButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                OKButtonActionPerformed(evt);
+            }
+        });
 
-        javax.swing.GroupLayout generalSettingsPaneLayout = new javax.swing.GroupLayout(generalSettingsPane);
-        generalSettingsPane.setLayout(generalSettingsPaneLayout);
-        generalSettingsPaneLayout.setHorizontalGroup(
-            generalSettingsPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        javax.swing.GroupLayout generalSettingsPanelLayout = new javax.swing.GroupLayout(generalSettingsPanel);
+        generalSettingsPanel.setLayout(generalSettingsPanelLayout);
+        generalSettingsPanelLayout.setHorizontalGroup(
+            generalSettingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 585, Short.MAX_VALUE)
         );
-        generalSettingsPaneLayout.setVerticalGroup(
-            generalSettingsPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        generalSettingsPanelLayout.setVerticalGroup(
+            generalSettingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 400, Short.MAX_VALUE)
         );
 
-        jTabbedPane1.addTab("General", generalSettingsPane);
+        jTabbedPane1.addTab("General", generalSettingsPanel);
 
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        javax.swing.GroupLayout networkSettingsPanelLayout = new javax.swing.GroupLayout(networkSettingsPanel);
+        networkSettingsPanel.setLayout(networkSettingsPanelLayout);
+        networkSettingsPanelLayout.setHorizontalGroup(
+            networkSettingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 585, Short.MAX_VALUE)
         );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        networkSettingsPanelLayout.setVerticalGroup(
+            networkSettingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 400, Short.MAX_VALUE)
         );
 
-        jTabbedPane1.addTab("Network", jPanel2);
+        jTabbedPane1.addTab("Network", networkSettingsPanel);
+
+        parallelCryptoChoiceLabel.setText("Parallelized encryption/decryption");
+
+        parallelCryptoChoiceMenu.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Yes", "No" }));
+        parallelCryptoChoiceMenu.setSelectedIndex(1);
+        parallelCryptoChoiceMenu.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                parallelCryptoChoiceMenuActionPerformed(evt);
+            }
+        });
+        parallelCryptoChoiceMenu.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                parallelCryptoChoiceMenuPropertyChange(evt);
+            }
+        });
+
+        parallelCryptoThreadsLabel.setText("Parallel thread count");
+
+        parallelCryptoThreadsMenu.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "1", "2", "3", "4", "5", "6" }));
+        parallelCryptoThreadsMenu.setSelectedIndex(1);
+        parallelCryptoThreadsMenu.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                parallelCryptoThreadsMenuActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout securitySettingsPannelLayout = new javax.swing.GroupLayout(securitySettingsPannel);
+        securitySettingsPannel.setLayout(securitySettingsPannelLayout);
+        securitySettingsPannelLayout.setHorizontalGroup(
+            securitySettingsPannelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(securitySettingsPannelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(securitySettingsPannelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(parallelCryptoChoiceLabel)
+                    .addComponent(parallelCryptoThreadsLabel))
+                .addGap(24, 24, 24)
+                .addGroup(securitySettingsPannelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(parallelCryptoThreadsMenu, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(parallelCryptoChoiceMenu, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(339, Short.MAX_VALUE))
+        );
+        securitySettingsPannelLayout.setVerticalGroup(
+            securitySettingsPannelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(securitySettingsPannelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(securitySettingsPannelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(parallelCryptoChoiceLabel)
+                    .addComponent(parallelCryptoChoiceMenu, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(securitySettingsPannelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(parallelCryptoThreadsLabel)
+                    .addComponent(parallelCryptoThreadsMenu, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(334, Short.MAX_VALUE))
+        );
+
+        jTabbedPane1.addTab("Security", securitySettingsPannel);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -116,6 +200,34 @@ public class PreferencesFrame extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void parallelCryptoChoiceMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_parallelCryptoChoiceMenuActionPerformed
+        newIsParallelCrypto = parallelCryptoChoiceMenu.getSelectedItem().toString().equals("Yes");
+    }//GEN-LAST:event_parallelCryptoChoiceMenuActionPerformed
+
+    private void parallelCryptoChoiceMenuPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_parallelCryptoChoiceMenuPropertyChange
+
+    }//GEN-LAST:event_parallelCryptoChoiceMenuPropertyChange
+
+    private void OKButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_OKButtonActionPerformed
+        // setting new values
+        internal.Settings.setParallelCrypto(newIsParallelCrypto);
+        internal.Settings.setParallelCryptoThreads(newParallelCryptoThreadsCount);
+        this.dispose();
+    }//GEN-LAST:event_OKButtonActionPerformed
+
+    private void parallelCryptoThreadsMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_parallelCryptoThreadsMenuActionPerformed
+        newParallelCryptoThreadsCount = Integer.parseInt(parallelCryptoThreadsMenu.getSelectedItem().toString());
+    }//GEN-LAST:event_parallelCryptoThreadsMenuActionPerformed
+
+    private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
+        this.dispose();
+    }//GEN-LAST:event_cancelButtonActionPerformed
+
+    private void applyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_applyButtonActionPerformed
+        internal.Settings.setParallelCrypto(newIsParallelCrypto);
+        internal.Settings.setParallelCryptoThreads(newParallelCryptoThreadsCount);
+    }//GEN-LAST:event_applyButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -156,8 +268,13 @@ public class PreferencesFrame extends javax.swing.JFrame {
     private javax.swing.JButton OKButton;
     private javax.swing.JButton applyButton;
     private javax.swing.JButton cancelButton;
-    private javax.swing.JPanel generalSettingsPane;
-    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel generalSettingsPanel;
     private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JPanel networkSettingsPanel;
+    private javax.swing.JLabel parallelCryptoChoiceLabel;
+    private javax.swing.JComboBox parallelCryptoChoiceMenu;
+    private javax.swing.JLabel parallelCryptoThreadsLabel;
+    private javax.swing.JComboBox parallelCryptoThreadsMenu;
+    private javax.swing.JPanel securitySettingsPannel;
     // End of variables declaration//GEN-END:variables
 }

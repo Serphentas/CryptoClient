@@ -17,6 +17,7 @@
 package visual;
 
 import internal.crypto.GCMCipher;
+import internal.crypto.GCMParallel;
 import java.awt.event.WindowEvent;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -39,9 +40,9 @@ public class DefaultFrame extends javax.swing.JFrame {
      * @throws java.lang.Exception
      */
     public DefaultFrame() throws Exception {
-        gcmc = new GCMCipher();
         initComponents();
         setLocationRelativeTo(null);
+        gcmc = new GCMCipher();
     }
 
     /**
@@ -88,6 +89,11 @@ public class DefaultFrame extends javax.swing.JFrame {
         setMaximumSize(new java.awt.Dimension(400, 302));
         setResizable(false);
         setSize(new java.awt.Dimension(940, 570));
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosed(java.awt.event.WindowEvent evt) {
+                formWindowClosed(evt);
+            }
+        });
 
         jLabel1.setText("Local");
 
@@ -238,7 +244,7 @@ public class DefaultFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_editMenuActionPerformed
 
     private void preferencesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_preferencesButtonActionPerformed
-
+        PreferencesFrame.main(null);
     }//GEN-LAST:event_preferencesButtonActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
@@ -246,9 +252,12 @@ public class DefaultFrame extends javax.swing.JFrame {
             visual.ErrorHandler.showError("no file specified.");
         } else {
             try {
-                for (File f : fd.getFiles()) {
-                    gcmc.encrypt(f);
-                    actionLogTextArea.append("Done encrypting " + f.getName() + "\n");
+                if (internal.Settings.isParallelCrypto()) {
+                    GCMParallel.encryptParallel(fd.getFiles());
+                } else {
+                    for (File f : fd.getFiles()) {
+                        gcmc.encrypt(f);
+                    }
                 }
             } catch (Exception e) {
                 visual.ErrorHandler.showError(e);
@@ -257,23 +266,26 @@ public class DefaultFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        try {
-            for (File f : fd.getFiles()) {
-                if (f.getName().endsWith(".encrypted")) {
-                    gcmc.decrypt(f);
-                    actionLogTextArea.append("Done decrypting " + f.getName() + "\n");
+        if (fd == null) {
+            visual.ErrorHandler.showError("no file specified.");
+        } else {
+            try {
+                if (internal.Settings.isParallelCrypto()) {
+                    GCMParallel.decryptParallel(fd.getFiles());
                 } else {
-                    visual.ErrorHandler.showError("wrong encrypted file.");
+                    for (File f : fd.getFiles()) {
+                        gcmc.decrypt(f);
+                    }
                 }
-            }
-        } catch (Exception e) {
-            if (e instanceof NullPointerException) {
-                visual.ErrorHandler.showError("no file specified.");
-            } else {
+            } catch (Exception e) {
                 visual.ErrorHandler.showError(e);
             }
         }
     }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
+        this.exitButtonActionPerformed(null);
+    }//GEN-LAST:event_formWindowClosed
 
     /**
      * @param args the command line arguments

@@ -87,8 +87,25 @@ public final class GPCrypto {
         }
     }
 
+    /**
+     * Hashes a give password with SHA384 from Bouncy Castle
+     * @param password
+     *      password to hash
+     * @return
+     *      hashed password
+     * @throws Exception 
+     */
     public static byte[] passHash(String password) throws Exception{
         MessageDigest md = MessageDigest.getInstance("SHA384", "BC");
         return md.digest(password.getBytes());
+    }
+    
+    /**
+     * Returns a SecureRandom RNG
+     * @return 
+     *      SecureRandom RNG
+     */
+    public static SecureRandom getRNG(){
+        return new SecureRandom();
     }
 }
