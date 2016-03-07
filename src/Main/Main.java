@@ -28,11 +28,6 @@ public class Main {
     public static void main(String args[]) throws Exception {
         // starting GUI
         /*long time = System.nanoTime();
-         File[] dasd = new File[8];
-         for (int i = 1; i < 8; i++) {
-         dasd[i-1]=new File("E:/test/test"+i);
-         }
-         GCMParallel.encrypt(dasd);
          System.out.println("Time taken: " + (System.nanoTime() - time) / 1e12 + "ms");*/
         DefaultFrame.main(null);
     }

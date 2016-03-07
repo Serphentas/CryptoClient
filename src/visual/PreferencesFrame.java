@@ -116,6 +116,7 @@ public class PreferencesFrame extends javax.swing.JFrame {
 
         parallelCryptoChoiceMenu.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Yes", "No" }));
         parallelCryptoChoiceMenu.setSelectedIndex(1);
+        parallelCryptoChoiceMenu.setToolTipText("Warning: uses a lot of memory !");
         parallelCryptoChoiceMenu.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 parallelCryptoChoiceMenuActionPerformed(evt);
@@ -257,10 +258,8 @@ public class PreferencesFrame extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new PreferencesFrame().setVisible(true);
-            }
+        java.awt.EventQueue.invokeLater(() -> {
+            new PreferencesFrame().setVisible(true);
         });
     }
 

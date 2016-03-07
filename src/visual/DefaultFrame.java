@@ -146,6 +146,7 @@ public class DefaultFrame extends javax.swing.JFrame {
             }
         });
 
+        preferencesButton.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_P, java.awt.event.InputEvent.CTRL_MASK));
         preferencesButton.setText("Preferences");
         preferencesButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -316,13 +317,11 @@ public class DefaultFrame extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                try {
-                    new DefaultFrame().setVisible(true);
-                } catch (Exception ex) {
-                    Logger.getLogger(DefaultFrame.class.getName()).log(Level.SEVERE, null, ex);
-                }
+        java.awt.EventQueue.invokeLater(() -> {
+            try {
+                new DefaultFrame().setVisible(true);
+            } catch (Exception ex) {
+                Logger.getLogger(DefaultFrame.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
     }

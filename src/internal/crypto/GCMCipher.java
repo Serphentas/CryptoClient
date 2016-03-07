@@ -21,10 +21,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
-import java.security.SecureRandom;
 import java.security.Security;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.KeyGenerator;
@@ -52,7 +49,6 @@ public final class GCMCipher {
      private static final int SALT_BYTES = CIPHER_KEY_BITS / 8;*/
     private static final int BUFFER_SIZE = 1024;
 
-    private final SecureRandom rand = new SecureRandom();
     private final byte[] buffer = new byte[BUFFER_SIZE];
     private final Cipher cipher;
     private byte[] nonce = null;
@@ -114,14 +110,6 @@ public final class GCMCipher {
         finishJob();
     }
 
-    /*public final void encrypt(File[] input) throws Exception {
-     for (File fasd : input) {
-     new Thread() {
-     GCMCipher gcmc = new GCMCipher();
-     gcmc.encrypt();
-     };
-     }
-     }*/
     /**
      * Decrypts a given file with AES-256 in GCM mode of operation
      *

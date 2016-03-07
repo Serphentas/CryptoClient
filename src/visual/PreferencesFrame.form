@@ -194,6 +194,7 @@
                   </StringArray>
                 </Property>
                 <Property name="selectedIndex" type="int" value="1"/>
+                <Property name="toolTipText" type="java.lang.String" value="Warning: uses a lot of memory !"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="parallelCryptoChoiceMenuActionPerformed"/>

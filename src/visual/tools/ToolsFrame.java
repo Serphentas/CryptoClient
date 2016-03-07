@@ -47,7 +47,7 @@ public class ToolsFrame extends javax.swing.JFrame {
         jButton1 = new javax.swing.JButton();
         jLabel2 = new javax.swing.JLabel();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setResizable(false);
         setSize(new java.awt.Dimension(400, 300));
 
@@ -57,6 +57,8 @@ public class ToolsFrame extends javax.swing.JFrame {
 
         jLabel1.setText("File sanitizer");
 
+        jFileChooser1.setDialogType(javax.swing.JFileChooser.CUSTOM_DIALOG);
+        jFileChooser1.setApproveButtonText("Sanitize");
         jFileChooser1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jFileChooser1ActionPerformed(evt);
