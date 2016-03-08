@@ -14,21 +14,28 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package Main;
-
+import java.security.Security;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import visual.DefaultFrame;
 
 /**
  * Main method
- * <p>
- * Sets up the GUI, so that the user can login in and start using the cloud.
  */
 public class Main {
 
+    /**
+     * Sets up the GUI, so that the user can login in and start using the cloud.
+     * <p>
+     * Also adds Bouncy Castle as provider.
+     *
+     * @param args
+     * @throws Exception
+     */
     public static void main(String args[]) throws Exception {
+        // adding Bouncy Castle as provider
+        Security.addProvider(new BouncyCastleProvider());
+
         // starting GUI
-        /*long time = System.nanoTime();
-         System.out.println("Time taken: " + (System.nanoTime() - time) / 1e12 + "ms");*/
         DefaultFrame.main(null);
     }
 }

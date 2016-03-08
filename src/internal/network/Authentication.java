@@ -17,38 +17,40 @@
 package internal.network;
 
 import internal.crypto.GPCrypto;
-import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.InputStreamReader;
 import java.net.Socket;
 
-public final class Login {
+public final class Authentication {
 
     private static final int SERVER_PORT = 440;
     private static final String SERVER_NAME = "localhost";
-    private final String FILENAME = null;
     private static Socket socket;
-    private static BufferedReader read;
+    private static DataInputStream input;
     private static DataOutputStream output;
 
-    public static int connect(String username, String password) throws Exception {
-        //Create socket connection
+    public static int login(String username, String password) throws Exception {
+        // opening socket
         socket = new Socket(SERVER_NAME, SERVER_PORT);
+        System.out.println("Connected to " + socket.getRemoteSocketAddress());
 
-        //create printwriter for sending login to server
+        // opening I/O streams
         output = new DataOutputStream(socket.getOutputStream());
+        input = new DataInputStream(socket.getInputStream());
 
-        //send username to server
-        output.write(username.getBytes("UTF-8"));
-
-        //send password to server
+        // sending credentials
+        System.out.print("Logging in... ");
+        output.write(GPCrypto.passHash(username));
         output.write(GPCrypto.passHash(password));
         output.flush();
 
-        //create Buffered reader for reading response from server
-        read = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-        //display response
-        return Integer.parseInt(read.readLine());
+        // returning response
+        if (input.readInt() == 1) {
+            System.out.print("success.\n");
+            return 1;
+        } else {
+            System.out.print("failure.\n");
+            return 0;
+        }
     }
 }

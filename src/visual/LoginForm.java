@@ -16,7 +16,7 @@
  */
 package visual;
 
-import internal.network.Login;
+import internal.network.Authentication;
 import java.awt.event.KeyEvent;
 import javax.swing.UIManager;
 
@@ -115,7 +115,7 @@ public class LoginForm extends javax.swing.JFrame {
 
     private void loginButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginButtonActionPerformed
         try {
-            if (Login.connect(usernameField.getText(), passwordField.getText()) == 1) {
+            if (Authentication.login(usernameField.toString(), passwordField.toString()) == 1) {
                 this.dispose();
                 DefaultFrame.main(null);
             } else {

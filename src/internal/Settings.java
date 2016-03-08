@@ -36,5 +36,4 @@ public final class Settings {
     public static void setParallelCryptoThreads(int newParallelCryptoThreads) {
         parallelCryptoThreads = newParallelCryptoThreads;
     }
-
 }

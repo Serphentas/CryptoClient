@@ -21,6 +21,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
+import java.security.SecureRandom;
 import java.security.Security;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -66,9 +67,6 @@ public final class GCMCipher {
      * @throws Exception
      */
     public GCMCipher() throws Exception {
-        // add Bouncy Castle as cryptographic provider
-        Security.addProvider(new BouncyCastleProvider());
-
         /*
          suppresses the restriction over keys larger than 128 bits due to the
          JCE Unlimited Strength Jurisdiction Policy
@@ -95,12 +93,15 @@ public final class GCMCipher {
          previous operation)
          */
         this.input = input;
+
         // generating nonce & key and storing them
         this.nonce = GPCrypto.randomGen(GCM_NONCE_BYTES);
         this.key = keyGen();
         storeNonceAndKey();
+
         // cipher initialization
         this.cipher.init(Cipher.ENCRYPT_MODE, this.key, new GCMParameterSpec(GCM_TAG_BITS, nonce, 0, GCM_NONCE_BYTES));
+
         // output file creation
         this.output = new File(input.getPath() + ".encrypted");
         this.output.createNewFile();
@@ -123,21 +124,25 @@ public final class GCMCipher {
          previous operation)
          */
         this.input = input;
+
         // read key and nonce
         this.nonce = Files.readAllBytes(new File(input.getPath().substring(0,
                 input.getPath().length() - 10) + ".nonce").toPath());
         final File keyFile = new File(input.getPath().substring(0,
                 input.getPath().length() - 10) + ".key");
         this.key = new SecretKeySpec(Files.readAllBytes(keyFile.toPath()), 0, Files.readAllBytes(keyFile.toPath()).length, "AES");
+
         // GCMCipher initialization
         this.cipher.init(Cipher.DECRYPT_MODE, this.key, new GCMParameterSpec(GCM_TAG_BITS,
                 this.nonce, 0, GCM_NONCE_BYTES));
 
+        // output file creation
         this.output = new File(input.getPath().substring(0, input.getPath().
                 length() - 10) + ".decrypted");
         this.output.createNewFile();
         this.fos = new FileOutputStream(this.output.getPath());
 
+        // finishing the decryption job
         finishJob();
     }
 
@@ -161,7 +166,7 @@ public final class GCMCipher {
             while ((r = this.cis.read(buffer)) > 0) {
                 this.fos.write(buffer, 0, r);
             }
-            //GPCrypto.sanitize(nonce, 1000);
+            GPCrypto.sanitize(nonce, 1000);
             this.cis.close();
         } else {
             this.fos.write(this.cipher.doFinal(Files.readAllBytes(this.input.toPath())));
@@ -178,7 +183,7 @@ public final class GCMCipher {
      */
     private SecretKey keyGen() throws Exception {
         KeyGenerator keygen = KeyGenerator.getInstance("AES", "BC");
-        keygen.init(CIPHER_KEY_BITS, GPCrypto.getRNG());
+        keygen.init(CIPHER_KEY_BITS, new SecureRandom());
         return keygen.generateKey();
     }
 
