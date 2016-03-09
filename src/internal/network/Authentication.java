@@ -24,32 +24,26 @@ import java.net.Socket;
 public final class Authentication {
 
     private static final int SERVER_PORT = 440;
-    private static final String SERVER_NAME = "localhost";
+    private static final String SERVER_NAME = "10.0.0.10";
     private static Socket socket;
     private static DataInputStream input;
     private static DataOutputStream output;
 
     public static int login(String username, String password) throws Exception {
-        // opening socket
+        // opening socket and I/O streams
         socket = new Socket(SERVER_NAME, SERVER_PORT);
-        System.out.println("Connected to " + socket.getRemoteSocketAddress());
-
-        // opening I/O streams
         output = new DataOutputStream(socket.getOutputStream());
         input = new DataInputStream(socket.getInputStream());
 
         // sending credentials
-        System.out.print("Logging in... ");
-        output.write(GPCrypto.passHash(username));
-        output.write(GPCrypto.passHash(password));
+        output.write(GPCrypto.SHA384(username));
+        output.write(GPCrypto.SHA384(password));
         output.flush();
 
         // returning response
         if (input.readInt() == 1) {
-            System.out.print("success.\n");
             return 1;
         } else {
-            System.out.print("failure.\n");
             return 0;
         }
     }

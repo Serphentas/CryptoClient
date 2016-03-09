@@ -16,7 +16,7 @@
  */
 import java.security.Security;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import visual.DefaultFrame;
+import visual.LoginForm;
 
 /**
  * Main method
@@ -36,6 +36,6 @@ public class Main {
         Security.addProvider(new BouncyCastleProvider());
 
         // starting GUI
-        DefaultFrame.main(null);
+        LoginForm.main(null);
     }
 }

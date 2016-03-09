@@ -22,6 +22,7 @@ import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
+import org.bouncycastle.crypto.generators.SCrypt;
 
 /**
  * General purpose cryptographic class
@@ -71,31 +72,46 @@ public final class GPCrypto {
         final FileOutputStream fos = new FileOutputStream(input);
 
         if (input.length() > Math.pow(2, 20)) {
-            FileInputStream fis = new FileInputStream(input);
+            final FileInputStream fis = new FileInputStream(input);
             byte[] buffer = new byte[1024];
             int r;
             while ((r = fis.read(buffer)) > 0) {
                 fos.write(buffer, 0, r);
             }
-            fos.close();
             fis.close();
         } else {
             for (int i = 0; i < passCount; i++) {
                 rand.nextBytes(Files.readAllBytes(input.toPath()));
             }
-            fos.close();
         }
+        fos.close();
     }
 
     /**
-     * Hashes a give password with SHA384 from Bouncy Castle
+     * Hashes a given string with SHA384
+     * <p>
+     * The input is read as a byte array, using UTF-8 as character encoding.
      *
-     * @param password password to hash
-     * @return hashed password
+     * @param input string to hash
+     * @return hashed string
      * @throws Exception
      */
-    public static byte[] passHash(String password) throws Exception {
+    public static byte[] SHA384(String input) throws Exception {
         MessageDigest md = MessageDigest.getInstance("SHA384", "BC");
-        return md.digest(password.getBytes("UTF-8"));
+        return md.digest(input.getBytes("UTF-8"));
+    }
+
+    /**
+     * Derives a given string (usually a password) with scrypt, using the
+     * following default values:
+
+     * @param password
+     *      password to derive key from
+     * @return
+     *      key derived from supplied password
+     * @throws java.lang.Exception
+     */
+    public static byte[] SCrypt(String password) throws Exception{
+        return SCrypt.generate(password.getBytes("UTF-8"), null, 1024, 128, 4, 256);
     }
 }

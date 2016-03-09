@@ -22,14 +22,12 @@ import java.io.FileOutputStream;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.security.SecureRandom;
-import java.security.Security;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 /**
  * General purpose class used for encryption and decryption of files.
