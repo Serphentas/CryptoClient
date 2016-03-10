@@ -126,15 +126,13 @@ public class LoginForm extends javax.swing.JFrame {
 
     private void loginButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginButtonActionPerformed
         try {
-            if (Authentication.login(usernameField.getText(), passwordField.getText()) == 1) {
-                loginStatusLabel.setText("Authentication successful.");
-                Thread.sleep(1000);
+            if (Authentication.loginTLS(usernameField.getText(), passwordField.getText()) == 1) {
+                loginStatusLabel.setText("");
                 this.dispose();
                 DefaultFrame.main(null);
             } else {
                 loginStatusLabel.setText("Wrong login, please check your credentials.");
-                Thread.sleep(1000);
-                visual.ErrorHandler.showError("wrong login, please check your credentials.");
+                //visual.ErrorHandler.showError("wrong login, please check your credentials.");
             }
         } catch (Exception e) {
             visual.ErrorHandler.showError(e);

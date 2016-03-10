@@ -92,8 +92,8 @@ public final class GPCrypto {
      * <p>
      * The input is read as a byte array, using UTF-8 as character encoding.
      *
-     * @param input string to hash
-     * @return hashed string
+     * @param input message
+     * @return message digest
      * @throws Exception
      */
     public static byte[] SHA384(String input) throws Exception {
