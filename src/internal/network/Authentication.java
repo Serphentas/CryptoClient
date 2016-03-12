@@ -19,19 +19,9 @@ package internal.network;
 import internal.crypto.GPCrypto;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.FileInputStream;
 import java.net.Socket;
-import java.security.KeyStore;
-import java.security.SecureRandom;
-import java.security.Security;
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import visual.ErrorHandler;
 
 public final class Authentication {
 
@@ -42,6 +32,18 @@ public final class Authentication {
     private static DataOutputStream output;
     private static SSLContext sslContext;
 
+    /**
+     * Authenticates the user against the server using plain TCP
+     * <p>
+     * <b>Deprecated in favor of loginTLS which uses TLS</b>
+     *
+     * @param username username
+     * @param password password
+     * @return 1 if credentials are correct
+     * <p>
+     * 0 if they aren't
+     * @throws Exception
+     */
     public static int login(String username, String password) throws Exception {
         // opening socket and I/O streams
         socket = new Socket(SERVER_NAME, SERVER_PORT);
@@ -61,10 +63,18 @@ public final class Authentication {
         }
     }
 
+    /**
+     * Authenticates the user against the server using TLS
+     *
+     * @param username username
+     * @param password password
+     * @return 1 if credentials are correct
+     * <p>
+     * 0 if they aren't
+     * @throws Exception
+     */
     public static int loginTLS(String username, String password) throws Exception {
-        createSSLContext();
-        SSLSocketFactory ssf = sslContext.getSocketFactory();
-        SSLSocket ss = (SSLSocket) ssf.createSocket(SERVER_NAME, SERVER_PORT);
+        SSLSocket ss = TLSClient.socketFactory();
 
         output = new DataOutputStream(ss.getOutputStream());
         input = new DataInputStream(ss.getInputStream());
@@ -79,26 +89,6 @@ public final class Authentication {
             return 1;
         } else {
             return 0;
-        }
-    }
-
-    private static void createSSLContext() {
-        try {
-            KeyStore ks = KeyStore.getInstance("JKS");
-            ks.load(new FileInputStream("ccserver.keystore"), "asdasd".toCharArray());
-
-            KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
-            kmf.init(ks, "asdasd".toCharArray());
-            KeyManager[] km = kmf.getKeyManagers();
-
-            TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
-            tmf.init(ks);
-            TrustManager[] tm = tmf.getTrustManagers();
-
-            sslContext = SSLContext.getInstance("TLSv1.2");
-            sslContext.init(km, tm, new SecureRandom());
-        } catch (Exception e) {
-            ErrorHandler.showError(e);
         }
     }
 }

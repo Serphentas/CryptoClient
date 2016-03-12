@@ -18,6 +18,7 @@ package visual;
 
 import internal.network.Authentication;
 import java.awt.event.KeyEvent;
+import java.util.Arrays;
 import javax.swing.UIManager;
 
 /**
@@ -136,6 +137,7 @@ public class LoginForm extends javax.swing.JFrame {
             }
         } catch (Exception e) {
             visual.ErrorHandler.showError(e);
+            e.printStackTrace();
         }
 
     }//GEN-LAST:event_loginButtonActionPerformed

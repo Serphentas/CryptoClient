@@ -3,9 +3,9 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/Z:/Documents/Coding/CryptoClient/src/internal/network/Authentication.java</file>
-            <file>file:/Z:/Documents/Coding/CryptoClient/src/visual/LoginForm.java</file>
-            <file>file:/Z:/Documents/Coding/CryptoClient/src/internal/crypto/GPCrypto.java</file>
+            <file>file:/C:/Users/Xerxes/Documents/NetBeansProjects/CryptoClient/src/internal/network/Authentication.java</file>
+            <file>file:/C:/Users/Xerxes/Documents/NetBeansProjects/CryptoClient/src/internal/network/TLSClient.java</file>
+            <file>file:/C:/Users/Xerxes/Documents/NetBeansProjects/CryptoClient/src/visual/DefaultFrame.java</file>
         </group>
     </open-files>
 </project-private>
