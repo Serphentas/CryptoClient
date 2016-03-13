@@ -17,7 +17,6 @@
 package visual;
 
 import internal.network.Authentication;
-import internal.network.TLSClient;
 import java.awt.event.KeyEvent;
 import javax.swing.UIManager;
 
@@ -127,9 +126,6 @@ public class LoginForm extends javax.swing.JFrame {
 
     private void loginButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginButtonActionPerformed
         try {
-            // initializing the TLSClient to enable user authentication
-            TLSClient.init();
-
             if (Authentication.login(usernameField.getText(), passwordField.getText())) {
                 this.dispose();
                 DefaultFrame.main(null);

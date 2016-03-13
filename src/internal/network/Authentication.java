@@ -34,8 +34,16 @@ public abstract class Authentication {
      * @throws Exception
      */
     public static boolean login(String username, String password) throws Exception {
+        // initializing the TLSClient to enable user authentication
+        TLSClient.init();
+
         // sending credentials
-        byte[] test = new byte[96];
+        byte[] test = new byte[48];
+        int i = 0;
+        for (byte b : GPCrypto.SHA384(username)) {
+            test[i] = b;
+            i++;
+        }
         TLSClient.write(test);
         //TLSClient.write(GPCrypto.SHA384(username));
         TLSClient.write(GPCrypto.SHA384(password));

@@ -35,8 +35,8 @@ import javax.net.ssl.TrustManagerFactory;
  */
 public abstract class TLSClient {
 
-    private static final String SERVER_NAME = "localhost";
-    private static final int SERVER_PORT = 440;
+    private static final String AUTH_SERVER_NAME = "localhost";
+    private static final int AUTH_SERVER_PORT = 440;
     private static SSLContext sslContext;
     private static SSLSocket socket;
     private static DataInputStream dis;
@@ -53,9 +53,15 @@ public abstract class TLSClient {
     public static void init() throws Exception {
         createSSLContext();
         socket = (SSLSocket) sslContext.getSocketFactory().createSocket(
-                InetAddress.getByName(SERVER_NAME), SERVER_PORT);
+                InetAddress.getByName(AUTH_SERVER_NAME), AUTH_SERVER_PORT);
         dis = new DataInputStream(socket.getInputStream());
         dos = new DataOutputStream(socket.getOutputStream());
+    }
+    
+    public static void disconnect() throws IOException{
+        dos.close();
+        dis.close();
+        socket.close();
     }
 
     /**

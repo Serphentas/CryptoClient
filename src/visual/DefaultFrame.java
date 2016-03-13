@@ -18,9 +18,11 @@ package visual;
 
 import internal.crypto.GCMCipher;
 import internal.crypto.GCMParallel;
+import internal.network.TLSClient;
 import java.awt.FileDialog;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.UIManager;
@@ -90,7 +92,7 @@ public class DefaultFrame extends javax.swing.JFrame {
         fileChooser.setMinimumSize(new java.awt.Dimension(1024, 1024));
         fileChooser.setPreferredSize(new java.awt.Dimension(1024, 1024));
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("CryptoClient");
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         setLocation(new java.awt.Point(100, 100));
@@ -356,7 +358,13 @@ public class DefaultFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void disconnectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_disconnectButtonActionPerformed
-        // TODO add your handling code here:
+        try {
+            TLSClient.disconnect();
+        } catch (IOException ex) {
+            ErrorHandler.showError(ex);
+        }
+        this.dispose();
+        LoginForm.main(null);
     }//GEN-LAST:event_disconnectButtonActionPerformed
 
     /**
