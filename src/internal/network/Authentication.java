@@ -17,78 +17,30 @@
 package internal.network;
 
 import internal.crypto.GPCrypto;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.net.Socket;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocket;
 
-public final class Authentication {
-
-    private static final int SERVER_PORT = 440;
-    private static final String SERVER_NAME = "localhost";
-    private static Socket socket;
-    private static DataInputStream input;
-    private static DataOutputStream output;
-    private static SSLContext sslContext;
-
-    /**
-     * Authenticates the user against the server using plain TCP
-     * <p>
-     * <b>Deprecated in favor of loginTLS which uses TLS</b>
-     *
-     * @param username username
-     * @param password password
-     * @return 1 if credentials are correct
-     * <p>
-     * 0 if they aren't
-     * @throws Exception
-     */
-    public static int login(String username, String password) throws Exception {
-        // opening socket and I/O streams
-        socket = new Socket(SERVER_NAME, SERVER_PORT);
-        output = new DataOutputStream(socket.getOutputStream());
-        input = new DataInputStream(socket.getInputStream());
-
-        // sending credentials
-        output.write(GPCrypto.SHA384(username));
-        output.write(GPCrypto.SHA384(password));
-        output.flush();
-
-        // returning response
-        if (input.readInt() == 1) {
-            return 1;
-        } else {
-            return 0;
-        }
-    }
+/**
+ * Contains user authentication methods
+ *
+ * @author Serphentas
+ */
+public abstract class Authentication {
 
     /**
      * Authenticates the user against the server using TLS
      *
      * @param username username
      * @param password password
-     * @return 1 if credentials are correct
-     * <p>
-     * 0 if they aren't
+     * @return true if credentials are correct, false if they aren't
      * @throws Exception
      */
-    public static int loginTLS(String username, String password) throws Exception {
-        SSLSocket ss = TLSClient.socketFactory();
-
-        output = new DataOutputStream(ss.getOutputStream());
-        input = new DataInputStream(ss.getInputStream());
-
+    public static boolean login(String username, String password) throws Exception {
         // sending credentials
-        output.write(GPCrypto.SHA384(username));
-        output.write(GPCrypto.SHA384(password));
-        output.flush();
+        byte[] test = new byte[96];
+        TLSClient.write(test);
+        //TLSClient.write(GPCrypto.SHA384(username));
+        TLSClient.write(GPCrypto.SHA384(password));
 
         // returning response
-        if (input.readInt() == 1) {
-            return 1;
-        } else {
-            return 0;
-        }
+        return TLSClient.readInt() == 1;
     }
 }

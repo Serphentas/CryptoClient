@@ -31,7 +31,7 @@ import org.bouncycastle.crypto.generators.SCrypt;
  * here, so that the GCMCipher class only contains encryption/decryption-related
  * code.
  */
-public final class GPCrypto {
+public abstract class GPCrypto {
 
     private static final SecureRandom rand = new SecureRandom();
 

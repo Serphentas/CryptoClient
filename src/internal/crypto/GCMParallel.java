@@ -26,7 +26,7 @@ import java.io.File;
  * encrypt/decrypt method upon that.
  * @author Serphentas
  */
-public class GCMParallel implements Runnable {
+public final class GCMParallel implements Runnable{
 
     private final File input;
     private final int mode;
@@ -71,5 +71,4 @@ public class GCMParallel implements Runnable {
             System.out.println(e);
         }
     }
-
 }

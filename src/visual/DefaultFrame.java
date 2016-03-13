@@ -73,6 +73,7 @@ public class DefaultFrame extends javax.swing.JFrame {
         menuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
         openButton = new javax.swing.JMenuItem();
+        disconnectButton = new javax.swing.JMenuItem();
         exitButton = new javax.swing.JMenuItem();
         editMenu = new javax.swing.JMenu();
         preferencesButton = new javax.swing.JMenuItem();
@@ -174,6 +175,15 @@ public class DefaultFrame extends javax.swing.JFrame {
             }
         });
         fileMenu.add(openButton);
+
+        disconnectButton.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_D, java.awt.event.InputEvent.CTRL_MASK));
+        disconnectButton.setText("Disconnect");
+        disconnectButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                disconnectButtonActionPerformed(evt);
+            }
+        });
+        fileMenu.add(disconnectButton);
 
         exitButton.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_W, java.awt.event.InputEvent.CTRL_MASK));
         exitButton.setText("Exit");
@@ -345,6 +355,10 @@ public class DefaultFrame extends javax.swing.JFrame {
         System.gc();
     }//GEN-LAST:event_jButton3ActionPerformed
 
+    private void disconnectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_disconnectButtonActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_disconnectButtonActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -386,6 +400,7 @@ public class DefaultFrame extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextArea actionLogTextArea;
     private javax.swing.JMenuItem benchmarkButton;
+    private javax.swing.JMenuItem disconnectButton;
     private javax.swing.JMenu editMenu;
     private javax.swing.JMenuItem exitButton;
     private javax.swing.JFileChooser fileChooser;

@@ -16,7 +16,7 @@
  */
 package internal;
 
-public final class Settings {
+public abstract class Settings {
 
     private static boolean parallelCrypto = false;
     private static int parallelCryptoThreads = 2;

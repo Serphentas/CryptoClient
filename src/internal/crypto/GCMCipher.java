@@ -39,13 +39,10 @@ public final class GCMCipher {
 
     // cryptographic constants
     private static final String CIPHER = "AES/GCM/NoPadding";
-    //private static final String KDF = "PBKDF2WithHmacSHA1UTF8";
     private static final String CRYPTO_PROVIDER = "BC";
     private static final int CIPHER_KEY_BITS = 256;
     private static final int GCM_NONCE_BYTES = 16;
     private static final int GCM_TAG_BITS = 128;
-    /*private static final int KDF_ITERATION_COUNT = 1000;
-     private static final int SALT_BYTES = CIPHER_KEY_BITS / 8;*/
     private static final int BUFFER_SIZE = 1024;
 
     private final byte[] buffer = new byte[BUFFER_SIZE];

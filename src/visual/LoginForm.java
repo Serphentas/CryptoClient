@@ -17,8 +17,8 @@
 package visual;
 
 import internal.network.Authentication;
+import internal.network.TLSClient;
 import java.awt.event.KeyEvent;
-import java.util.Arrays;
 import javax.swing.UIManager;
 
 /**
@@ -127,17 +127,17 @@ public class LoginForm extends javax.swing.JFrame {
 
     private void loginButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginButtonActionPerformed
         try {
-            if (Authentication.loginTLS(usernameField.getText(), passwordField.getText()) == 1) {
-                loginStatusLabel.setText("");
+            // initializing the TLSClient to enable user authentication
+            TLSClient.init();
+
+            if (Authentication.login(usernameField.getText(), passwordField.getText())) {
                 this.dispose();
                 DefaultFrame.main(null);
             } else {
                 loginStatusLabel.setText("Wrong login, please check your credentials.");
-                //visual.ErrorHandler.showError("wrong login, please check your credentials.");
             }
         } catch (Exception e) {
-            visual.ErrorHandler.showError(e);
-            e.printStackTrace();
+            ErrorHandler.showError(e);
         }
 
     }//GEN-LAST:event_loginButtonActionPerformed

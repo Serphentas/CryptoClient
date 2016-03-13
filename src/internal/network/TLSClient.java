@@ -16,7 +16,10 @@
  */
 package internal.network;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.security.KeyStore;
 import java.security.SecureRandom;
@@ -26,21 +29,66 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
 /**
+ * Serves as an SSLSocket factory
  *
  * @author Xerxes
  */
-public class TLSClient {
+public abstract class TLSClient {
+
+    private static final String SERVER_NAME = "localhost";
+    private static final int SERVER_PORT = 440;
     private static SSLContext sslContext;
-    
-    public static SSLSocket socketFactory() throws Exception{
-        return (SSLSocket) sslContext.getSocketFactory().createSocket(InetAddress.getByName("localhost"), 440);
+    private static SSLSocket socket;
+    private static DataInputStream dis;
+    private static DataOutputStream dos;
+
+    /**
+     * Instantiates an SSLSocket (strictly using TLS1.2 and bound to the service
+     * provider server) and its related I/O streams.
+     * <p>
+     * Must be called before using any of the other methods.
+     *
+     * @throws Exception
+     */
+    public static void init() throws Exception {
+        createSSLContext();
+        socket = (SSLSocket) sslContext.getSocketFactory().createSocket(
+                InetAddress.getByName(SERVER_NAME), SERVER_PORT);
+        dis = new DataInputStream(socket.getInputStream());
+        dos = new DataOutputStream(socket.getOutputStream());
     }
-    
+
+    /**
+     * Writes a byte array into the SSLSocket
+     *
+     * @param input data to send
+     * @throws IOException
+     */
+    public static void write(byte[] input) throws IOException {
+        dos.write(input);
+    }
+
+    /**
+     * Reads an integer from the SSLSocket
+     *
+     * @return integer to receive
+     * @throws IOException
+     */
+    public static int readInt() throws IOException {
+        return dis.readInt();
+    }
+
+    /**
+     * Creates the SSLContext needed to instantiate the SSLSocket
+     *
+     * @throws Exception
+     */
     private static void createSSLContext() throws Exception {
         KeyStore ks = KeyStore.getInstance("JKS");
         ks.load(new FileInputStream("ccserver.keystore"), "asdasd".toCharArray());
 
-        TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance(
+                TrustManagerFactory.getDefaultAlgorithm());
         tmf.init(ks);
         TrustManager[] tm = tmf.getTrustManagers();
 
