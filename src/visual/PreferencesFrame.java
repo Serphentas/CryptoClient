@@ -16,12 +16,11 @@
  */
 package visual;
 
-import javax.swing.JComboBox;
 import javax.swing.UIManager;
 
 /**
  *
- * @author Dreadlockyx
+ * @author Serphentas
  */
 public class PreferencesFrame extends javax.swing.JFrame {
 

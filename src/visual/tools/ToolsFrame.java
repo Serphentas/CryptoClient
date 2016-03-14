@@ -20,7 +20,7 @@ import javax.swing.UIManager;
 
 /**
  *
- * @author Dreadlockyx
+ * @author Serphentas
  */
 public class ToolsFrame extends javax.swing.JFrame {
 

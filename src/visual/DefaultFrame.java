@@ -29,7 +29,7 @@ import javax.swing.UIManager;
 
 /**
  *
- * @author Dreadlockyx
+ * @author Serphentas
  */
 public class DefaultFrame extends javax.swing.JFrame {
 

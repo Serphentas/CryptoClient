@@ -19,14 +19,15 @@ package internal.crypto;
 import java.io.File;
 
 /**
- * Implementation of Runnable that allows parallelized encryption/decryption
- * of multiple files using GCMCipher
+ * Implementation of Runnable that allows parallelized encryption/decryption of
+ * multiple files using GCMCipher
  * <p>
  * It actually instantiates a GCMCipher per file and then calls its
  * encrypt/decrypt method upon that.
+ *
  * @author Serphentas
  */
-public final class GCMParallel implements Runnable{
+public final class GCMParallel implements Runnable {
 
     private final File input;
     private final int mode;
@@ -38,8 +39,8 @@ public final class GCMParallel implements Runnable{
 
     /**
      * Encrypts each file in the array in parallel
-     * @param input 
-     *      File array to process
+     *
+     * @param input File array to process
      */
     public static void encryptParallel(File[] input) {
         for (File f : input) {
@@ -49,8 +50,8 @@ public final class GCMParallel implements Runnable{
 
     /**
      * Decrypts each file in the array in parallel
-     * @param input 
-     *      File array to process
+     *
+     * @param input File array to process
      */
     public static void decryptParallel(File[] input) {
         for (File f : input) {

@@ -1,5 +1,5 @@
-/*
- * Copyright (C) 2016 Xerxes
+/* 
+ * Copyright (C) 2016 Serphentas
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,12 +31,16 @@ import javax.net.ssl.TrustManagerFactory;
 /**
  * Serves as an SSLSocket factory
  *
- * @author Xerxes
+ * @author Serphentas
  */
 public abstract class TLSClient {
 
     private static final String AUTH_SERVER_NAME = "localhost";
+    private static final String DATA_SERVER_NAME = "localhost";
+
     private static final int AUTH_SERVER_PORT = 440;
+    private static final int DATA_SERVER_PORT = 440;
+
     private static SSLContext sslContext;
     private static SSLSocket socket;
     private static DataInputStream dis;
@@ -44,24 +48,38 @@ public abstract class TLSClient {
 
     /**
      * Instantiates an SSLSocket (strictly using TLS1.2 and bound to the service
-     * provider server) and its related I/O streams.
+     * provider server) and its related I/O streams
      * <p>
      * Must be called before using any of the other methods.
      *
      * @throws Exception
      */
-    public static void init() throws Exception {
+    public static void initAuth() throws Exception {
         createSSLContext();
         socket = (SSLSocket) sslContext.getSocketFactory().createSocket(
                 InetAddress.getByName(AUTH_SERVER_NAME), AUTH_SERVER_PORT);
         dis = new DataInputStream(socket.getInputStream());
         dos = new DataOutputStream(socket.getOutputStream());
     }
-    
-    public static void disconnect() throws IOException{
-        dos.close();
-        dis.close();
+
+    public static void initData() throws Exception {
+        createSSLContext();
+        socket = (SSLSocket) sslContext.getSocketFactory().createSocket(
+                InetAddress.getByName(DATA_SERVER_NAME), DATA_SERVER_PORT);
+        dis = new DataInputStream(socket.getInputStream());
+        dos = new DataOutputStream(socket.getOutputStream());
+    }
+
+    /**
+     * Closes the SSLSocket and its related I/O streams, effectively
+     * disconnecting from the service provider
+     *
+     * @throws IOException
+     */
+    public static void disconnect() throws IOException {
         socket.close();
+        dis.close();
+        dos.close();
     }
 
     /**
@@ -82,6 +100,27 @@ public abstract class TLSClient {
      */
     public static int readInt() throws IOException {
         return dis.readInt();
+    }
+
+    /**
+     * Reads a boolean from the SSLSocket
+     *
+     * @return boolean to receive
+     * @throws IOException
+     */
+    public static boolean readBoolean() throws IOException {
+        return dis.readBoolean();
+    }
+
+    /**
+     * Reads a byte array from the SSLSocket and writes it in the provided byte
+     * array
+     *
+     * @param output byte array to write response to
+     * @throws IOException
+     */
+    public static void readByte(byte[] output) throws IOException {
+        dis.read(output);
     }
 
     /**

@@ -30,6 +30,8 @@ import org.bouncycastle.crypto.generators.SCrypt;
  * Methods which are used for cryptographic yet general purpose are defined
  * here, so that the GCMCipher class only contains encryption/decryption-related
  * code.
+ * 
+ * @author Serphentas
  */
 public abstract class GPCrypto {
 

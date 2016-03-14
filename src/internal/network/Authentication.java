@@ -24,6 +24,7 @@ import internal.crypto.GPCrypto;
  * @author Serphentas
  */
 public abstract class Authentication {
+    private static final byte[] token = new byte[48];
 
     /**
      * Authenticates the user against the server using TLS
@@ -35,20 +36,18 @@ public abstract class Authentication {
      */
     public static boolean login(String username, String password) throws Exception {
         // initializing the TLSClient to enable user authentication
-        TLSClient.init();
+        TLSClient.initAuth();
 
         // sending credentials
-        byte[] test = new byte[48];
-        int i = 0;
-        for (byte b : GPCrypto.SHA384(username)) {
-            test[i] = b;
-            i++;
-        }
-        TLSClient.write(test);
-        //TLSClient.write(GPCrypto.SHA384(username));
+        TLSClient.write(GPCrypto.SHA384(username));
         TLSClient.write(GPCrypto.SHA384(password));
 
-        // returning response
-        return TLSClient.readInt() == 1;
+        // getting token and returning response
+        if(TLSClient.readBoolean()){
+            TLSClient.readByte(token);
+            return true;
+        } else {
+            return false;
+        }
     }
 }

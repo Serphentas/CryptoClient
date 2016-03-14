@@ -31,9 +31,8 @@ import javax.crypto.spec.SecretKeySpec;
 
 /**
  * General purpose class used for encryption and decryption of files.
- * <p>
- * For more information on the encryption scheme, please check the
- * <a href="https://theswissbay.ch">documentation</a>.
+ * 
+ * @author Serphentas
  */
 public final class GCMCipher {
 

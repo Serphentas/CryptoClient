@@ -21,8 +21,9 @@ import java.awt.event.KeyEvent;
 import javax.swing.UIManager;
 
 /**
- *
- * @author Dreadlockyx
+ * Lets the user log into his/her account
+ * 
+ * @author Serphentas
  */
 public class LoginForm extends javax.swing.JFrame {
 
