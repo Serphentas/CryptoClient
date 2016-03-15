@@ -35,12 +35,6 @@ import javax.net.ssl.TrustManagerFactory;
  */
 public abstract class TLSClient {
 
-    private static final String AUTH_SERVER_NAME = "localhost";
-    private static final String DATA_SERVER_NAME = "localhost";
-
-    private static final int AUTH_SERVER_PORT = 440;
-    private static final int DATA_SERVER_PORT = 440;
-
     private static SSLContext sslContext;
     private static SSLSocket socket;
     private static DataInputStream dis;
@@ -50,22 +44,16 @@ public abstract class TLSClient {
      * Instantiates an SSLSocket (strictly using TLS1.2 and bound to the service
      * provider server) and its related I/O streams
      * <p>
-     * Must be called before using any of the other methods.
+     * Must be called before using any of the other methods
      *
+     * @param server hostname of the TLS server to connect to
+     * @param port port of the TLS server
      * @throws Exception
      */
-    public static void initAuth() throws Exception {
+    public static void init(String server, int port) throws Exception {
         createSSLContext();
         socket = (SSLSocket) sslContext.getSocketFactory().createSocket(
-                InetAddress.getByName(AUTH_SERVER_NAME), AUTH_SERVER_PORT);
-        dis = new DataInputStream(socket.getInputStream());
-        dos = new DataOutputStream(socket.getOutputStream());
-    }
-
-    public static void initData() throws Exception {
-        createSSLContext();
-        socket = (SSLSocket) sslContext.getSocketFactory().createSocket(
-                InetAddress.getByName(DATA_SERVER_NAME), DATA_SERVER_PORT);
+                InetAddress.getByName(server), port);
         dis = new DataInputStream(socket.getInputStream());
         dos = new DataOutputStream(socket.getOutputStream());
     }
@@ -121,6 +109,10 @@ public abstract class TLSClient {
      */
     public static void readByte(byte[] output) throws IOException {
         dis.read(output);
+    }
+
+    public static String readString() throws IOException {
+        return dis.readUTF();
     }
 
     /**

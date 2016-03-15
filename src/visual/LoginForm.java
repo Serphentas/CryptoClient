@@ -135,6 +135,7 @@ public class LoginForm extends javax.swing.JFrame {
             }
         } catch (Exception e) {
             ErrorHandler.showError(e);
+            e.printStackTrace();
         }
 
     }//GEN-LAST:event_loginButtonActionPerformed

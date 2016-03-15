@@ -24,6 +24,12 @@ import internal.crypto.GPCrypto;
  * @author Serphentas
  */
 public abstract class Authentication {
+
+    private static final String AUTH_SERVER_NAME = "localhost";
+    private static final String DATA_SERVER_NAME = "localhost";
+    private static final int AUTH_SERVER_PORT = 440;
+    private static final int DATA_SERVER_PORT = 441;
+
     private static final byte[] token = new byte[48];
 
     /**
@@ -36,18 +42,24 @@ public abstract class Authentication {
      */
     public static boolean login(String username, String password) throws Exception {
         // initializing the TLSClient to enable user authentication
-        TLSClient.initAuth();
+        TLSClient.init(AUTH_SERVER_NAME, AUTH_SERVER_PORT);
 
         // sending credentials
         TLSClient.write(GPCrypto.SHA384(username));
         TLSClient.write(GPCrypto.SHA384(password));
 
         // getting token and returning response
-        if(TLSClient.readBoolean()){
+        if (TLSClient.readBoolean()) {
             TLSClient.readByte(token);
-            return true;
+
+            TLSClient.init(DATA_SERVER_NAME, DATA_SERVER_PORT);
+            TLSClient.write(GPCrypto.SHA384(username));
+            TLSClient.write(token);
+
+            return TLSClient.readBoolean();
         } else {
             return false;
         }
     }
+
 }
