@@ -19,11 +19,14 @@ package internal.crypto;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.security.SecureRandom;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
+import javax.crypto.CipherOutputStream;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
@@ -47,13 +50,17 @@ public final class GCMCipher {
     private static final int BUFFER_SIZE = 1024;
 
     private final byte[] buffer = new byte[BUFFER_SIZE];
+    private boolean isModeEncrypt;
     private final Cipher cipher;
     private byte[] nonce = null;
     private SecretKey key = null;
     private File input = null;
     private File output = null;
     private CipherInputStream cis;
-    private FileOutputStream fos;
+    private CipherOutputStream cos;
+    private InputStream is;
+    private OutputStream os;
+
     public long time;
 
     /**
@@ -96,12 +103,12 @@ public final class GCMCipher {
         storeNonceAndKey();
 
         // cipher initialization
-        this.cipher.init(Cipher.ENCRYPT_MODE, this.key, new GCMParameterSpec(GCM_TAG_BITS, nonce, 0, GCM_NONCE_BYTES));
+        this.isModeEncrypt = true;
+        this.cipher.init(Cipher.ENCRYPT_MODE, this.key, new GCMParameterSpec(
+                GCM_TAG_BITS, this.nonce, 0, GCM_NONCE_BYTES));
 
         // output file creation
         this.output = new File(input.getPath() + ".encrypted");
-        this.output.createNewFile();
-        this.fos = new FileOutputStream(this.output.getPath());
 
         // finishing the encryption job
         finishJob();
@@ -126,17 +133,17 @@ public final class GCMCipher {
                 input.getPath().length() - 10) + ".nonce").toPath());
         final File keyFile = new File(input.getPath().substring(0,
                 input.getPath().length() - 10) + ".key");
-        this.key = new SecretKeySpec(Files.readAllBytes(keyFile.toPath()), 0, Files.readAllBytes(keyFile.toPath()).length, "AES");
+        this.key = new SecretKeySpec(Files.readAllBytes(keyFile.toPath()), 0,
+                Files.readAllBytes(keyFile.toPath()).length, "AES");
 
         // GCMCipher initialization
-        this.cipher.init(Cipher.DECRYPT_MODE, this.key, new GCMParameterSpec(GCM_TAG_BITS,
-                this.nonce, 0, GCM_NONCE_BYTES));
+        this.isModeEncrypt = false;
+        this.cipher.init(Cipher.DECRYPT_MODE, this.key, new GCMParameterSpec(
+                GCM_TAG_BITS, this.nonce, 0, GCM_NONCE_BYTES));
 
-        // output file creation
+        // defining output file
         this.output = new File(input.getPath().substring(0, input.getPath().
                 length() - 10) + ".decrypted");
-        this.output.createNewFile();
-        this.fos = new FileOutputStream(this.output.getPath());
 
         // finishing the decryption job
         finishJob();
@@ -156,18 +163,48 @@ public final class GCMCipher {
      */
     private void finishJob() throws Exception {
         this.time = System.nanoTime();
+
+        // creating the output file and defining its related OS
+        this.output.createNewFile();
+        this.os = new FileOutputStream(this.output.getPath());
+
         if (this.input.length() > Math.pow(2, 20)) {
-            this.cis = new CipherInputStream(new FileInputStream(this.input), this.cipher);
             int r;
-            while ((r = this.cis.read(buffer)) > 0) {
-                this.fos.write(buffer, 0, r);
+
+            if (this.isModeEncrypt) {
+                // defining the IS to read from and the COS to write to
+                this.is = new FileInputStream(this.input);
+                this.cos = new CipherOutputStream(this.os, this.cipher);
+
+                // performing the actual encryption
+                while ((r = this.is.read(buffer)) > 0) {
+                    this.cos.write(buffer, 0, r);
+                }
+
+                this.cos.close();
+            } else {
+                // defining the IS to read from and the CIS to write to
+                this.is = new FileInputStream(this.input);
+                this.cis = new CipherInputStream(this.is, this.cipher);
+
+                // performing the actual decryption
+                while ((r = this.cis.read(buffer)) > 0) {
+                    this.os.write(buffer, 0, r);
+                }
+
+                this.cis.close();
             }
-            GPCrypto.sanitize(nonce, 1000);
-            this.cis.close();
         } else {
-            this.fos.write(this.cipher.doFinal(Files.readAllBytes(this.input.toPath())));
+            this.os.write(this.cipher.doFinal(Files.readAllBytes(this.input.toPath())));
         }
-        this.fos.close();
+
+        // sanitizing the nonce to prevent extraction from RAM
+        GPCrypto.sanitize(this.nonce, 1000);
+
+        this.os.close();
+        this.is.close();
+        
+        System.out.println("Done with " + input.getName());
         //this.key.destroy();
     }
 
@@ -195,9 +232,9 @@ public final class GCMCipher {
         File keyf = new File(this.input.getPath() + ".key");
         noncef.createNewFile();
         keyf.createNewFile();
-        this.fos = new FileOutputStream(noncef.getPath());
-        this.fos.write(this.nonce);
-        this.fos = new FileOutputStream(keyf.getPath());
-        this.fos.write(this.key.getEncoded());
+        this.os = new FileOutputStream(noncef.getPath());
+        this.os.write(this.nonce);
+        this.os = new FileOutputStream(keyf.getPath());
+        this.os.write(this.key.getEncoded());
     }
 }
