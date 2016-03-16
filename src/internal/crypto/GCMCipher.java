@@ -31,7 +31,9 @@ import javax.crypto.spec.SecretKeySpec;
 
 /**
  * General purpose class used for encryption and decryption of files.
- * 
+ * <p>
+ * <b><i>This class is not thread-safe.</i></b>
+ *
  * @author Serphentas
  */
 public final class GCMCipher {

@@ -113,7 +113,7 @@ public abstract class GPCrypto {
      *      key derived from supplied password
      * @throws java.lang.Exception
      */
-    public static byte[] SCrypt(String password) throws Exception{
+    public static byte[] hashSCrypt(String password) throws Exception{
         return SCrypt.generate(password.getBytes("UTF-8"), null, 1024, 128, 4, 256);
     }
 }

@@ -2,11 +2,10 @@ package internal.crypto;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.security.Security;
 import java.util.Arrays;
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
-import static org.junit.Assert.assertNotEquals;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.Test;
 
 public class GCMCipherTest {
@@ -15,6 +14,8 @@ public class GCMCipherTest {
 
     @Test
     public void testDecrypt() throws Exception {
+        Security.addProvider(new BouncyCastleProvider());
+        
         gcmc = new GCMCipher();
         File p = new File("testPlaintext");
         File c = new File("testPlaintext.encrypted");
