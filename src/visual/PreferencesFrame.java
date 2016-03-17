@@ -24,8 +24,8 @@ import javax.swing.UIManager;
  */
 public class PreferencesFrame extends javax.swing.JFrame {
 
-    private int defaultParallelCryptoThreadsCount = internal.Settings.getParallelCryptoThreads();
-    private boolean defaultIsParallelCrypto = internal.Settings.isParallelCrypto();
+    private final int defaultParallelCryptoThreadsCount = internal.Settings.getParallelCryptoThreads();
+    private final boolean defaultIsParallelCrypto = internal.Settings.isParallelCrypto();
 
     private int newParallelCryptoThreadsCount;
     private boolean newIsParallelCrypto;

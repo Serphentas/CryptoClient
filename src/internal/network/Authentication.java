@@ -17,6 +17,8 @@
 package internal.network;
 
 import internal.crypto.GPCrypto;
+import java.io.File;
+import java.nio.file.Files;
 
 /**
  * Contains user authentication methods
@@ -55,6 +57,10 @@ public abstract class Authentication {
             TLSClient.init(DATA_SERVER_NAME, DATA_SERVER_PORT);
             TLSClient.write(GPCrypto.SHA384(username));
             TLSClient.write(token);
+            
+            File test = new File("E:/test/10Mb");
+            TLSClient.writeInt((int) test.length());
+            TLSClient.write(Files.readAllBytes(test.toPath()));
 
             return TLSClient.readBoolean();
         } else {

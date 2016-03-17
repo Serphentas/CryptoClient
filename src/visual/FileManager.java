@@ -23,7 +23,7 @@ class FileManager {
 
     public static final String APP_TITLE = "FileMan";
     private FileSystemView fileSystemView;
-    private JPanel gui = new JPanel(new BorderLayout(3, 3));
+    private final JPanel gui = new JPanel(new BorderLayout(3, 3));
     private JTree tree;
     private DefaultTreeModel treeModel;
 
@@ -124,9 +124,9 @@ class FileManager {
  */
 class FileTreeCellRenderer extends DefaultTreeCellRenderer {
 
-    private FileSystemView fileSystemView;
+    private final FileSystemView fileSystemView;
 
-    private JLabel label;
+    private final JLabel label;
 
     FileTreeCellRenderer() {
         label = new JLabel();

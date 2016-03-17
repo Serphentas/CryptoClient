@@ -79,6 +79,10 @@ public abstract class TLSClient {
     public static void write(byte[] input) throws IOException {
         dos.write(input);
     }
+    
+    public static void writeInt(int input) throws IOException{
+        dos.writeInt(input);
+    }
 
     /**
      * Reads an integer from the SSLSocket
@@ -111,6 +115,11 @@ public abstract class TLSClient {
         dis.read(output);
     }
 
+    /**
+     * Reads a String from the SSLSocket
+     * @return String to receive
+     * @throws IOException 
+     */
     public static String readString() throws IOException {
         return dis.readUTF();
     }
@@ -120,7 +129,7 @@ public abstract class TLSClient {
      *
      * @throws Exception
      */
-    private static void createSSLContext() throws Exception {
+    public static void createSSLContext() throws Exception {
         KeyStore ks = KeyStore.getInstance("JKS");
         ks.load(new FileInputStream("ccserver.keystore"), "asdasd".toCharArray());
 

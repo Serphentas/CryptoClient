@@ -65,14 +65,15 @@ public final class GCMCipher {
 
     /**
      * Instantiates a Cipher, allowing subsequent use for encryption and
-     * decryption of an arbitrary file.
+     * decryption of an arbitrary file
      *
      * @throws Exception
      */
     public GCMCipher() throws Exception {
         /*
-         suppresses the restriction over keys larger than 128 bits due to the
-         JCE Unlimited Strength Jurisdiction Policy
+        suppresses the restriction over keys larger than 128 bits due to the
+        JCE Unlimited Strength Jurisdiction Policy
+        see http://v.gd/HN1qpB
          */
         Field field = Class.forName("javax.crypto.JceSecurity").
                 getDeclaredField("isRestricted");
@@ -91,9 +92,9 @@ public final class GCMCipher {
      */
     public void encrypt(File input) throws Exception {
         /*
-         setting the input file so that the finishJob method will be able to
-         encrypt the current file (and not one that has been set by a
-         previous operation)
+        setting the input file so that the finishJob method will be able to
+        encrypt the current file (and not one that has been set by a
+        previous operation)
          */
         this.input = input;
 
@@ -122,9 +123,9 @@ public final class GCMCipher {
      */
     public void decrypt(File input) throws Exception {
         /*
-         setting the input file so that the finishJob method will be able to
-         decrypt the current file (and not one that has been set by a
-         previous operation)
+        setting the input file so that the finishJob method will be able to
+        decrypt the current file (and not one that has been set by a
+        previous operation)
          */
         this.input = input;
 
@@ -203,7 +204,7 @@ public final class GCMCipher {
 
         this.os.close();
         this.is.close();
-        
+
         System.out.println("Done with " + input.getName());
         //this.key.destroy();
     }
