@@ -66,7 +66,7 @@ public final class GCMParallel implements Runnable {
             if (mode == 0) {
                 gcmc.encrypt(input);
             } else {
-                gcmc.decrypt(input);
+                //gcmc.decrypt(input);
             }
         } catch (Exception e) {
             System.out.println(e);

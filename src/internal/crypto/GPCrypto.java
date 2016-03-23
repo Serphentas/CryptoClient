@@ -30,7 +30,7 @@ import org.bouncycastle.crypto.generators.SCrypt;
  * Methods which are used for cryptographic yet general purpose are defined
  * here, so that the GCMCipher class only contains encryption/decryption-related
  * code.
- * 
+ *
  * @author Serphentas
  */
 public abstract class GPCrypto {
@@ -106,14 +106,16 @@ public abstract class GPCrypto {
     /**
      * Derives a given string (usually a password) with scrypt, using the
      * following default values:
-
-     * @param password
-     *      password to derive key from
-     * @return
-     *      key derived from supplied password
-     * @throws java.lang.Exception
+     *
+     * @param password password to derive key from
+     * @param salt salt to use for this invocation
+     * @param cost CPU/RAM cost parameter
+     * @param parallelization parallelization parameter
+     * @param dkLen output size, in bytes
+     * @return key derived from supplied password
+     * @throws Exception
      */
-    public static byte[] hashSCrypt(String password) throws Exception{
-        return SCrypt.generate(password.getBytes("UTF-8"), null, 1024, 128, 4, 256);
+    public static byte[] scrypt(String password, byte[] salt, int cost, int parallelization, int dkLen) throws Exception {
+        return SCrypt.generate(password.getBytes("UTF-8"), salt, cost, 128, parallelization, dkLen);
     }
 }

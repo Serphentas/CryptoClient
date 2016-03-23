@@ -8,39 +8,40 @@ import org.apache.commons.net.ftp.FTPSClient;
 
 public class FTPSClientasd {
 
-    private static final FTPSClient client = new FTPSClient(false);
+    private static final FTPSClient ftps = new FTPSClient(false);
 
     public static void main(String[] args) {
         try {
 
-            client.setRemoteVerificationEnabled(false);
-
-            client.setEnabledProtocols(new String[]{"TLSv1.2"});
-            client.connect("10.0.0.20");
+            ftps.setEnabledProtocols(new String[]{"TLSv1.2"});
+            ftps.setEnabledCipherSuites(new String[]{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"});
+            ftps.connect("10.0.0.20");
             getReply();
 
-            System.out.println("Remote system is " + client.getSystemName());
+            ftps.enterLocalPassiveMode();
+            getReply();
+            
+            System.out.println(Arrays.toString(ftps.getEnabledCipherSuites()));
+
+            ftps.login("asd", "asd");
             getReply();
 
-            client.enterLocalPassiveMode();
+            ftps.getSystemName();
             getReply();
 
-            client.login("asd", "asd");
-            getReply();
-
-            client.sendCommand("PROT P");
+            ftps.sendCommand("PROT P");
             getReply();
 
             String file = "100Mb";
 
             //client.storeFile(file, new FileInputStream(new File("E:/test/" + file)));
-            FTPFile[] arr = client.mlistDir();
-            getReply();
+            FTPFile[] arr = ftps.listDirectories("/");
+
             for (FTPFile f : arr) {
                 System.out.println(f.getName());
             }
 
-            client.disconnect();
+            ftps.disconnect();
         } catch (Exception ex) {
             Logger.getLogger(FTPSClientasd.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -48,6 +49,6 @@ public class FTPSClientasd {
     }
 
     public static void getReply() {
-        System.out.println(Arrays.toString(client.getReplyStrings()));
+        System.out.println(Arrays.toString(ftps.getReplyStrings()));
     }
 }

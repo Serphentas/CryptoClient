@@ -1,45 +1,35 @@
 package internal.network;
 
+import internal.file.FileHandler;
+import java.io.File;
 import java.io.IOException;
 import java.net.UnknownHostException;
-import java.security.NoSuchAlgorithmException;
+import java.security.Security;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 public class test {
 
+    private static final String host = "10.0.0.20";
+    private static final int port = 21;
+    private static final String[] credentials = new String[]{"asd", "asd"};
+
     public static void main(String args[]) throws UnknownHostException, IOException {
-        /*String[] param = new String[] {"-l","10.0.0.20","asd","asd"};
-        FTPClientExample.main(param);
-        FTPClient client = new FTPClient();
-        client.connect("10.0.0.20");
-        client.enterLocalPassiveMode();
-        client.login("asd", "asd");
-
-        //client.sendCommand("PROT P");
-        System.out.println(client.getReplyString());
-
-        FTPFile[] arr = client.listFiles("/");
-        System.out.println("R/W rights owner group         size    Date     Name");
-        System.out.println("     |       |     |             |      |         |");
-        boolean exists = false;
-        String file = "100Mb";
-        for (FTPFile f : arr) {
-            System.out.println(f);
-            if (f.getName().equals(file)) {
-                exists = true;
-            }
-        }
-        if (exists) {
-            client.deleteFile(file);
-        }
-        client.storeFile(file, new FileInputStream(new File("E:/test/"+file)));
-
-        client.disconnect();*/
-        String[] param = new String[] {"-s","10.0.0.20","asd","asd","10Mb","10Mb"};
         try {
-            test2.main(param);
-        } catch (NoSuchAlgorithmException ex) {
+            Security.addProvider(new BouncyCastleProvider());
+            DataClient.init();
+
+            DataClient.connect(host, port);
+            DataClient.login(credentials[0], credentials[1]);
+
+            long time = System.nanoTime();
+            FileHandler.send(new File("E:/test/100Mb"), "100Mb");
+            
+
+            //test3.inputStream("100Mb", "E:/test/");
+            System.out.println((System.nanoTime() - time) / 1e9);
+        } catch (Exception ex) {
             Logger.getLogger(test.class.getName()).log(Level.SEVERE, null, ex);
         }
 
