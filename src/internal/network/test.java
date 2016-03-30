@@ -19,16 +19,13 @@ public class test {
         try {
             Security.addProvider(new BouncyCastleProvider());
             DataClient.init();
+            FileHandler.init();
 
             DataClient.connect(host, port);
             DataClient.login(credentials[0], credentials[1]);
 
-            long time = System.nanoTime();
-            FileHandler.send(new File("E:/test/100Mb"), "100Mb");
-            
-
-            //test3.inputStream("100Mb", "E:/test/");
-            System.out.println((System.nanoTime() - time) / 1e9);
+            FileHandler.send(new File("E:/test/shitplain"), "shit");
+            FileHandler.receive("shit", new File("E:/test/shitdec"));
         } catch (Exception ex) {
             Logger.getLogger(test.class.getName()).log(Level.SEVERE, null, ex);
         }

@@ -1,6 +1,5 @@
 package internal.network;
 
-import internal.crypto.GCMCipher;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -15,7 +14,6 @@ import org.apache.commons.net.ftp.FTPFile;
 public abstract class DataClient {
 
     private static FTPClient ftp;
-    private static GCMCipher gcmc;
 
     /**
      * Initializes the FTPClient and the GCMCipher
@@ -24,7 +22,6 @@ public abstract class DataClient {
      */
     public static void init() throws Exception {
         ftp = new FTPClient();
-        gcmc = new GCMCipher();
     }
 
     /**
@@ -79,6 +76,7 @@ public abstract class DataClient {
      * @throws IOException
      */
     public static OutputStream outputStream(String remoteFilePath) throws IOException {
+        ftp.dele(remoteFilePath);
         return ftp.storeFileStream(remoteFilePath);
     }
 
@@ -90,7 +88,7 @@ public abstract class DataClient {
      * @return InputStream through which a file can be read
      * @throws IOException
      */
-    public static InputStream inputStream(String remoteFilePath) throws Exception {
+    public static InputStream inputStream(String remoteFilePath) throws IOException {
         return ftp.retrieveFileStream(remoteFilePath);
     }
 

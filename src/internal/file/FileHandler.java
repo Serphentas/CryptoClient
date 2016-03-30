@@ -16,50 +16,42 @@
  */
 package internal.file;
 
+import internal.crypto.GCMCipher;
 import internal.network.DataClient;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 public class FileHandler {
 
-    private static final byte[] buffer = new byte[1024];
+    private static GCMCipher gcmc;
 
-    private final File f;
-
-    public FileHandler(File input) {
-        this.f = input;
-    }
-
-    public File getFile() {
-        return f;
+    public static void init() throws Exception {
+        gcmc = new GCMCipher();
     }
 
     /**
-     * Writes to a file, using the InputStream as source
+     * Receives and decrypts a remote file to the local filesystem
      *
-     * @param output destination file
-     * @param input InputStream from which to read data
+     * @param outputFile destination File
+     * @param remoteFilePath remote file location
      * @throws IOException
      */
-    public static void receive(File output, InputStream input) throws IOException {
-        OutputStream os = new FileOutputStream(output);
-        int r = 0;
+    public static void receive(String remoteFilePath, File outputFile) throws IOException, Exception {
+        gcmc.decrypt(DataClient.inputStream(remoteFilePath), new FileOutputStream(outputFile));
 
-        while ((r = input.read(buffer)) > 0) {
-            os.write(buffer, 0, r);
-        }
-
-        input.close();
-        os.close();
     }
 
-    public static void send(File inputFile, String remoteFilePath) throws IOException {
-        OutputStream output = DataClient.outputStream(remoteFilePath);
-        
-        
-        output.close();
+    /**
+     * Encrypts and sends a local file to the data server
+     *
+     * @param inputFile source File
+     * @param remoteFilePath remote file location
+     * @throws IOException
+     * @throws Exception
+     */
+    public static void send(File inputFile, String remoteFilePath) throws IOException, Exception {
+        gcmc.encrypt(new FileInputStream(inputFile), DataClient.outputStream(remoteFilePath));
     }
 }
