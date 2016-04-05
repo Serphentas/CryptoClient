@@ -64,7 +64,7 @@ public final class GCMParallel implements Runnable {
         try {
             GCMCipher gcmc = new GCMCipher();
             if (mode == 0) {
-                gcmc.encrypt(input);
+                //gcmc.encrypt(input);
             } else {
                 //gcmc.decrypt(input);
             }

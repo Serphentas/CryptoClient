@@ -30,8 +30,8 @@ public class test extends javax.swing.JFrame {
     public test() {
         initComponents();
 
-        FileBrowser2 fm = new FileBrowser2();
-        this.setContentPane(fm.getGui());
+        //FileBrowser2 fm = new FileBrowser2();
+        //this.setContentPane(fm.getGui());
     }
 
     /**

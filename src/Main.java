@@ -18,7 +18,7 @@ import internal.file.FileHandler;
 import internal.network.DataClient;
 import java.security.Security;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import visual.DefaultFrame;
+import visual.LoginForm;
 
 /**
  * Main method
@@ -27,9 +27,8 @@ import visual.DefaultFrame;
  */
 public class Main {
 
-    private static final String host = "10.0.0.21";
-    private static final int port = 21;
-    private static final String[] credentials = new String[]{"asd", "asd"};
+    private static final String host = "data.theswissbay.ch";
+    private static final int port = 7894;
 
     /**
      * Sets up the GUI, so that the user can login in and start using the
@@ -45,13 +44,11 @@ public class Main {
         Security.addProvider(new BouncyCastleProvider());
 
         // starting GUI
-        //LoginForm.main(null);
-        DefaultFrame.main(null);
+        LoginForm.main(null);
 
         // initializing I/O handlers
         DataClient.init();
         DataClient.connect(host, port);
-        DataClient.login(credentials[0], credentials[1]);
         FileHandler.init();
     }
 }

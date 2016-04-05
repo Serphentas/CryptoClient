@@ -16,8 +16,8 @@
  */
 package visual;
 
-import internal.crypto.GCMParallel;
 import internal.file.FileHandler;
+import internal.network.DataClient;
 import internal.network.TLSClient;
 import java.awt.FileDialog;
 import java.awt.event.WindowEvent;
@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.UIManager;
+import org.apache.commons.net.ftp.FTPFile;
 
 /**
  *
@@ -43,10 +44,32 @@ public class DefaultFrame extends javax.swing.JFrame {
     public DefaultFrame() throws Exception {
         initComponents();
         setLocationRelativeTo(null);
+        updateList(DataClient.listFiles("/"));
     }
 
-    public static void updateTable(Object o, int x, int y) {
-        fileViewTable.setValueAt(o, x, y);
+    public static void updateList(FTPFile[] files) throws IOException {
+        String[] fileNames = new String[files.length];
+        int i = 0;
+        for (FTPFile f : files) {
+            fileNames[i] = f.getName();
+            jTable1.setValueAt(f.getName(), i, 0);
+            jTable1.setValueAt(f.getTimestamp().getTime(), i, 1);
+            if(f.isFile()){
+                jTable1.setValueAt("File", i, 2);
+            } else {
+                jTable1.setValueAt("Directory", i, 2);
+            }
+            
+            
+            String size = null;
+            if (f.getSize() % 1024 < 1024) {
+                size = f.getSize() / 1024 + " KiB";
+            } else if (f.getSize() % 1048576 < 1024){
+                size = f.getSize() / 1048576 + " MiB";
+            }
+            jTable1.setValueAt(size, i, 3);
+            i++;
+        }
     }
 
     public static void updateLog(String s) {
@@ -66,9 +89,9 @@ public class DefaultFrame extends javax.swing.JFrame {
         downloadButton = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         actionLogTextArea = new javax.swing.JTextArea();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        fileViewTable = new javax.swing.JTable();
         uploadButton = new javax.swing.JButton();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        jTable1 = new javax.swing.JTable();
         menuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
         openButton = new javax.swing.JMenuItem();
@@ -118,9 +141,43 @@ public class DefaultFrame extends javax.swing.JFrame {
         actionLogTextArea.setRows(5);
         jScrollPane1.setViewportView(actionLogTextArea);
 
-        fileViewTable.setAutoCreateRowSorter(true);
-        fileViewTable.setModel(new javax.swing.table.DefaultTableModel(
+        uploadButton.setText("Upload");
+        uploadButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                uploadButtonActionPerformed(evt);
+            }
+        });
+
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
                 {null, null, null, null},
                 {null, null, null, null},
                 {null, null, null, null},
@@ -130,22 +187,36 @@ public class DefaultFrame extends javax.swing.JFrame {
                 "Name", "Date modified", "Type", "Size"
             }
         ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
+            };
             boolean[] canEdit = new boolean [] {
                 false, false, false, false
             };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
                 return canEdit [columnIndex];
             }
         });
-        jScrollPane2.setViewportView(fileViewTable);
-
-        uploadButton.setText("Upload");
-        uploadButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                uploadButtonActionPerformed(evt);
-            }
-        });
+        jTable1.setIntercellSpacing(new java.awt.Dimension(1, 5));
+        jTable1.setRowHeight(32);
+        jTable1.setShowHorizontalLines(false);
+        jScrollPane2.setViewportView(jTable1);
+        if (jTable1.getColumnModel().getColumnCount() > 0) {
+            jTable1.getColumnModel().getColumn(1).setMinWidth(200);
+            jTable1.getColumnModel().getColumn(1).setPreferredWidth(200);
+            jTable1.getColumnModel().getColumn(1).setMaxWidth(200);
+            jTable1.getColumnModel().getColumn(2).setMinWidth(150);
+            jTable1.getColumnModel().getColumn(2).setPreferredWidth(150);
+            jTable1.getColumnModel().getColumn(2).setMaxWidth(150);
+            jTable1.getColumnModel().getColumn(3).setMinWidth(100);
+            jTable1.getColumnModel().getColumn(3).setPreferredWidth(100);
+            jTable1.getColumnModel().getColumn(3).setMaxWidth(100);
+        }
 
         fileMenu.setText("File");
 
@@ -218,33 +289,31 @@ public class DefaultFrame extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(81, 81, 81)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(downloadButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(uploadButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addGap(18, 18, 18)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 658, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 245, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jScrollPane2)))
+                        .addGap(0, 48, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(uploadButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(downloadButton, javax.swing.GroupLayout.Alignment.TRAILING))
+                        .addGap(39, 39, 39)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 658, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jScrollPane2))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 323, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 456, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(downloadButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(26, 26, 26)
                         .addComponent(uploadButton))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(68, 68, 68))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap())
         );
 
         pack();
@@ -275,20 +344,13 @@ public class DefaultFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_preferencesButtonActionPerformed
 
     private void downloadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_downloadButtonActionPerformed
-        if (fd == null) {
-            visual.ErrorHandler.showError("no file specified.");
-        } else {
-            try {
-                if (internal.Settings.isParallelCrypto()) {
-                    GCMParallel.decryptParallel(fd.getFiles());
-                } else {
-                    for (File f : fd.getFiles()) {
-                        FileHandler.send(f, f.getName());
-                    }
-                }
-            } catch (Exception e) {
-                visual.ErrorHandler.showError(e);
+        try {
+            for (int i : jTable1.getSelectedRows()) {
+                String s = (String) jTable1.getValueAt(i, 0);
+                FileHandler.receive(s, new File("C:/Users/Public/" + s.substring(0, s.length() - 4) + "_decrypted.jpg"));
             }
+        } catch (Exception e) {
+            visual.ErrorHandler.showError(e);
         }
     }//GEN-LAST:event_downloadButtonActionPerformed
 
@@ -318,6 +380,7 @@ public class DefaultFrame extends javax.swing.JFrame {
                 for (File f : fd.getFiles()) {
                     FileHandler.send(f, f.getName());
                 }
+                updateList(DataClient.listFiles("/"));
             } catch (Exception e) {
                 visual.ErrorHandler.showError(e);
             }
@@ -381,10 +444,10 @@ public class DefaultFrame extends javax.swing.JFrame {
     private javax.swing.JMenuItem exitButton;
     private javax.swing.JFileChooser fileChooser;
     private javax.swing.JMenu fileMenu;
-    private static javax.swing.JTable fileViewTable;
     private javax.swing.JMenu helpMenu;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private static javax.swing.JTable jTable1;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JMenuItem openButton;
     private javax.swing.JMenuItem preferencesButton;

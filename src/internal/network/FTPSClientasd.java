@@ -1,9 +1,10 @@
 package internal.network;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPSClient;
 
 public class FTPSClientasd {
@@ -14,32 +15,29 @@ public class FTPSClientasd {
         try {
 
             ftps.setEnabledProtocols(new String[]{"TLSv1.2"});
-            ftps.setEnabledCipherSuites(new String[]{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"});
-            ftps.connect("10.0.0.20");
-            getReply();
-
+            //ftps.setEnabledCipherSuites(new String[]{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256","TLS_DHE_RSA_WITH_AES_128_GCM_SHA256"});
+            ftps.connect("10.0.0.21");
             ftps.enterLocalPassiveMode();
+            ftps.setFileType(FTPSClient.BINARY_FILE_TYPE);
             getReply();
-            
-            System.out.println(Arrays.toString(ftps.getEnabledCipherSuites()));
 
             ftps.login("asd", "asd");
             getReply();
 
-            ftps.getSystemName();
-            getReply();
-
             ftps.sendCommand("PROT P");
+            ftps.completePendingCommand();
             getReply();
 
             String file = "100Mb";
+            ftps.retrieveFile("wpdb.sql", new FileOutputStream(new File("E:/test/wpdb.sql")));
 
             //client.storeFile(file, new FileInputStream(new File("E:/test/" + file)));
-            FTPFile[] arr = ftps.listDirectories("/");
+            //FTPFile[] arr = ftps.listFiles();
+            getReply();
 
-            for (FTPFile f : arr) {
+            /*for (FTPFile f : arr) {
                 System.out.println(f.getName());
-            }
+            }*/
 
             ftps.disconnect();
         } catch (Exception ex) {

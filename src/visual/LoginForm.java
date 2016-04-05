@@ -16,7 +16,8 @@
  */
 package visual;
 
-import internal.network.Authentication;
+import internal.crypto.GCMCipher;
+import internal.network.DataClient;
 import java.awt.event.KeyEvent;
 import javax.swing.UIManager;
 
@@ -127,12 +128,15 @@ public class LoginForm extends javax.swing.JFrame {
 
     private void loginButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginButtonActionPerformed
         try {
-            if (Authentication.login(usernameField.getText(), passwordField.getText())) {
+            //if (Authentication.login(usernameField.getText(), passwordField.getText())) {
+            //if(usernameField.getText().equals("IEatAss420")){
+                DataClient.login(usernameField.getText(), passwordField.getText());
+                GCMCipher.setPassword(passwordField.getText());
                 this.dispose();
                 DefaultFrame.main(null);
-            } else {
+            /*} else {
                 loginStatusLabel.setText("Wrong login, please check your credentials.");
-            }
+            }*/
         } catch (Exception e) {
             ErrorHandler.showError(e);
             e.printStackTrace();
