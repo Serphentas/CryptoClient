@@ -14,16 +14,22 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+import internal.file.FileHandler;
+import internal.network.DataClient;
 import java.security.Security;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import visual.LoginForm;
+import visual.DefaultFrame;
 
 /**
  * Main method
- * 
+ *
  * @author Serphentas
  */
 public class Main {
+
+    private static final String host = "10.0.0.21";
+    private static final int port = 21;
+    private static final String[] credentials = new String[]{"asd", "asd"};
 
     /**
      * Sets up the GUI, so that the user can login in and start using the
@@ -37,8 +43,15 @@ public class Main {
     public static void main(String args[]) throws Exception {
         // adding Bouncy Castle as provider
         Security.addProvider(new BouncyCastleProvider());
-        
+
         // starting GUI
-        LoginForm.main(null);
+        //LoginForm.main(null);
+        DefaultFrame.main(null);
+
+        // initializing I/O handlers
+        DataClient.init();
+        DataClient.connect(host, port);
+        DataClient.login(credentials[0], credentials[1]);
+        FileHandler.init();
     }
 }

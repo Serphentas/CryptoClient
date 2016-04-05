@@ -26,7 +26,6 @@ public final class ErrorHandler {
         setUIStyle();
         JOptionPane.showMessageDialog(null, "Error: " + e.getMessage()
                 + "\nPlease contact support.", "Error", TrayIcon.MessageType.ERROR.ordinal());
-
     }
 
     public static void showError(String message) {

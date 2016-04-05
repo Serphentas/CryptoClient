@@ -47,8 +47,9 @@ public final class GCMCipher {
     private static final int KDF_CPU_RAM_COST = 10;
     private static final int KDF_PARALLEL = 10;
     private static final int KDF_BLOCK_SIZE = 10;
+    private static final int SANITIZATION_ITERATION = 1024;
 
-    private static final byte[] buffer = new byte[512];
+    private static final byte[] buffer = new byte[4096];
 
     private final Cipher cipher;
     private byte[] nonce = null;
@@ -148,14 +149,15 @@ public final class GCMCipher {
             output.write(buffer, 0, r);
         }
 
+        eraseParams();
         asd.close();
         output.close();
         input.close();
     }
 
     private void eraseParams() {
-        GPCrypto.sanitize(this.salt, 1024);
-        GPCrypto.sanitize(this.nonce, 1024);
-        //this.key.destroy();
+        GPCrypto.sanitize(this.salt, SANITIZATION_ITERATION);
+        GPCrypto.sanitize(this.nonce, SANITIZATION_ITERATION);
+        GPCrypto.sanitize(this.key.getEncoded(), SANITIZATION_ITERATION);
     }
 }

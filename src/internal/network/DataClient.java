@@ -3,6 +3,7 @@ package internal.network;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 
@@ -16,7 +17,7 @@ public abstract class DataClient {
     private static FTPClient ftp;
 
     /**
-     * Initializes the FTPClient and the GCMCipher
+     * Initializes the FTPClient
      *
      * @throws Exception
      */
@@ -52,10 +53,14 @@ public abstract class DataClient {
      * @throws IOException
      */
     public static void login(String username, String password) throws IOException {
-        ftp.login(username, password);
+        if (ftp.login(username, password)) {
+            ftp.setFileType(FTP.BINARY_FILE_TYPE);
+            ftp.enterLocalPassiveMode();
+        }
     }
 
     public static FTPFile[] listDirs(String path) throws IOException {
+        
         return ftp.listDirectories(path);
     }
 
@@ -76,7 +81,11 @@ public abstract class DataClient {
      * @throws IOException
      */
     public static OutputStream outputStream(String remoteFilePath) throws IOException {
-        ftp.dele(remoteFilePath);
+        for (FTPFile f : ftp.listFiles()) {
+            if (f.getName().equals(remoteFilePath)) {
+                ftp.deleteFile(remoteFilePath);
+            }
+        }
         return ftp.storeFileStream(remoteFilePath);
     }
 
@@ -92,4 +101,7 @@ public abstract class DataClient {
         return ftp.retrieveFileStream(remoteFilePath);
     }
 
+    public static void completePendingCommand() throws IOException {
+        ftp.completePendingCommand();
+    }
 }

@@ -16,8 +16,8 @@
  */
 package visual;
 
-import internal.crypto.GCMCipher;
 import internal.crypto.GCMParallel;
+import internal.file.FileHandler;
 import internal.network.TLSClient;
 import java.awt.FileDialog;
 import java.awt.event.WindowEvent;
@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.UIManager;
-import javax.swing.table.TableColumn;
 
 /**
  *
@@ -35,8 +34,6 @@ import javax.swing.table.TableColumn;
 public class DefaultFrame extends javax.swing.JFrame {
 
     private FileDialog fd;
-    private final GCMCipher gcmc;
-    
 
     /**
      * Creates new form defaultFrame
@@ -46,12 +43,14 @@ public class DefaultFrame extends javax.swing.JFrame {
     public DefaultFrame() throws Exception {
         initComponents();
         setLocationRelativeTo(null);
-        gcmc = new GCMCipher();
-        asd();
     }
-    
-    public void asd(){
-        fileViewTable.addColumn(new TableColumn(4));
+
+    public static void updateTable(Object o, int x, int y) {
+        fileViewTable.setValueAt(o, x, y);
+    }
+
+    public static void updateLog(String s) {
+        actionLogTextArea.append(s);
     }
 
     /**
@@ -64,13 +63,12 @@ public class DefaultFrame extends javax.swing.JFrame {
     private void initComponents() {
 
         fileChooser = new javax.swing.JFileChooser();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
+        downloadButton = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         actionLogTextArea = new javax.swing.JTextArea();
-        jButton3 = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
         fileViewTable = new javax.swing.JTable();
+        uploadButton = new javax.swing.JButton();
         menuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
         openButton = new javax.swing.JMenuItem();
@@ -86,10 +84,15 @@ public class DefaultFrame extends javax.swing.JFrame {
         fileChooser.setApproveButtonText("");
         fileChooser.setApproveButtonToolTipText("");
         fileChooser.setBackground(java.awt.Color.black);
-        fileChooser.setDialogTitle("Open file");
+        fileChooser.setDialogTitle("Send file");
         fileChooser.setFont(new java.awt.Font("Consolas", 0, 10)); // NOI18N
         fileChooser.setMinimumSize(new java.awt.Dimension(1024, 1024));
         fileChooser.setPreferredSize(new java.awt.Dimension(1024, 1024));
+        fileChooser.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                fileChooserActionPerformed(evt);
+            }
+        });
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("CryptoClient");
@@ -104,30 +107,16 @@ public class DefaultFrame extends javax.swing.JFrame {
             }
         });
 
-        jButton1.setText("Encrypt");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        downloadButton.setText("Download");
+        downloadButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
-
-        jButton2.setText("Decrypt");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
+                downloadButtonActionPerformed(evt);
             }
         });
 
         actionLogTextArea.setColumns(20);
         actionLogTextArea.setRows(5);
         jScrollPane1.setViewportView(actionLogTextArea);
-
-        jButton3.setText("GC");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
-            }
-        });
 
         fileViewTable.setAutoCreateRowSorter(true);
         fileViewTable.setModel(new javax.swing.table.DefaultTableModel(
@@ -150,6 +139,13 @@ public class DefaultFrame extends javax.swing.JFrame {
             }
         });
         jScrollPane2.setViewportView(fileViewTable);
+
+        uploadButton.setText("Upload");
+        uploadButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                uploadButtonActionPerformed(evt);
+            }
+        });
 
         fileMenu.setText("File");
 
@@ -224,19 +220,13 @@ public class DefaultFrame extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(96, 96, 96)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addComponent(jButton3)
-                                    .addComponent(jButton1))
-                                .addGap(19, 19, 19))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(jButton2)
-                                .addGap(18, 18, 18)))
+                        .addGap(81, 81, 81)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(downloadButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(uploadButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(18, 18, 18)
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 658, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 241, Short.MAX_VALUE))
+                        .addGap(0, 245, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(jScrollPane2)))
@@ -246,17 +236,15 @@ public class DefaultFrame extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(jButton2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton3)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton1)))
-                .addGap(61, 61, 61))
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 323, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(downloadButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(uploadButton))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(68, 68, 68))
         );
 
         pack();
@@ -286,25 +274,7 @@ public class DefaultFrame extends javax.swing.JFrame {
         PreferencesFrame.main(null);
     }//GEN-LAST:event_preferencesButtonActionPerformed
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        if (fd == null) {
-            visual.ErrorHandler.showError("no file specified.");
-        } else {
-            try {
-                if (internal.Settings.isParallelCrypto()) {
-                    GCMParallel.encryptParallel(fd.getFiles());
-                } else {
-                    for (File f : fd.getFiles()) {
-                        gcmc.encrypt(f);
-                    }
-                }
-            } catch (Exception e) {
-                visual.ErrorHandler.showError(e);
-            }
-        }
-    }//GEN-LAST:event_jButton1ActionPerformed
-
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+    private void downloadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_downloadButtonActionPerformed
         if (fd == null) {
             visual.ErrorHandler.showError("no file specified.");
         } else {
@@ -313,22 +283,18 @@ public class DefaultFrame extends javax.swing.JFrame {
                     GCMParallel.decryptParallel(fd.getFiles());
                 } else {
                     for (File f : fd.getFiles()) {
-                        //gcmc.decrypt(f);
+                        FileHandler.send(f, f.getName());
                     }
                 }
             } catch (Exception e) {
                 visual.ErrorHandler.showError(e);
             }
         }
-    }//GEN-LAST:event_jButton2ActionPerformed
+    }//GEN-LAST:event_downloadButtonActionPerformed
 
     private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
         this.exitButtonActionPerformed(null);
     }//GEN-LAST:event_formWindowClosed
-
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        System.gc();
-    }//GEN-LAST:event_jButton3ActionPerformed
 
     private void disconnectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_disconnectButtonActionPerformed
         try {
@@ -339,6 +305,24 @@ public class DefaultFrame extends javax.swing.JFrame {
         this.dispose();
         LoginForm.main(null);
     }//GEN-LAST:event_disconnectButtonActionPerformed
+
+    private void fileChooserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileChooserActionPerformed
+
+    }//GEN-LAST:event_fileChooserActionPerformed
+
+    private void uploadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadButtonActionPerformed
+        if (fd == null) {
+            visual.ErrorHandler.showError("no file specified.");
+        } else {
+            try {
+                for (File f : fd.getFiles()) {
+                    FileHandler.send(f, f.getName());
+                }
+            } catch (Exception e) {
+                visual.ErrorHandler.showError(e);
+            }
+        }
+    }//GEN-LAST:event_uploadButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -354,16 +338,24 @@ public class DefaultFrame extends javax.swing.JFrame {
                 if ("Nimbus".equals(info.getName())) {
                     javax.swing.UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
                     break;
+
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(DefaultFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(DefaultFrame.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(DefaultFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(DefaultFrame.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(DefaultFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(DefaultFrame.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(DefaultFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(DefaultFrame.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
         //</editor-fold>
@@ -372,30 +364,31 @@ public class DefaultFrame extends javax.swing.JFrame {
         java.awt.EventQueue.invokeLater(() -> {
             try {
                 new DefaultFrame().setVisible(true);
+
             } catch (Exception ex) {
-                Logger.getLogger(DefaultFrame.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(DefaultFrame.class
+                        .getName()).log(Level.SEVERE, null, ex);
             }
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTextArea actionLogTextArea;
+    private static javax.swing.JTextArea actionLogTextArea;
     private javax.swing.JMenuItem benchmarkButton;
     private javax.swing.JMenuItem disconnectButton;
+    private javax.swing.JButton downloadButton;
     private javax.swing.JMenu editMenu;
     private javax.swing.JMenuItem exitButton;
     private javax.swing.JFileChooser fileChooser;
     private javax.swing.JMenu fileMenu;
-    private javax.swing.JTable fileViewTable;
+    private static javax.swing.JTable fileViewTable;
     private javax.swing.JMenu helpMenu;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JMenuItem openButton;
     private javax.swing.JMenuItem preferencesButton;
     private javax.swing.JMenu toolsMenu;
+    private javax.swing.JButton uploadButton;
     // End of variables declaration//GEN-END:variables
 }

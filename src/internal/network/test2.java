@@ -55,7 +55,7 @@ public final class test2 {
 
     public static final void main(String[] args) throws NoSuchAlgorithmException {
         int base = 0;
-        boolean storeFile = false, binaryTransfer = false, error = false;
+            boolean storeFile = false, binaryTransfer = false, error = false;
         String server, username, password, remote, local;
         String protocol = "SSL";    // SSL/TLS
         FTPSClient ftps;
