@@ -23,7 +23,7 @@ import javax.swing.UIManager;
 
 /**
  * Lets the user log into his/her account
- * 
+ *
  * @author Serphentas
  */
 public class LoginForm extends javax.swing.JFrame {
@@ -128,15 +128,13 @@ public class LoginForm extends javax.swing.JFrame {
 
     private void loginButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginButtonActionPerformed
         try {
-            //if (Authentication.login(usernameField.getText(), passwordField.getText())) {
-            //if(usernameField.getText().equals("IEatAss420")){
-                DataClient.login(usernameField.getText(), passwordField.getText());
+            if (DataClient.login(usernameField.getText(), passwordField.getText())) {
                 GCMCipher.setPassword(passwordField.getText());
                 this.dispose();
                 DefaultFrame.main(null);
-            /*} else {
+            } else {
                 loginStatusLabel.setText("Wrong login, please check your credentials.");
-            }*/
+            }
         } catch (Exception e) {
             ErrorHandler.showError(e);
             e.printStackTrace();

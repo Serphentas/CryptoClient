@@ -27,9 +27,6 @@ import visual.LoginForm;
  */
 public class Main {
 
-    private static final String host = "data.theswissbay.ch";
-    private static final int port = 7894;
-
     /**
      * Sets up the GUI, so that the user can login in and start using the
      * service.
@@ -48,7 +45,6 @@ public class Main {
 
         // initializing I/O handlers
         DataClient.init();
-        DataClient.connect(host, port);
         FileHandler.init();
     }
 }

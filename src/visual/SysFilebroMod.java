@@ -19,7 +19,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 
-class FileManager {
+class SysFilebroMod {
 
     public static final String APP_TITLE = "FileMan";
     private FileSystemView fileSystemView;

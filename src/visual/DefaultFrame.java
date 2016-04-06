@@ -16,16 +16,15 @@
  */
 package visual;
 
-import internal.file.FileHandler;
 import internal.network.DataClient;
-import internal.network.TLSClient;
 import java.awt.FileDialog;
 import java.awt.event.WindowEvent;
-import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.table.DefaultTableModel;
 import org.apache.commons.net.ftp.FTPFile;
 
 /**
@@ -35,6 +34,7 @@ import org.apache.commons.net.ftp.FTPFile;
 public class DefaultFrame extends javax.swing.JFrame {
 
     private FileDialog fd;
+    private FileWorker fw;
 
     /**
      * Creates new form defaultFrame
@@ -44,36 +44,48 @@ public class DefaultFrame extends javax.swing.JFrame {
     public DefaultFrame() throws Exception {
         initComponents();
         setLocationRelativeTo(null);
-        updateList(DataClient.listFiles("/"));
+        fw = new FileWorker(fileTable, actionLogTextArea);
+        updateFileTableView();
     }
 
-    public static void updateList(FTPFile[] files) throws IOException {
-        String[] fileNames = new String[files.length];
+    public static void updateFileTableView() throws IOException {
+        FTPFile[] dirs = DataClient.listDirs(), files = DataClient.listFiles();
+
+        DefaultTableModel dtm = (DefaultTableModel) fileTable.getModel();
+        dtm.setRowCount(files.length);
+        fileTable.setModel(dtm);
+
         int i = 0;
-        for (FTPFile f : files) {
-            fileNames[i] = f.getName();
-            jTable1.setValueAt(f.getName(), i, 0);
-            jTable1.setValueAt(f.getTimestamp().getTime(), i, 1);
-            if(f.isFile()){
-                jTable1.setValueAt("File", i, 2);
-            } else {
-                jTable1.setValueAt("Directory", i, 2);
-            }
-            
-            
-            String size = null;
-            if (f.getSize() % 1024 < 1024) {
-                size = f.getSize() / 1024 + " KiB";
-            } else if (f.getSize() % 1048576 < 1024){
-                size = f.getSize() / 1048576 + " MiB";
-            }
-            jTable1.setValueAt(size, i, 3);
+        for (FTPFile f : dirs) {
+            fileTable.setValueAt(f.getName(), i, 0);
+            fileTable.setValueAt(f.getTimestamp().getTime(), i, 1);
+            fileTable.setValueAt("Directory", i, 2);
+            fileTable.setValueAt("", i, 3);
+
             i++;
+        }
+
+        for (FTPFile f : files) {
+            if (f.isFile()) {
+                fileTable.setValueAt(f.getName(), i, 0);
+                fileTable.setValueAt(f.getTimestamp().getTime(), i, 1);
+                fileTable.setValueAt("File", i, 2);
+                String size = null;
+                if (f.getSize() / 1024 < 1024) {
+                    size = f.getSize() / 1024 + " KiB";
+                } else if (f.getSize() / 1048576 < 1024) {
+                    size = f.getSize() / 1048576 + " MiB";
+                } else if (f.getSize() / 1073741824 < 1024) {
+                    size = f.getSize() / 1048576 + " GiB";
+                }
+                fileTable.setValueAt(size, i, 3);
+                i++;
+            }
         }
     }
 
     public static void updateLog(String s) {
-        actionLogTextArea.append(s);
+        actionLogTextArea.append(s + "\n");
     }
 
     /**
@@ -86,12 +98,15 @@ public class DefaultFrame extends javax.swing.JFrame {
     private void initComponents() {
 
         fileChooser = new javax.swing.JFileChooser();
-        downloadButton = new javax.swing.JButton();
+        filePopupMenu = new javax.swing.JPopupMenu();
+        download = new javax.swing.JMenuItem();
+        delete = new javax.swing.JMenuItem();
+        openDirectory = new javax.swing.JMenuItem();
+        uploadButton = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         actionLogTextArea = new javax.swing.JTextArea();
-        uploadButton = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        fileTable = new javax.swing.JTable();
         menuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
         openButton = new javax.swing.JMenuItem();
@@ -111,11 +126,30 @@ public class DefaultFrame extends javax.swing.JFrame {
         fileChooser.setFont(new java.awt.Font("Consolas", 0, 10)); // NOI18N
         fileChooser.setMinimumSize(new java.awt.Dimension(1024, 1024));
         fileChooser.setPreferredSize(new java.awt.Dimension(1024, 1024));
-        fileChooser.addActionListener(new java.awt.event.ActionListener() {
+
+        download.setMnemonic('d');
+        download.setText("Download");
+        download.setToolTipText("Download file to this device");
+        download.setName("dsfgdsfg"); // NOI18N
+        download.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                fileChooserActionPerformed(evt);
+                downloadActionPerformed(evt);
             }
         });
+        filePopupMenu.add(download);
+
+        delete.setMnemonic('r');
+        delete.setText("Delete");
+        delete.setToolTipText("Deletes file(s) from the server");
+        delete.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deleteActionPerformed(evt);
+            }
+        });
+        filePopupMenu.add(delete);
+
+        openDirectory.setText("jMenuItem1");
+        filePopupMenu.add(openDirectory);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("CryptoClient");
@@ -130,17 +164,6 @@ public class DefaultFrame extends javax.swing.JFrame {
             }
         });
 
-        downloadButton.setText("Download");
-        downloadButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                downloadButtonActionPerformed(evt);
-            }
-        });
-
-        actionLogTextArea.setColumns(20);
-        actionLogTextArea.setRows(5);
-        jScrollPane1.setViewportView(actionLogTextArea);
-
         uploadButton.setText("Upload");
         uploadButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -148,7 +171,11 @@ public class DefaultFrame extends javax.swing.JFrame {
             }
         });
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        actionLogTextArea.setColumns(20);
+        actionLogTextArea.setRows(5);
+        jScrollPane1.setViewportView(actionLogTextArea);
+
+        fileTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null},
                 {null, null, null, null},
@@ -202,20 +229,32 @@ public class DefaultFrame extends javax.swing.JFrame {
                 return canEdit [columnIndex];
             }
         });
-        jTable1.setIntercellSpacing(new java.awt.Dimension(1, 5));
-        jTable1.setRowHeight(32);
-        jTable1.setShowHorizontalLines(false);
-        jScrollPane2.setViewportView(jTable1);
-        if (jTable1.getColumnModel().getColumnCount() > 0) {
-            jTable1.getColumnModel().getColumn(1).setMinWidth(200);
-            jTable1.getColumnModel().getColumn(1).setPreferredWidth(200);
-            jTable1.getColumnModel().getColumn(1).setMaxWidth(200);
-            jTable1.getColumnModel().getColumn(2).setMinWidth(150);
-            jTable1.getColumnModel().getColumn(2).setPreferredWidth(150);
-            jTable1.getColumnModel().getColumn(2).setMaxWidth(150);
-            jTable1.getColumnModel().getColumn(3).setMinWidth(100);
-            jTable1.getColumnModel().getColumn(3).setPreferredWidth(100);
-            jTable1.getColumnModel().getColumn(3).setMaxWidth(100);
+        fileTable.setToolTipText("");
+        fileTable.setIntercellSpacing(new java.awt.Dimension(1, 5));
+        fileTable.setRowHeight(32);
+        fileTable.setShowHorizontalLines(false);
+        fileTable.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                fileTableMouseClicked(evt);
+            }
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                fileTableMousePressed(evt);
+            }
+            public void mouseReleased(java.awt.event.MouseEvent evt) {
+                fileTableMouseReleased(evt);
+            }
+        });
+        jScrollPane2.setViewportView(fileTable);
+        if (fileTable.getColumnModel().getColumnCount() > 0) {
+            fileTable.getColumnModel().getColumn(1).setMinWidth(200);
+            fileTable.getColumnModel().getColumn(1).setPreferredWidth(200);
+            fileTable.getColumnModel().getColumn(1).setMaxWidth(200);
+            fileTable.getColumnModel().getColumn(2).setMinWidth(150);
+            fileTable.getColumnModel().getColumn(2).setPreferredWidth(150);
+            fileTable.getColumnModel().getColumn(2).setMaxWidth(150);
+            fileTable.getColumnModel().getColumn(3).setMinWidth(100);
+            fileTable.getColumnModel().getColumn(3).setPreferredWidth(100);
+            fileTable.getColumnModel().getColumn(3).setMaxWidth(100);
         }
 
         fileMenu.setText("File");
@@ -293,9 +332,7 @@ public class DefaultFrame extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(0, 48, Short.MAX_VALUE)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(uploadButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(downloadButton, javax.swing.GroupLayout.Alignment.TRAILING))
+                        .addComponent(uploadButton, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(39, 39, 39)
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 658, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jScrollPane2))
@@ -309,8 +346,7 @@ public class DefaultFrame extends javax.swing.JFrame {
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(downloadButton)
-                        .addGap(26, 26, 26)
+                        .addGap(51, 51, 51)
                         .addComponent(uploadButton))
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
@@ -321,11 +357,16 @@ public class DefaultFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void exitButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitButtonActionPerformed
+        try {
+            DataClient.disconnect();
+        } catch (IOException ex) {
+            visual.ErrorHandler.showError(ex);
+        }
         this.dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
     }//GEN-LAST:event_exitButtonActionPerformed
 
     private void openButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openButtonActionPerformed
-        fd = new FileDialog(this, "Open file", FileDialog.LOAD);
+        fd = new FileDialog(this, "Upload file", FileDialog.LOAD);
         fd.setMultipleMode(true);
         fd.setVisible(true);
     }//GEN-LAST:event_openButtonActionPerformed
@@ -343,24 +384,13 @@ public class DefaultFrame extends javax.swing.JFrame {
         PreferencesFrame.main(null);
     }//GEN-LAST:event_preferencesButtonActionPerformed
 
-    private void downloadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_downloadButtonActionPerformed
-        try {
-            for (int i : jTable1.getSelectedRows()) {
-                String s = (String) jTable1.getValueAt(i, 0);
-                FileHandler.receive(s, new File("C:/Users/Public/" + s.substring(0, s.length() - 4) + "_decrypted.jpg"));
-            }
-        } catch (Exception e) {
-            visual.ErrorHandler.showError(e);
-        }
-    }//GEN-LAST:event_downloadButtonActionPerformed
-
     private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
-        this.exitButtonActionPerformed(null);
+        exitButtonActionPerformed(null);
     }//GEN-LAST:event_formWindowClosed
 
     private void disconnectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_disconnectButtonActionPerformed
         try {
-            TLSClient.disconnect();
+            DataClient.disconnect();
         } catch (IOException ex) {
             ErrorHandler.showError(ex);
         }
@@ -368,24 +398,64 @@ public class DefaultFrame extends javax.swing.JFrame {
         LoginForm.main(null);
     }//GEN-LAST:event_disconnectButtonActionPerformed
 
-    private void fileChooserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileChooserActionPerformed
-
-    }//GEN-LAST:event_fileChooserActionPerformed
-
     private void uploadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadButtonActionPerformed
         if (fd == null) {
             visual.ErrorHandler.showError("no file specified.");
         } else {
             try {
-                for (File f : fd.getFiles()) {
-                    FileHandler.send(f, f.getName());
-                }
-                updateList(DataClient.listFiles("/"));
+                FileWorker.setUploadParams(fd.getFiles());
+                fw.execute();
             } catch (Exception e) {
                 visual.ErrorHandler.showError(e);
             }
         }
     }//GEN-LAST:event_uploadButtonActionPerformed
+
+    private void fileTableMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fileTableMouseReleased
+        if (evt.isPopupTrigger()) {
+            filePopupMenu.show(evt.getComponent(), evt.getX(), evt.getY());
+        }
+    }//GEN-LAST:event_fileTableMouseReleased
+
+    private void fileTableMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fileTableMousePressed
+
+    }//GEN-LAST:event_fileTableMousePressed
+
+    private void downloadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_downloadActionPerformed
+        try {
+            FileWorker.setDownloadParams(fileTable.getSelectedRows(), 1);
+            fw.execute();
+        } catch (Exception e) {
+            visual.ErrorHandler.showError(e);
+        }
+    }//GEN-LAST:event_downloadActionPerformed
+
+    private void deleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteActionPerformed
+        try {
+            for (int i : fileTable.getSelectedRows()) {
+                String s = (String) fileTable.getValueAt(i, 0);
+                if (fileTable.getValueAt(i, 2).equals("File")) {
+                    DataClient.delete(s, 0);
+                } else {
+                    DataClient.delete(s, 1);
+                }
+            }
+            updateFileTableView();
+        } catch (Exception ex) {
+            visual.ErrorHandler.showError(ex);
+        }
+    }//GEN-LAST:event_deleteActionPerformed
+
+    private void fileTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fileTableMouseClicked
+        if (evt.getClickCount() == 2) {
+            try {
+                DataClient.cd((String) fileTable.getValueAt(fileTable.getSelectedRow(), 0));
+                updateFileTableView();
+            } catch (IOException ex) {
+                visual.ErrorHandler.showError(ex);
+            }
+        }
+    }//GEN-LAST:event_fileTableMouseClicked
 
     /**
      * @param args the command line arguments
@@ -424,7 +494,7 @@ public class DefaultFrame extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(() -> {
+        SwingUtilities.invokeLater(() -> {
             try {
                 new DefaultFrame().setVisible(true);
 
@@ -438,18 +508,21 @@ public class DefaultFrame extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private static javax.swing.JTextArea actionLogTextArea;
     private javax.swing.JMenuItem benchmarkButton;
+    private javax.swing.JMenuItem delete;
     private javax.swing.JMenuItem disconnectButton;
-    private javax.swing.JButton downloadButton;
+    private javax.swing.JMenuItem download;
     private javax.swing.JMenu editMenu;
     private javax.swing.JMenuItem exitButton;
     private javax.swing.JFileChooser fileChooser;
     private javax.swing.JMenu fileMenu;
+    private javax.swing.JPopupMenu filePopupMenu;
+    private static javax.swing.JTable fileTable;
     private javax.swing.JMenu helpMenu;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
-    private static javax.swing.JTable jTable1;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JMenuItem openButton;
+    private javax.swing.JMenuItem openDirectory;
     private javax.swing.JMenuItem preferencesButton;
     private javax.swing.JMenu toolsMenu;
     private javax.swing.JButton uploadButton;

@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import visual.DefaultFrame;
 
 public class FileHandler {
 
@@ -42,7 +41,6 @@ public class FileHandler {
     public static void receive(String remoteFilePath, File outputFile) throws IOException, Exception {
         gcmc.decrypt(DataClient.inputStream(remoteFilePath), new FileOutputStream(outputFile));
         DataClient.completePendingCommand();
-        DefaultFrame.updateLog("File " + remoteFilePath + " retrieved\n");
     }
 
     /**
@@ -56,6 +54,5 @@ public class FileHandler {
     public static void send(File inputFile, String remoteFilePath) throws IOException, Exception {
         gcmc.encrypt(new FileInputStream(inputFile), DataClient.outputStream(remoteFilePath));
         DataClient.completePendingCommand();
-        DefaultFrame.updateLog("File " + remoteFilePath + " sent\n");
     }
 }
