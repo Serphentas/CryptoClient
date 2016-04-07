@@ -1,21 +1,25 @@
 package internal.network;
 
+import internal.crypto.GCMCipher;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
+import visual.ErrorHandler;
 
 /**
  * Allows I/O from the data server, using FTP
  *
  * @author Dreadlockyx
  */
-public class DataClient implements Runnable {
+public class DataClient {
 
     private static FTPClient ftp;
-    public static final String HOSTNAME = "10.0.0.20";
+    private static GCMCipher gcmc;
+    public static final String HOSTNAME = "localhost";
     public static final int PORT = 21;
 
     /**
@@ -23,6 +27,11 @@ public class DataClient implements Runnable {
      */
     public static void init() {
         ftp = new FTPClient();
+        try {
+            gcmc = new GCMCipher();
+        } catch (Exception ex) {
+            ErrorHandler.showError(ex);
+        }
     }
 
     /**
@@ -57,7 +66,7 @@ public class DataClient implements Runnable {
      */
     public static boolean login(String username, String password) throws IOException {
         if (!ftp.isConnected()) {
-            connect(DataClient.HOSTNAME, DataClient.PORT);
+            connect(HOSTNAME, PORT);
         }
 
         if (ftp.login(username, password)) {
@@ -82,36 +91,33 @@ public class DataClient implements Runnable {
     }
 
     /**
-     * Returns an OutputStream through which a file can be sent, using the
-     * supplied string as the remote file path
-     * <p>
-     * Since only one remote file path is given, the OutputStream should not be
-     * used to transfer more than one file (else it will append data to the
-     * previous one).
+     * Encrypts and sends a local file to the data server
      *
-     * @param remoteFilePath file path on the remote server to write to
-     * @return OutputStream through which a file can be sent
+     * @param inputFile source File
+     * @param remoteFilePath remote file location
      * @throws IOException
+     * @throws Exception
      */
-    public static OutputStream outputStream(String remoteFilePath) throws IOException {
+    public static void send(File inputFile, String remoteFilePath) throws IOException, Exception {
         for (FTPFile f : ftp.listFiles()) {
             if (f.getName().equals(remoteFilePath)) {
                 ftp.deleteFile(remoteFilePath);
             }
         }
-        return ftp.storeFileStream(remoteFilePath);
+        gcmc.encrypt(new FileInputStream(inputFile), ftp.storeFileStream(remoteFilePath));
+        DataClient.completePendingCommand();
     }
 
     /**
-     * Returns an InputStream through which a file can be read, using the
-     * supplied string as the remote file path
+     * Receives and decrypts a remote file to the local filesystem
      *
-     * @param remoteFilePath file path on the remote server to read from
-     * @return InputStream through which a file can be read
+     * @param outputFile destination File
+     * @param remoteFilePath remote file location
      * @throws IOException
      */
-    public static InputStream inputStream(String remoteFilePath) throws IOException {
-        return ftp.retrieveFileStream(remoteFilePath);
+    public static void receive(String remoteFilePath, File outputFile) throws IOException, Exception {
+        gcmc.decrypt(ftp.retrieveFileStream(remoteFilePath), new FileOutputStream(outputFile));
+        DataClient.completePendingCommand();
     }
 
     public static void delete(String fileName, int type) throws IOException {
@@ -124,10 +130,5 @@ public class DataClient implements Runnable {
 
     public static void completePendingCommand() throws IOException {
         ftp.completePendingCommand();
-    }
-
-    @Override
-    public void run() {
-
     }
 }

@@ -44,7 +44,7 @@ public final class GCMCipher {
     private static final int CIPHER_KEY_BITS = 256;
     private static final int GCM_NONCE_BYTES = 12;
     private static final int GCM_TAG_BITS = 128;
-    private static final int KDF_CPU_RAM_COST = (int) Math.pow(2,19);
+    private static final int KDF_CPU_RAM_COST = (int) Math.pow(2, 19);
     private static final int KDF_BLOCK_SIZE = 8;
     private static final int KDF_PARALLEL = 1;
     private static final int SANITIZATION_ITERATION = 1024;
@@ -123,8 +123,8 @@ public final class GCMCipher {
         // erasing cryptographic parameters and closing streams
         eraseParams();
         cos.close();
-        output.close();
         input.close();
+        output.close();
     }
 
     /**
@@ -158,8 +158,8 @@ public final class GCMCipher {
 
         eraseParams();
         cis.close();
-        output.close();
         input.close();
+        output.close();
     }
 
     private void eraseParams() {

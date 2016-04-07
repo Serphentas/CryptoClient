@@ -22,9 +22,9 @@ import javax.swing.UIManager;
 
 public final class ErrorHandler {
 
-    public static void showError(Exception e) {
+    public static void showError(Exception ex) {
         setUIStyle();
-        JOptionPane.showMessageDialog(null, "Error: " + e.getMessage()
+        JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage()
                 + "\nPlease contact support.", "Error", TrayIcon.MessageType.ERROR.ordinal());
     }
 

@@ -14,7 +14,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import internal.file.FileHandler;
 import internal.network.DataClient;
 import java.security.Security;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -45,6 +44,5 @@ public class Main {
 
         // initializing I/O handlers
         DataClient.init();
-        FileHandler.init();
     }
 }

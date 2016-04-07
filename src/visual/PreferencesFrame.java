@@ -16,6 +16,8 @@
  */
 package visual;
 
+import internal.Settings;
+import javax.swing.JFileChooser;
 import javax.swing.UIManager;
 
 /**
@@ -24,11 +26,9 @@ import javax.swing.UIManager;
  */
 public class PreferencesFrame extends javax.swing.JFrame {
 
-    private final int defaultParallelCryptoThreadsCount = internal.Settings.getParallelCryptoThreads();
-    private final boolean defaultIsParallelCrypto = internal.Settings.isParallelCrypto();
-
     private int newParallelCryptoThreadsCount;
     private boolean newIsParallelCrypto;
+    private JFileChooser fc;
 
     /**
      * Creates new form PreferencesFrame
@@ -36,6 +36,15 @@ public class PreferencesFrame extends javax.swing.JFrame {
     public PreferencesFrame() {
         initComponents();
         setLocationRelativeTo(null);
+        loadParams();
+    }
+
+    private void setParams() {
+        Settings.setWorkingDir(workingDirPath.getText());
+    }
+
+    private void loadParams() {
+        workingDirPath.setText(Settings.getWorkingDir());
     }
 
     /**
@@ -52,6 +61,9 @@ public class PreferencesFrame extends javax.swing.JFrame {
         OKButton = new javax.swing.JButton();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         generalSettingsPanel = new javax.swing.JPanel();
+        workingDirLabel = new javax.swing.JLabel();
+        workingDirBrowseButton = new javax.swing.JButton();
+        workingDirPath = new javax.swing.JTextField();
         networkSettingsPanel = new javax.swing.JPanel();
         securitySettingsPannel = new javax.swing.JPanel();
         parallelCryptoChoiceLabel = new javax.swing.JLabel();
@@ -85,15 +97,37 @@ public class PreferencesFrame extends javax.swing.JFrame {
             }
         });
 
+        workingDirLabel.setText("Working directory");
+
+        workingDirBrowseButton.setText("Browse");
+        workingDirBrowseButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                workingDirBrowseButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout generalSettingsPanelLayout = new javax.swing.GroupLayout(generalSettingsPanel);
         generalSettingsPanel.setLayout(generalSettingsPanelLayout);
         generalSettingsPanelLayout.setHorizontalGroup(
             generalSettingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 585, Short.MAX_VALUE)
+            .addGroup(generalSettingsPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(workingDirLabel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(workingDirPath, javax.swing.GroupLayout.PREFERRED_SIZE, 368, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(workingDirBrowseButton)
+                .addContainerGap())
         );
         generalSettingsPanelLayout.setVerticalGroup(
             generalSettingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addGroup(generalSettingsPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(generalSettingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(workingDirLabel)
+                    .addComponent(workingDirBrowseButton)
+                    .addComponent(workingDirPath, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(364, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("General", generalSettingsPanel);
@@ -210,9 +244,7 @@ public class PreferencesFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_parallelCryptoChoiceMenuPropertyChange
 
     private void OKButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_OKButtonActionPerformed
-        // setting new values
-        internal.Settings.setParallelCrypto(newIsParallelCrypto);
-        internal.Settings.setParallelCryptoThreads(newParallelCryptoThreadsCount);
+        setParams();
         this.dispose();
     }//GEN-LAST:event_OKButtonActionPerformed
 
@@ -225,9 +257,20 @@ public class PreferencesFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_cancelButtonActionPerformed
 
     private void applyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_applyButtonActionPerformed
-        internal.Settings.setParallelCrypto(newIsParallelCrypto);
-        internal.Settings.setParallelCryptoThreads(newParallelCryptoThreadsCount);
+        setParams();
     }//GEN-LAST:event_applyButtonActionPerformed
+
+    private void workingDirBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_workingDirBrowseButtonActionPerformed
+        fc = new JFileChooser();
+        fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        fc.setMultiSelectionEnabled(false);
+        fc.setVisible(true);
+
+        int returnVal = fc.showDialog(this, "Open");
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            workingDirPath.setText(fc.getSelectedFile().getPath().replace("\\", "/"));
+        }
+    }//GEN-LAST:event_workingDirBrowseButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -274,5 +317,8 @@ public class PreferencesFrame extends javax.swing.JFrame {
     private javax.swing.JLabel parallelCryptoThreadsLabel;
     private javax.swing.JComboBox parallelCryptoThreadsMenu;
     private javax.swing.JPanel securitySettingsPannel;
+    private javax.swing.JButton workingDirBrowseButton;
+    private javax.swing.JLabel workingDirLabel;
+    private javax.swing.JTextField workingDirPath;
     // End of variables declaration//GEN-END:variables
 }

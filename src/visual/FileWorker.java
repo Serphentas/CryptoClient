@@ -1,6 +1,6 @@
 package visual;
 
-import internal.file.FileHandler;
+import internal.Settings;
 import internal.network.DataClient;
 import java.io.File;
 import java.io.IOException;
@@ -32,8 +32,9 @@ public class FileWorker extends SwingWorker<Integer, String> {
         FileWorker.fileTable = fileTable;
     }
 
-    public static void setUploadParams(File[] files) {
+    public static void setUploadParams(File[] files, int action) {
         FileWorker.localFiles = files;
+        FileWorker.action = action;
     }
 
     public static void setDownloadParams(int[] rows, int action) {
@@ -42,7 +43,7 @@ public class FileWorker extends SwingWorker<Integer, String> {
     }
 
     /**
-     * action: 0=upload, 1=download, 2=delete
+     * action: 0=upload, 1=download
      *
      * @return @throws Exception
      */
@@ -52,23 +53,24 @@ public class FileWorker extends SwingWorker<Integer, String> {
         switch (action) {
             case 0:
                 for (File f : localFiles) {
-                    FileHandler.send(f, f.getName());
+                    DataClient.send(f, f.getName());
                     publish("[" + new Date() + "] File " + f.getName() + " sent");
-                    setProgress((i / localFiles.length) * 100);
+                    /*setProgress((i / localFiles.length) * 100);
+                    i++;*/
+                    updateTable();
                 }
                 break;
             case 1:
                 for (int row : rows) {
-
                     String s = (String) fileTable.getValueAt(row, 0);
                     System.out.println(s);
-                    FileHandler.receive(s, new File("C:/Users/Public/" + s));
+                    DataClient.receive(s, new File(Settings.getWorkingDir() + "/" + s));
                     publish("[" + new Date() + "] File " + s + " received");
+                    /*setProgress((i / rows.length) * 100);
+                    i++;*/
                 }
                 break;
         }
-
-        updateTable();
         return 1;
     }
 

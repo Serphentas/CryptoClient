@@ -34,7 +34,6 @@ import org.apache.commons.net.ftp.FTPFile;
 public class DefaultFrame extends javax.swing.JFrame {
 
     private FileDialog fd;
-    private FileWorker fw;
 
     /**
      * Creates new form defaultFrame
@@ -44,7 +43,7 @@ public class DefaultFrame extends javax.swing.JFrame {
     public DefaultFrame() throws Exception {
         initComponents();
         setLocationRelativeTo(null);
-        fw = new FileWorker(fileTable, actionLogTextArea);
+
         updateFileTableView();
     }
 
@@ -97,7 +96,6 @@ public class DefaultFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        fileChooser = new javax.swing.JFileChooser();
         filePopupMenu = new javax.swing.JPopupMenu();
         download = new javax.swing.JMenuItem();
         delete = new javax.swing.JMenuItem();
@@ -117,15 +115,6 @@ public class DefaultFrame extends javax.swing.JFrame {
         toolsMenu = new javax.swing.JMenu();
         benchmarkButton = new javax.swing.JMenuItem();
         helpMenu = new javax.swing.JMenu();
-
-        fileChooser.setAcceptAllFileFilterUsed(false);
-        fileChooser.setApproveButtonText("");
-        fileChooser.setApproveButtonToolTipText("");
-        fileChooser.setBackground(java.awt.Color.black);
-        fileChooser.setDialogTitle("Send file");
-        fileChooser.setFont(new java.awt.Font("Consolas", 0, 10)); // NOI18N
-        fileChooser.setMinimumSize(new java.awt.Dimension(1024, 1024));
-        fileChooser.setPreferredSize(new java.awt.Dimension(1024, 1024));
 
         download.setMnemonic('d');
         download.setText("Download");
@@ -403,8 +392,9 @@ public class DefaultFrame extends javax.swing.JFrame {
             visual.ErrorHandler.showError("no file specified.");
         } else {
             try {
-                FileWorker.setUploadParams(fd.getFiles());
-                fw.execute();
+                FileWorker fwul = new FileWorker(fileTable, actionLogTextArea);
+                FileWorker.setUploadParams(fd.getFiles(), 0);
+                fwul.execute();
             } catch (Exception e) {
                 visual.ErrorHandler.showError(e);
             }
@@ -423,8 +413,9 @@ public class DefaultFrame extends javax.swing.JFrame {
 
     private void downloadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_downloadActionPerformed
         try {
+            FileWorker fwdl = new FileWorker(fileTable, actionLogTextArea);
             FileWorker.setDownloadParams(fileTable.getSelectedRows(), 1);
-            fw.execute();
+            fwdl.execute();
         } catch (Exception e) {
             visual.ErrorHandler.showError(e);
         }
@@ -513,7 +504,6 @@ public class DefaultFrame extends javax.swing.JFrame {
     private javax.swing.JMenuItem download;
     private javax.swing.JMenu editMenu;
     private javax.swing.JMenuItem exitButton;
-    private javax.swing.JFileChooser fileChooser;
     private javax.swing.JMenu fileMenu;
     private javax.swing.JPopupMenu filePopupMenu;
     private static javax.swing.JTable fileTable;
