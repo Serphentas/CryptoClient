@@ -22,6 +22,7 @@ import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
@@ -43,24 +44,29 @@ public class DefaultFrame extends javax.swing.JFrame {
     public DefaultFrame() throws Exception {
         initComponents();
         setLocationRelativeTo(null);
-
         updateFileTableView();
     }
 
-    public static void updateFileTableView() throws IOException {
+    private void updateFileTableView() throws IOException {
         FTPFile[] dirs = DataClient.listDirs(), files = DataClient.listFiles();
-
         DefaultTableModel dtm = (DefaultTableModel) fileTable.getModel();
-        dtm.setRowCount(files.length);
-        fileTable.setModel(dtm);
-
         int i = 0;
+
+        if (!DataClient.isAtRoot()) {
+            dtm.setRowCount(files.length + 1);
+            fileTable.setModel(dtm);
+            fileTable.setValueAt("..", i, 0);
+            i++;
+        } else {
+            dtm.setRowCount(files.length);
+            fileTable.setModel(dtm);
+        }
+
         for (FTPFile f : dirs) {
             fileTable.setValueAt(f.getName(), i, 0);
             fileTable.setValueAt(f.getTimestamp().getTime(), i, 1);
             fileTable.setValueAt("Directory", i, 2);
             fileTable.setValueAt("", i, 3);
-
             i++;
         }
 
@@ -112,6 +118,8 @@ public class DefaultFrame extends javax.swing.JFrame {
         exitButton = new javax.swing.JMenuItem();
         editMenu = new javax.swing.JMenu();
         preferencesButton = new javax.swing.JMenuItem();
+        viewMenu = new javax.swing.JMenu();
+        refreshButton = new javax.swing.JMenuItem();
         toolsMenu = new javax.swing.JMenu();
         benchmarkButton = new javax.swing.JMenuItem();
         helpMenu = new javax.swing.JMenu();
@@ -295,6 +303,19 @@ public class DefaultFrame extends javax.swing.JFrame {
 
         menuBar.add(editMenu);
 
+        viewMenu.setText("View");
+
+        refreshButton.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F5, 0));
+        refreshButton.setText("Refresh");
+        refreshButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                refreshButtonActionPerformed(evt);
+            }
+        });
+        viewMenu.add(refreshButton);
+
+        menuBar.add(viewMenu);
+
         toolsMenu.setText("Tools");
 
         benchmarkButton.setText("Benchmark");
@@ -422,18 +443,22 @@ public class DefaultFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_downloadActionPerformed
 
     private void deleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteActionPerformed
-        try {
-            for (int i : fileTable.getSelectedRows()) {
-                String s = (String) fileTable.getValueAt(i, 0);
-                if (fileTable.getValueAt(i, 2).equals("File")) {
-                    DataClient.delete(s, 0);
-                } else {
-                    DataClient.delete(s, 1);
+        int reply = JOptionPane.showConfirmDialog(null,
+                "Delete selected item(s) ?", "Delete", JOptionPane.YES_NO_OPTION);
+        if (reply == JOptionPane.YES_OPTION) {
+            try {
+                for (int i : fileTable.getSelectedRows()) {
+                    String s = (String) fileTable.getValueAt(i, 0);
+                    if (fileTable.getValueAt(i, 2).equals("File")) {
+                        DataClient.delete(s, 0);
+                    } else {
+                        DataClient.delete(s, 1);
+                    }
                 }
+                updateFileTableView();
+            } catch (Exception ex) {
+                visual.ErrorHandler.showError(ex);
             }
-            updateFileTableView();
-        } catch (Exception ex) {
-            visual.ErrorHandler.showError(ex);
         }
     }//GEN-LAST:event_deleteActionPerformed
 
@@ -448,21 +473,23 @@ public class DefaultFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_fileTableMouseClicked
 
+    private void refreshButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshButtonActionPerformed
+        try {
+            updateFileTableView();
+        } catch (IOException ex) {
+            visual.ErrorHandler.showError(ex);
+        }
+    }//GEN-LAST:event_refreshButtonActionPerformed
+
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
                     javax.swing.UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
                     break;
-
                 }
             }
         } catch (ClassNotFoundException ex) {
@@ -481,8 +508,6 @@ public class DefaultFrame extends javax.swing.JFrame {
             java.util.logging.Logger.getLogger(DefaultFrame.class
                     .getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        //</editor-fold>
-        //</editor-fold>
 
         /* Create and display the form */
         SwingUtilities.invokeLater(() -> {
@@ -514,7 +539,9 @@ public class DefaultFrame extends javax.swing.JFrame {
     private javax.swing.JMenuItem openButton;
     private javax.swing.JMenuItem openDirectory;
     private javax.swing.JMenuItem preferencesButton;
+    private javax.swing.JMenuItem refreshButton;
     private javax.swing.JMenu toolsMenu;
     private javax.swing.JButton uploadButton;
+    private javax.swing.JMenu viewMenu;
     // End of variables declaration//GEN-END:variables
 }

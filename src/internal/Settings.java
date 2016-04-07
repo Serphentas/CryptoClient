@@ -20,7 +20,8 @@ public abstract class Settings {
 
     private static boolean parallelCrypto = false;
     private static int parallelCryptoThreads = 2;
-    private static String workingDir = null;
+    private static String dlDir = null;
+    private static boolean isDlDir = false;
 
     public static boolean isParallelCrypto() {
         return parallelCrypto;
@@ -39,10 +40,19 @@ public abstract class Settings {
     }
 
     public static String getWorkingDir() {
-        return workingDir;
+        return dlDir;
     }
 
     public static void setWorkingDir(String newDir) {
-        workingDir = newDir;
+        dlDir = newDir;
+        isDlDir = true;
+    }
+
+    public static boolean isDlDir() {
+        return isDlDir;
+    }
+
+    public static void setIsDlDir(boolean newVal) {
+        isDlDir = newVal;
     }
 }

@@ -19,7 +19,8 @@ public class DataClient {
 
     private static FTPClient ftp;
     private static GCMCipher gcmc;
-    public static final String HOSTNAME = "localhost";
+    private static boolean isAtRoot = true;
+    public static final String HOSTNAME = "10.0.0.21";
     public static final int PORT = 21;
 
     /**
@@ -32,17 +33,6 @@ public class DataClient {
         } catch (Exception ex) {
             ErrorHandler.showError(ex);
         }
-    }
-
-    /**
-     * Connects to the data server via FTP
-     *
-     * @param host server hostname
-     * @param port server port
-     * @throws IOException
-     */
-    public static void connect(String host, int port) throws IOException {
-        ftp.connect(host, port);
     }
 
     /**
@@ -62,32 +52,74 @@ public class DataClient {
      * @param username username
      * @param password password
      * @return true if login successful, false if not
-     * @throws IOException
+     * @throws IOException If an I/O error occurs while either sending the
+     * command or receiving the server reply.
      */
     public static boolean login(String username, String password) throws IOException {
         if (!ftp.isConnected()) {
-            connect(HOSTNAME, PORT);
+            ftp.connect(HOSTNAME, PORT);
         }
 
         if (ftp.login(username, password)) {
             ftp.setFileType(FTP.BINARY_FILE_TYPE);
             ftp.enterLocalPassiveMode();
             return true;
+        } else {
+            disconnect();
+            return false;
         }
-
-        return false;
     }
 
+    /**
+     * Changes the working directory to the specified path
+     *
+     * @param path path to the new working directory
+     * @throws IOException
+     */
     public static void cd(String path) throws IOException {
         ftp.changeWorkingDirectory(path);
+        isAtRoot = ftp.printWorkingDirectory().equals("/");
     }
 
+    /**
+     * Returns true if the current working directory is the remote root
+     *
+     * @return true if the current working directory is the remote root
+     */
+    public static boolean isAtRoot() {
+        return isAtRoot;
+    }
+
+    /**
+     * Lists directories in the current working directory, in alphabetical order
+     *
+     * @return FTPFile array of directories in the current working directory
+     * @throws IOException
+     */
     public static FTPFile[] listDirs() throws IOException {
         return ftp.listDirectories();
     }
 
+    /**
+     * Lists files in the current working directory, in alphabetical order
+     * <p>
+     * Note: this also includes folders
+     *
+     * @return FTPFile array of files in the current working directory
+     * @throws IOException
+     */
     public static FTPFile[] listFiles() throws IOException {
         return ftp.listFiles();
+    }
+
+    public static boolean existsFile(String path) throws IOException {
+        boolean existance = false;
+        for (FTPFile f : listFiles()) {
+            if (f.getName().equals(path)) {
+                existance = true;
+            }
+        }
+        return existance;
     }
 
     /**
@@ -99,11 +131,6 @@ public class DataClient {
      * @throws Exception
      */
     public static void send(File inputFile, String remoteFilePath) throws IOException, Exception {
-        for (FTPFile f : ftp.listFiles()) {
-            if (f.getName().equals(remoteFilePath)) {
-                ftp.deleteFile(remoteFilePath);
-            }
-        }
         gcmc.encrypt(new FileInputStream(inputFile), ftp.storeFileStream(remoteFilePath));
         DataClient.completePendingCommand();
     }

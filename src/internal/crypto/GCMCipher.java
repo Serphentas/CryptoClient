@@ -27,7 +27,6 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import org.bouncycastle.crypto.generators.SCrypt;
-import org.bouncycastle.util.encoders.Hex;
 
 /**
  * General purpose class used for encryption and decryption of files.
@@ -97,10 +96,12 @@ public final class GCMCipher {
     public void encrypt(InputStream input, OutputStream output) throws Exception {
         // generating key and nonce
         this.salt = GPCrypto.randomGen(128);
-        time = System.nanoTime();
-        this.key = new SecretKeySpec(SCrypt.generate(password.getBytes(), this.salt, KDF_CPU_RAM_COST, KDF_BLOCK_SIZE, KDF_PARALLEL, CIPHER_KEY_BITS / 8), 0, CIPHER_KEY_BITS / 8, "AES");
-        System.out.println((System.nanoTime() - time) / 1e9);
-        this.nonce = SCrypt.generate(GPCrypto.randomGen(128), GPCrypto.randomGen(128), KDF_CPU_RAM_COST, KDF_BLOCK_SIZE, KDF_PARALLEL, GCM_NONCE_BYTES);
+        this.key = new SecretKeySpec(SCrypt.generate(password.getBytes(),
+                this.salt, KDF_CPU_RAM_COST, KDF_BLOCK_SIZE, KDF_PARALLEL,
+                CIPHER_KEY_BITS / 8), 0, CIPHER_KEY_BITS / 8, "AES");
+        this.nonce = SCrypt.generate(GPCrypto.randomGen(128), GPCrypto
+                .randomGen(128), KDF_CPU_RAM_COST, KDF_BLOCK_SIZE, KDF_PARALLEL,
+                GCM_NONCE_BYTES);
 
         // cipher initialization
         this.cipher.init(Cipher.ENCRYPT_MODE, this.key, new GCMParameterSpec(
@@ -108,9 +109,7 @@ public final class GCMCipher {
 
         // writing K-salt and nonce to output file
         output.write(this.salt);
-        System.out.println(this.salt.length + " " + Hex.toHexString(this.salt));
         output.write(this.nonce);
-        System.out.println(this.nonce.length + " " + Hex.toHexString(this.nonce));
 
         // finishing the encryption job
         int r = 0;
@@ -138,11 +137,12 @@ public final class GCMCipher {
         // read K-salt and nonce
         byte[] header = new byte[140];
         input.read(header, 0, 140);
+
         this.salt = Arrays.copyOfRange(header, 0, 128);
-        System.out.println(this.salt.length + " " + Hex.toHexString(this.salt));
-        this.key = new SecretKeySpec(SCrypt.generate(password.getBytes(), this.salt, KDF_CPU_RAM_COST, KDF_BLOCK_SIZE, KDF_PARALLEL, CIPHER_KEY_BITS / 8), 0, CIPHER_KEY_BITS / 8, "AES");
+        this.key = new SecretKeySpec(SCrypt.generate(password.getBytes(),
+                this.salt, KDF_CPU_RAM_COST, KDF_BLOCK_SIZE, KDF_PARALLEL,
+                CIPHER_KEY_BITS / 8), 0, CIPHER_KEY_BITS / 8, "AES");
         this.nonce = Arrays.copyOfRange(header, 128, 140);
-        System.out.println(this.nonce.length + " " + Hex.toHexString(this.nonce));
 
         // GCMCipher initialization
         this.cipher.init(Cipher.DECRYPT_MODE, this.key, new GCMParameterSpec(
@@ -156,6 +156,7 @@ public final class GCMCipher {
             output.write(buffer, 0, r);
         }
 
+        // erasing cryptographic parameters and closing streams
         eraseParams();
         cis.close();
         input.close();

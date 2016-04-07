@@ -6,6 +6,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.SwingWorker;
@@ -17,6 +20,7 @@ public class FileWorker extends SwingWorker<Integer, String> {
     private static int action;
     private static int[] rows;
     private static JTextArea log;
+    private static JFileChooser fc;
     private static JTable fileTable;
     private static File[] localFiles;
     private static FTPFile[] dirs, remoteFiles;
@@ -49,10 +53,20 @@ public class FileWorker extends SwingWorker<Integer, String> {
      */
     @Override
     protected Integer doInBackground() throws Exception {
+        publish("Begin file transfer");
         int i = 1;
         switch (action) {
             case 0:
                 for (File f : localFiles) {
+                    if (DataClient.existsFile(f.getName())) {
+                        int reply = JOptionPane.showConfirmDialog(null,
+                                "File already exists. Overwrite ?",
+                                "Overwrite file", JOptionPane.YES_NO_OPTION);
+                        if (reply == JOptionPane.YES_OPTION) {
+                            DataClient.delete(f.getName(), 0);
+                        }
+                    }
+
                     DataClient.send(f, f.getName());
                     publish("[" + new Date() + "] File " + f.getName() + " sent");
                     /*setProgress((i / localFiles.length) * 100);
@@ -61,16 +75,32 @@ public class FileWorker extends SwingWorker<Integer, String> {
                 }
                 break;
             case 1:
+                String dlDir = new String();
+
+                if (Settings.isDlDir()) {
+                    dlDir = Settings.getWorkingDir();
+                } else {
+                    fc = new JFileChooser();
+                    fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                    fc.setMultiSelectionEnabled(false);
+                    fc.setVisible(true);
+
+                    int returnVal = fc.showDialog(new JFrame(), "Choose download folder");
+                    if (returnVal == JFileChooser.APPROVE_OPTION) {
+                        dlDir = fc.getSelectedFile().getPath().replace("\\", "/");
+                    }
+                }
+                
                 for (int row : rows) {
                     String s = (String) fileTable.getValueAt(row, 0);
-                    System.out.println(s);
-                    DataClient.receive(s, new File(Settings.getWorkingDir() + "/" + s));
+                    DataClient.receive(s, new File(dlDir + "/" + s));
                     publish("[" + new Date() + "] File " + s + " received");
                     /*setProgress((i / rows.length) * 100);
                     i++;*/
                 }
                 break;
         }
+        publish("Done");
         return 1;
     }
 
@@ -83,6 +113,13 @@ public class FileWorker extends SwingWorker<Integer, String> {
         fileTable.setModel(dtm);
 
         int i = 0;
+
+        if (!DataClient.isAtRoot()) {
+            System.out.println("asd");
+            fileTable.setValueAt("..", i, 0);
+            i++;
+        }
+
         for (FTPFile f : dirs) {
             fileTable.setValueAt(f.getName(), i, 0);
             fileTable.setValueAt(f.getTimestamp().getTime(), i, 1);

@@ -29,6 +29,7 @@ public class PreferencesFrame extends javax.swing.JFrame {
     private int newParallelCryptoThreadsCount;
     private boolean newIsParallelCrypto;
     private JFileChooser fc;
+    private boolean isDlDir;
 
     /**
      * Creates new form PreferencesFrame
@@ -40,11 +41,20 @@ public class PreferencesFrame extends javax.swing.JFrame {
     }
 
     private void setParams() {
-        Settings.setWorkingDir(workingDirPath.getText());
+        if (isDlDir) {
+            Settings.setWorkingDir(dlDirPath.getText());
+        }
+        Settings.setIsDlDir(isDlDir);
+        System.out.println(isDlDir);
     }
 
     private void loadParams() {
-        workingDirPath.setText(Settings.getWorkingDir());
+        // download directory settings
+        if (Settings.isDlDir()) {
+            dlDirPath.setText(Settings.getWorkingDir());
+        }
+        dlDirPathButton.setSelected(Settings.isDlDir());
+        dlDirAskButton.setSelected(!Settings.isDlDir());
     }
 
     /**
@@ -56,14 +66,20 @@ public class PreferencesFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        workingDirChoice = new javax.swing.ButtonGroup();
         applyButton = new javax.swing.JButton();
         cancelButton = new javax.swing.JButton();
         OKButton = new javax.swing.JButton();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         generalSettingsPanel = new javax.swing.JPanel();
-        workingDirLabel = new javax.swing.JLabel();
-        workingDirBrowseButton = new javax.swing.JButton();
-        workingDirPath = new javax.swing.JTextField();
+        dlDirLabel = new javax.swing.JLabel();
+        dlDirBrowseButton = new javax.swing.JButton();
+        dlDirPath = new javax.swing.JTextField();
+        dlDirPathButton = new javax.swing.JRadioButton();
+        dlDirAskButton = new javax.swing.JRadioButton();
+        dlDirAskLabel = new javax.swing.JLabel();
+        languageLabel = new javax.swing.JLabel();
+        languageChoice = new javax.swing.JComboBox<>();
         networkSettingsPanel = new javax.swing.JPanel();
         securitySettingsPannel = new javax.swing.JPanel();
         parallelCryptoChoiceLabel = new javax.swing.JLabel();
@@ -97,14 +113,29 @@ public class PreferencesFrame extends javax.swing.JFrame {
             }
         });
 
-        workingDirLabel.setText("Working directory");
+        dlDirLabel.setText("Download directory");
 
-        workingDirBrowseButton.setText("Browse");
-        workingDirBrowseButton.addActionListener(new java.awt.event.ActionListener() {
+        dlDirBrowseButton.setText("Browse");
+        dlDirBrowseButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                workingDirBrowseButtonActionPerformed(evt);
+                dlDirBrowseButtonActionPerformed(evt);
             }
         });
+
+        workingDirChoice.add(dlDirPathButton);
+
+        workingDirChoice.add(dlDirAskButton);
+        dlDirAskButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dlDirAskButtonActionPerformed(evt);
+            }
+        });
+
+        dlDirAskLabel.setText("Ask each time");
+
+        languageLabel.setText("Language");
+
+        languageChoice.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "English", "French" }));
 
         javax.swing.GroupLayout generalSettingsPanelLayout = new javax.swing.GroupLayout(generalSettingsPanel);
         generalSettingsPanel.setLayout(generalSettingsPanelLayout);
@@ -112,11 +143,22 @@ public class PreferencesFrame extends javax.swing.JFrame {
             generalSettingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(generalSettingsPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(workingDirLabel)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(workingDirPath, javax.swing.GroupLayout.PREFERRED_SIZE, 368, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(workingDirBrowseButton)
+                .addGroup(generalSettingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(dlDirLabel)
+                    .addComponent(languageLabel))
+                .addGap(40, 40, 40)
+                .addGroup(generalSettingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(languageChoice, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(generalSettingsPanelLayout.createSequentialGroup()
+                        .addComponent(dlDirPathButton)
+                        .addGap(18, 18, 18)
+                        .addComponent(dlDirPath, javax.swing.GroupLayout.PREFERRED_SIZE, 307, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(dlDirBrowseButton))
+                    .addGroup(generalSettingsPanelLayout.createSequentialGroup()
+                        .addComponent(dlDirAskButton)
+                        .addGap(18, 18, 18)
+                        .addComponent(dlDirAskLabel)))
                 .addContainerGap())
         );
         generalSettingsPanelLayout.setVerticalGroup(
@@ -124,10 +166,22 @@ public class PreferencesFrame extends javax.swing.JFrame {
             .addGroup(generalSettingsPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(generalSettingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(workingDirLabel)
-                    .addComponent(workingDirBrowseButton)
-                    .addComponent(workingDirPath, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(364, Short.MAX_VALUE))
+                    .addComponent(languageLabel)
+                    .addComponent(languageChoice, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(generalSettingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(generalSettingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(dlDirBrowseButton)
+                        .addComponent(dlDirPath, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(dlDirPathButton))
+                    .addGroup(generalSettingsPanelLayout.createSequentialGroup()
+                        .addComponent(dlDirLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 18, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(4, 4, 4)))
+                .addGap(6, 6, 6)
+                .addGroup(generalSettingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(dlDirAskButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(dlDirAskLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(294, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("General", generalSettingsPanel);
@@ -136,7 +190,7 @@ public class PreferencesFrame extends javax.swing.JFrame {
         networkSettingsPanel.setLayout(networkSettingsPanelLayout);
         networkSettingsPanelLayout.setHorizontalGroup(
             networkSettingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 585, Short.MAX_VALUE)
+            .addGap(0, 595, Short.MAX_VALUE)
         );
         networkSettingsPanelLayout.setVerticalGroup(
             networkSettingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -184,7 +238,7 @@ public class PreferencesFrame extends javax.swing.JFrame {
                 .addGroup(securitySettingsPannelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(parallelCryptoThreadsMenu, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(parallelCryptoChoiceMenu, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(339, Short.MAX_VALUE))
+                .addContainerGap(349, Short.MAX_VALUE))
         );
         securitySettingsPannelLayout.setVerticalGroup(
             securitySettingsPannelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -260,7 +314,7 @@ public class PreferencesFrame extends javax.swing.JFrame {
         setParams();
     }//GEN-LAST:event_applyButtonActionPerformed
 
-    private void workingDirBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_workingDirBrowseButtonActionPerformed
+    private void dlDirBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dlDirBrowseButtonActionPerformed
         fc = new JFileChooser();
         fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         fc.setMultiSelectionEnabled(false);
@@ -268,9 +322,16 @@ public class PreferencesFrame extends javax.swing.JFrame {
 
         int returnVal = fc.showDialog(this, "Open");
         if (returnVal == JFileChooser.APPROVE_OPTION) {
-            workingDirPath.setText(fc.getSelectedFile().getPath().replace("\\", "/"));
+            dlDirPath.setText(fc.getSelectedFile().getPath().replace("\\", "/"));
+            dlDirPathButton.setSelected(true);
+            isDlDir = true;
         }
-    }//GEN-LAST:event_workingDirBrowseButtonActionPerformed
+    }//GEN-LAST:event_dlDirBrowseButtonActionPerformed
+
+    private void dlDirAskButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dlDirAskButtonActionPerformed
+        dlDirAskButton.setSelected(true);
+        isDlDir = false;
+    }//GEN-LAST:event_dlDirAskButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -309,16 +370,22 @@ public class PreferencesFrame extends javax.swing.JFrame {
     private javax.swing.JButton OKButton;
     private javax.swing.JButton applyButton;
     private javax.swing.JButton cancelButton;
+    private javax.swing.JRadioButton dlDirAskButton;
+    private javax.swing.JLabel dlDirAskLabel;
+    private javax.swing.JButton dlDirBrowseButton;
+    private javax.swing.JLabel dlDirLabel;
+    private javax.swing.JTextField dlDirPath;
+    private static javax.swing.JRadioButton dlDirPathButton;
     private javax.swing.JPanel generalSettingsPanel;
     private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JComboBox<String> languageChoice;
+    private javax.swing.JLabel languageLabel;
     private javax.swing.JPanel networkSettingsPanel;
     private javax.swing.JLabel parallelCryptoChoiceLabel;
     private javax.swing.JComboBox parallelCryptoChoiceMenu;
     private javax.swing.JLabel parallelCryptoThreadsLabel;
     private javax.swing.JComboBox parallelCryptoThreadsMenu;
     private javax.swing.JPanel securitySettingsPannel;
-    private javax.swing.JButton workingDirBrowseButton;
-    private javax.swing.JLabel workingDirLabel;
-    private javax.swing.JTextField workingDirPath;
+    private javax.swing.ButtonGroup workingDirChoice;
     // End of variables declaration//GEN-END:variables
 }
