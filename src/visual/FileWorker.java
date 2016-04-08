@@ -17,8 +17,8 @@ import org.apache.commons.net.ftp.FTPFile;
 
 public class FileWorker extends SwingWorker<Integer, String> {
 
-    private static int action;
     private static int[] rows;
+    private static boolean isUL;
     private static JTextArea log;
     private static JFileChooser fc;
     private static JTable fileTable;
@@ -31,19 +31,37 @@ public class FileWorker extends SwingWorker<Integer, String> {
         }
     }
 
+    /**
+     * Creates a FileWorker with the given JTable and JTextArea as parameters
+     *
+     * @param fileTable JTable to work with
+     * @param log JTextArea to log to
+     */
     public FileWorker(JTable fileTable, JTextArea log) {
         FileWorker.log = log;
         FileWorker.fileTable = fileTable;
     }
 
-    public static void setUploadParams(File[] files, int action) {
+    /**
+     * Sets the upload parameters, so that the doInBackground method will handle
+     * the task properly
+     *
+     * @param files files to upload
+     */
+    public static void setUploadParams(File[] files) {
         FileWorker.localFiles = files;
-        FileWorker.action = action;
+        isUL = true;
     }
 
-    public static void setDownloadParams(int[] rows, int action) {
+    /**
+     * Sets the download parameters, so that the doInBackground method will
+     * handle the task properly
+     *
+     * @param rows rows from the table to download (i.e. files)
+     */
+    public static void setDownloadParams(int[] rows) {
         FileWorker.rows = rows;
-        FileWorker.action = action;
+        isUL = false;
     }
 
     /**
@@ -53,71 +71,79 @@ public class FileWorker extends SwingWorker<Integer, String> {
      */
     @Override
     protected Integer doInBackground() throws Exception {
-        publish("Begin file transfer");
-        int i = 1;
-        switch (action) {
-            case 0:
-                for (File f : localFiles) {
-                    if (DataClient.existsFile(f.getName())) {
-                        int reply = JOptionPane.showConfirmDialog(null,
-                                "File already exists. Overwrite ?",
-                                "Overwrite file", JOptionPane.YES_NO_OPTION);
-                        if (reply == JOptionPane.YES_OPTION) {
-                            DataClient.delete(f.getName(), 0);
-                        }
-                    }
+        int i = 1, returnVal = -1;
+        if (isUL) {
+            publish("Begin file transfer");
 
-                    DataClient.send(f, f.getName());
-                    publish("[" + new Date() + "] File " + f.getName() + " sent");
-                    /*setProgress((i / localFiles.length) * 100);
-                    i++;*/
-                    updateTable();
-                }
-                break;
-            case 1:
-                String dlDir = new String();
-
-                if (Settings.isDlDir()) {
-                    dlDir = Settings.getWorkingDir();
-                } else {
-                    fc = new JFileChooser();
-                    fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                    fc.setMultiSelectionEnabled(false);
-                    fc.setVisible(true);
-
-                    int returnVal = fc.showDialog(new JFrame(), "Choose download folder");
-                    if (returnVal == JFileChooser.APPROVE_OPTION) {
-                        dlDir = fc.getSelectedFile().getPath().replace("\\", "/");
+            for (File f : localFiles) {
+                if (DataClient.exists(f.getName())) {
+                    int reply = JOptionPane.showConfirmDialog(null,
+                            "File already exists. Overwrite ?",
+                            "Overwrite file", JOptionPane.YES_NO_OPTION);
+                    if (reply == JOptionPane.YES_OPTION) {
+                        DataClient.delete(f.getName(), 0);
                     }
                 }
-                
+
+                DataClient.send(f, f.getName());
+
+                publish("[" + new Date() + "] File " + f.getName() + " sent");
+                setProgress((i / localFiles.length) * 100);
+                updateTable();
+                i++;
+            }
+
+            publish("Done");
+        } else {
+            String dlDir = new String();
+
+            if (Settings.isDlDir()) {
+                dlDir = Settings.getWorkingDir();
+            } else {
+                fc = new JFileChooser();
+                fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                fc.setMultiSelectionEnabled(false);
+                fc.setVisible(true);
+
+                returnVal = fc.showDialog(new JFrame(), "Choose download folder");
+                if (returnVal == JFileChooser.APPROVE_OPTION) {
+                    dlDir = fc.getSelectedFile().getPath().replace("\\", "/");
+                }
+            }
+
+            if (returnVal != JFileChooser.CANCEL_OPTION) {
+                publish("Begin file transfer");
+
                 for (int row : rows) {
                     String s = (String) fileTable.getValueAt(row, 0);
                     DataClient.receive(s, new File(dlDir + "/" + s));
                     publish("[" + new Date() + "] File " + s + " received");
-                    /*setProgress((i / rows.length) * 100);
-                    i++;*/
+                    setProgress((i / rows.length) * 100);
+                    i++;
                 }
-                break;
+                publish("Done");
+            }
         }
-        publish("Done");
         return 1;
     }
 
     private void updateTable() throws IOException {
+        int i = 0;
         dirs = DataClient.listDirs();
         remoteFiles = DataClient.listFiles();
-
         DefaultTableModel dtm = (DefaultTableModel) fileTable.getModel();
-        dtm.setRowCount(remoteFiles.length);
-        fileTable.setModel(dtm);
-
-        int i = 0;
 
         if (!DataClient.isAtRoot()) {
-            System.out.println("asd");
+            dtm.setRowCount(remoteFiles.length + 1);
+            fileTable.setModel(dtm);
             fileTable.setValueAt("..", i, 0);
+            fileTable.setValueAt("", i, 1);
+            fileTable.setValueAt("Directory", i, 2);
+            fileTable.setValueAt("", i, 3);
             i++;
+        } else {
+            dtm.setRowCount(remoteFiles.length);
+            fileTable.setModel(dtm);
         }
 
         for (FTPFile f : dirs) {

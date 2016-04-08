@@ -36,15 +36,6 @@ public class DataClient {
     }
 
     /**
-     * Disconnects from the data server
-     *
-     * @throws IOException
-     */
-    public static void disconnect() throws IOException {
-        ftp.disconnect();
-    }
-
-    /**
      * Logs into the data server, using the supplied credentials
      * <p>
      * Connects to the server if not already connected
@@ -68,6 +59,15 @@ public class DataClient {
             disconnect();
             return false;
         }
+    }
+
+    /**
+     * Disconnects from the data server
+     *
+     * @throws IOException
+     */
+    public static void disconnect() throws IOException {
+        ftp.disconnect();
     }
 
     /**
@@ -112,7 +112,14 @@ public class DataClient {
         return ftp.listFiles();
     }
 
-    public static boolean existsFile(String path) throws IOException {
+    /**
+     * Checks whether a give file or directory exists
+     *
+     * @param path path to the file or directory to look for
+     * @return true if such a file or directory exists, else false
+     * @throws IOException
+     */
+    public static boolean exists(String path) throws IOException {
         boolean existance = false;
         for (FTPFile f : listFiles()) {
             if (f.getName().equals(path)) {
@@ -120,6 +127,30 @@ public class DataClient {
             }
         }
         return existance;
+    }
+
+    /**
+     * Deletes a file or directory
+     * @param fileName path to the file or directory to be deleted
+     * @param type 0 if file, 1 if directory
+     * @throws IOException 
+     */
+    public static void delete(String fileName, int type) throws IOException {
+        if (type == 0) {
+            ftp.deleteFile(fileName);
+        } else {
+            ftp.removeDirectory(fileName);
+        }
+    }
+
+    /**
+     * Creates a directory using the specified path
+     *
+     * @param path relative or absolute path to the new directory
+     * @return
+     */
+    public static boolean mkdir(String path) throws IOException {
+        return ftp.makeDirectory(path);
     }
 
     /**
@@ -132,7 +163,7 @@ public class DataClient {
      */
     public static void send(File inputFile, String remoteFilePath) throws IOException, Exception {
         gcmc.encrypt(new FileInputStream(inputFile), ftp.storeFileStream(remoteFilePath));
-        DataClient.completePendingCommand();
+        ftp.completePendingCommand();
     }
 
     /**
@@ -144,18 +175,6 @@ public class DataClient {
      */
     public static void receive(String remoteFilePath, File outputFile) throws IOException, Exception {
         gcmc.decrypt(ftp.retrieveFileStream(remoteFilePath), new FileOutputStream(outputFile));
-        DataClient.completePendingCommand();
-    }
-
-    public static void delete(String fileName, int type) throws IOException {
-        if (type == 0) {
-            ftp.deleteFile(fileName);
-        } else {
-            ftp.removeDirectory(fileName);
-        }
-    }
-
-    public static void completePendingCommand() throws IOException {
         ftp.completePendingCommand();
     }
 }

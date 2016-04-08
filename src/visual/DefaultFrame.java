@@ -56,6 +56,9 @@ public class DefaultFrame extends javax.swing.JFrame {
             dtm.setRowCount(files.length + 1);
             fileTable.setModel(dtm);
             fileTable.setValueAt("..", i, 0);
+            fileTable.setValueAt("", i, 1);
+            fileTable.setValueAt("Directory", i, 2);
+            fileTable.setValueAt("", i, 3);
             i++;
         } else {
             dtm.setRowCount(files.length);
@@ -114,6 +117,10 @@ public class DefaultFrame extends javax.swing.JFrame {
         menuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
         openButton = new javax.swing.JMenuItem();
+        jMenuItem1 = new javax.swing.JMenuItem();
+        jMenuItem2 = new javax.swing.JMenuItem();
+        jMenuItem3 = new javax.swing.JMenuItem();
+        jSeparator1 = new javax.swing.JPopupMenu.Separator();
         disconnectButton = new javax.swing.JMenuItem();
         exitButton = new javax.swing.JMenuItem();
         editMenu = new javax.swing.JMenu();
@@ -172,30 +179,9 @@ public class DefaultFrame extends javax.swing.JFrame {
         actionLogTextArea.setRows(5);
         jScrollPane1.setViewportView(actionLogTextArea);
 
+        fileTable.setAutoCreateRowSorter(true);
         fileTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
                 {null, null, null, null},
                 {null, null, null, null},
                 {null, null, null, null},
@@ -227,6 +213,7 @@ public class DefaultFrame extends javax.swing.JFrame {
             }
         });
         fileTable.setToolTipText("");
+        fileTable.setDragEnabled(true);
         fileTable.setIntercellSpacing(new java.awt.Dimension(1, 5));
         fileTable.setRowHeight(32);
         fileTable.setShowHorizontalLines(false);
@@ -264,6 +251,34 @@ public class DefaultFrame extends javax.swing.JFrame {
             }
         });
         fileMenu.add(openButton);
+
+        jMenuItem1.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
+        jMenuItem1.setText("Download");
+        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem1ActionPerformed(evt);
+            }
+        });
+        fileMenu.add(jMenuItem1);
+
+        jMenuItem2.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_MASK));
+        jMenuItem2.setText("New folder");
+        jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem2ActionPerformed(evt);
+            }
+        });
+        fileMenu.add(jMenuItem2);
+
+        jMenuItem3.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_DELETE, 0));
+        jMenuItem3.setText("Delete");
+        jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem3ActionPerformed(evt);
+            }
+        });
+        fileMenu.add(jMenuItem3);
+        fileMenu.add(jSeparator1);
 
         disconnectButton.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_D, java.awt.event.InputEvent.CTRL_MASK));
         disconnectButton.setText("Disconnect");
@@ -338,14 +353,15 @@ public class DefaultFrame extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(0, 48, Short.MAX_VALUE)
+                        .addContainerGap()
+                        .addComponent(jScrollPane2))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(49, 49, 49)
                         .addComponent(uploadButton, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(39, 39, 39)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 658, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jScrollPane2))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 50, Short.MAX_VALUE)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 658, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -353,13 +369,15 @@ public class DefaultFrame extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 456, Short.MAX_VALUE)
-                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(51, 51, 51)
-                        .addComponent(uploadButton))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap())
+                        .addGap(47, 47, 47)
+                        .addComponent(uploadButton)
+                        .addGap(51, 51, 51))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap())))
         );
 
         pack();
@@ -414,7 +432,7 @@ public class DefaultFrame extends javax.swing.JFrame {
         } else {
             try {
                 FileWorker fwul = new FileWorker(fileTable, actionLogTextArea);
-                FileWorker.setUploadParams(fd.getFiles(), 0);
+                FileWorker.setUploadParams(fd.getFiles());
                 fwul.execute();
             } catch (Exception e) {
                 visual.ErrorHandler.showError(e);
@@ -435,7 +453,7 @@ public class DefaultFrame extends javax.swing.JFrame {
     private void downloadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_downloadActionPerformed
         try {
             FileWorker fwdl = new FileWorker(fileTable, actionLogTextArea);
-            FileWorker.setDownloadParams(fileTable.getSelectedRows(), 1);
+            FileWorker.setDownloadParams(fileTable.getSelectedRows());
             fwdl.execute();
         } catch (Exception e) {
             visual.ErrorHandler.showError(e);
@@ -480,6 +498,25 @@ public class DefaultFrame extends javax.swing.JFrame {
             visual.ErrorHandler.showError(ex);
         }
     }//GEN-LAST:event_refreshButtonActionPerformed
+
+    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
+        downloadActionPerformed(evt);
+    }//GEN-LAST:event_jMenuItem1ActionPerformed
+
+    private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
+        String reply = JOptionPane.showInputDialog(this, "Name:", "New folder",
+                JOptionPane.QUESTION_MESSAGE);
+        try {
+            DataClient.mkdir(reply);
+            updateFileTableView();
+        } catch (IOException ex) {
+            visual.ErrorHandler.showError(ex);
+        }
+    }//GEN-LAST:event_jMenuItem2ActionPerformed
+
+    private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
+        deleteActionPerformed(evt);
+    }//GEN-LAST:event_jMenuItem3ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -533,8 +570,12 @@ public class DefaultFrame extends javax.swing.JFrame {
     private javax.swing.JPopupMenu filePopupMenu;
     private static javax.swing.JTable fileTable;
     private javax.swing.JMenu helpMenu;
+    private javax.swing.JMenuItem jMenuItem1;
+    private javax.swing.JMenuItem jMenuItem2;
+    private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JMenuItem openButton;
     private javax.swing.JMenuItem openDirectory;

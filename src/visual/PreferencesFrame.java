@@ -26,8 +26,8 @@ import javax.swing.UIManager;
  */
 public class PreferencesFrame extends javax.swing.JFrame {
 
-    private int newParallelCryptoThreadsCount;
-    private boolean newIsParallelCrypto;
+    /*private int newParallelCryptoThreadsCount;
+    private boolean newIsParallelCrypto;*/
     private JFileChooser fc;
     private boolean isDlDir;
 
@@ -40,21 +40,29 @@ public class PreferencesFrame extends javax.swing.JFrame {
         loadParams();
     }
 
+    /**
+     * Sets the current settings into the Settings class
+     */
     private void setParams() {
+        // download directory settings
         if (isDlDir) {
             Settings.setWorkingDir(dlDirPath.getText());
         }
         Settings.setIsDlDir(isDlDir);
-        System.out.println(isDlDir);
     }
 
+    /**
+     * Load settings from the Settings class
+     */
     private void loadParams() {
         // download directory settings
         if (Settings.isDlDir()) {
             dlDirPath.setText(Settings.getWorkingDir());
+            dlDirPathButton.doClick();
+        } else {
+            dlDirAskButton.doClick();
         }
-        dlDirPathButton.setSelected(Settings.isDlDir());
-        dlDirAskButton.setSelected(!Settings.isDlDir());
+        isDlDir = Settings.isDlDir();
     }
 
     /**
@@ -170,10 +178,11 @@ public class PreferencesFrame extends javax.swing.JFrame {
                     .addComponent(languageChoice, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addGroup(generalSettingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(generalSettingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(dlDirBrowseButton)
-                        .addComponent(dlDirPath, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(dlDirPathButton))
+                    .addGroup(generalSettingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(dlDirPathButton, javax.swing.GroupLayout.Alignment.TRAILING)
+                        .addGroup(generalSettingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(dlDirBrowseButton)
+                            .addComponent(dlDirPath, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(generalSettingsPanelLayout.createSequentialGroup()
                         .addComponent(dlDirLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 18, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(4, 4, 4)))
@@ -290,7 +299,7 @@ public class PreferencesFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void parallelCryptoChoiceMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_parallelCryptoChoiceMenuActionPerformed
-        newIsParallelCrypto = parallelCryptoChoiceMenu.getSelectedItem().toString().equals("Yes");
+        //newIsParallelCrypto = parallelCryptoChoiceMenu.getSelectedItem().toString().equals("Yes");
     }//GEN-LAST:event_parallelCryptoChoiceMenuActionPerformed
 
     private void parallelCryptoChoiceMenuPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_parallelCryptoChoiceMenuPropertyChange
@@ -303,7 +312,7 @@ public class PreferencesFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_OKButtonActionPerformed
 
     private void parallelCryptoThreadsMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_parallelCryptoThreadsMenuActionPerformed
-        newParallelCryptoThreadsCount = Integer.parseInt(parallelCryptoThreadsMenu.getSelectedItem().toString());
+        //newParallelCryptoThreadsCount = Integer.parseInt(parallelCryptoThreadsMenu.getSelectedItem().toString());
     }//GEN-LAST:event_parallelCryptoThreadsMenuActionPerformed
 
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
@@ -315,12 +324,12 @@ public class PreferencesFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_applyButtonActionPerformed
 
     private void dlDirBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dlDirBrowseButtonActionPerformed
+        // open a FileChooser to select the download folder
         fc = new JFileChooser();
         fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         fc.setMultiSelectionEnabled(false);
-        fc.setVisible(true);
-
         int returnVal = fc.showDialog(this, "Open");
+
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             dlDirPath.setText(fc.getSelectedFile().getPath().replace("\\", "/"));
             dlDirPathButton.setSelected(true);

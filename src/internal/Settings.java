@@ -16,14 +16,19 @@
  */
 package internal;
 
+/**
+ * Provides means for getting and setting settings, used in the GUI
+ *
+ * @author Serphentas
+ */
 public abstract class Settings {
 
-    private static boolean parallelCrypto = false;
-    private static int parallelCryptoThreads = 2;
+    /*private static boolean parallelCrypto = false;
+    private static int parallelCryptoThreads = 2;*/
     private static String dlDir = null;
     private static boolean isDlDir = false;
 
-    public static boolean isParallelCrypto() {
+    /*public static boolean isParallelCrypto() {
         return parallelCrypto;
     }
 
@@ -37,7 +42,7 @@ public abstract class Settings {
 
     public static void setParallelCryptoThreads(int newParallelCryptoThreads) {
         parallelCryptoThreads = newParallelCryptoThreads;
-    }
+    }*/
 
     public static String getWorkingDir() {
         return dlDir;
