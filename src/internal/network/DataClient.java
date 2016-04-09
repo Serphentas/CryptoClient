@@ -1,5 +1,6 @@
 package internal.network;
 
+import internal.Settings;
 import internal.crypto.GCMCipher;
 import java.io.File;
 import java.io.FileInputStream;
@@ -20,7 +21,7 @@ public class DataClient {
     private static FTPClient ftp;
     private static GCMCipher gcmc;
     private static boolean isAtRoot = true;
-    public static final String HOSTNAME = "10.0.0.21";
+    public static final String HOSTNAME = "192.168.20.128";
     public static final int PORT = 21;
 
     /**
@@ -68,6 +69,7 @@ public class DataClient {
      */
     public static void disconnect() throws IOException {
         ftp.disconnect();
+        Settings.setIsWorking(false);
     }
 
     /**
@@ -120,27 +122,42 @@ public class DataClient {
      * @throws IOException
      */
     public static boolean exists(String path) throws IOException {
-        boolean existance = false;
         for (FTPFile f : listFiles()) {
             if (f.getName().equals(path)) {
-                existance = true;
+                return true;
             }
         }
-        return existance;
+        return false;
     }
 
     /**
      * Deletes a file or directory
+     *
      * @param fileName path to the file or directory to be deleted
      * @param type 0 if file, 1 if directory
-     * @throws IOException 
+     * @throws IOException
      */
-    public static void delete(String fileName, int type) throws IOException {
+    public static void rm(String fileName, int type) throws IOException {
         if (type == 0) {
             ftp.deleteFile(fileName);
         } else {
             ftp.removeDirectory(fileName);
         }
+    }
+
+    /**
+     * Renames or moves a file or directory
+     * <p>
+     * Also serves as mv command if the destination folder is specified in the
+     * new name. <i>Eg: file.txt -> asd/file.txt -> newName=asd/file.txt</i>
+     *
+     * @param path path to the file or directory to rename
+     * @param newName new name
+     * @return true if successfully renamed, else false
+     * @throws IOException
+     */
+    public static boolean rename(String path, String newName) throws IOException {
+        return ftp.rename(path, newName);
     }
 
     /**

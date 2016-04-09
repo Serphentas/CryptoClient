@@ -27,6 +27,7 @@ public abstract class Settings {
     private static int parallelCryptoThreads = 2;*/
     private static String dlDir = null;
     private static boolean isDlDir = false;
+    private static boolean isWorking = false;
 
     /*public static boolean isParallelCrypto() {
         return parallelCrypto;
@@ -43,7 +44,6 @@ public abstract class Settings {
     public static void setParallelCryptoThreads(int newParallelCryptoThreads) {
         parallelCryptoThreads = newParallelCryptoThreads;
     }*/
-
     public static String getWorkingDir() {
         return dlDir;
     }
@@ -59,5 +59,13 @@ public abstract class Settings {
 
     public static void setIsDlDir(boolean newVal) {
         isDlDir = newVal;
+    }
+
+    public static void setIsWorking(boolean newVal) {
+        isWorking = newVal;
+    }
+    
+    public static boolean isWorking(){
+        return isWorking;
     }
 }

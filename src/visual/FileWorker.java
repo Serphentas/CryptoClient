@@ -71,17 +71,17 @@ public class FileWorker extends SwingWorker<Integer, String> {
      */
     @Override
     protected Integer doInBackground() throws Exception {
+        Settings.setIsWorking(true);
+        publish("[" + new Date() + "] Begin file transfer");
         int i = 1, returnVal = -1;
         if (isUL) {
-            publish("Begin file transfer");
-
             for (File f : localFiles) {
                 if (DataClient.exists(f.getName())) {
                     int reply = JOptionPane.showConfirmDialog(null,
                             "File already exists. Overwrite ?",
                             "Overwrite file", JOptionPane.YES_NO_OPTION);
                     if (reply == JOptionPane.YES_OPTION) {
-                        DataClient.delete(f.getName(), 0);
+                        DataClient.rm(f.getName(), 0);
                     }
                 }
 
@@ -93,7 +93,6 @@ public class FileWorker extends SwingWorker<Integer, String> {
                 i++;
             }
 
-            publish("Done");
         } else {
             String dlDir = new String();
 
@@ -112,8 +111,6 @@ public class FileWorker extends SwingWorker<Integer, String> {
             }
 
             if (returnVal != JFileChooser.CANCEL_OPTION) {
-                publish("Begin file transfer");
-
                 for (int row : rows) {
                     String s = (String) fileTable.getValueAt(row, 0);
                     DataClient.receive(s, new File(dlDir + "/" + s));
@@ -121,9 +118,10 @@ public class FileWorker extends SwingWorker<Integer, String> {
                     setProgress((i / rows.length) * 100);
                     i++;
                 }
-                publish("Done");
             }
         }
+        publish("[" + new Date() + "] Done");
+        Settings.setIsWorking(false);
         return 1;
     }
 

@@ -96,12 +96,17 @@ public final class GCMCipher {
     public void encrypt(InputStream input, OutputStream output) throws Exception {
         // generating key and nonce
         this.salt = GPCrypto.randomGen(128);
+        long time = System.nanoTime();
         this.key = new SecretKeySpec(SCrypt.generate(password.getBytes(),
                 this.salt, KDF_CPU_RAM_COST, KDF_BLOCK_SIZE, KDF_PARALLEL,
                 CIPHER_KEY_BITS / 8), 0, CIPHER_KEY_BITS / 8, "AES");
+        System.out.println((System.nanoTime() - time) / 1e9);
+        time = System.nanoTime();
         this.nonce = SCrypt.generate(GPCrypto.randomGen(128), GPCrypto
                 .randomGen(128), KDF_CPU_RAM_COST, KDF_BLOCK_SIZE, KDF_PARALLEL,
                 GCM_NONCE_BYTES);
+        System.out.println((System.nanoTime() - time) / 1e9);
+        time = System.nanoTime();
 
         // cipher initialization
         this.cipher.init(Cipher.ENCRYPT_MODE, this.key, new GCMParameterSpec(
@@ -112,8 +117,8 @@ public final class GCMCipher {
         output.write(this.nonce);
 
         // finishing the encryption job
-        int r = 0;
         OutputStream cos = new CipherOutputStream(output, this.cipher);
+        int r = 0;
 
         while ((r = input.read(buffer)) > 0) {
             cos.write(buffer, 0, r);
@@ -149,8 +154,8 @@ public final class GCMCipher {
                 GCM_TAG_BITS, this.nonce, 0, GCM_NONCE_BYTES));
 
         // finishing the decryption job
-        int r = 0;
         InputStream cis = new CipherInputStream(input, this.cipher);
+        int r = 0;
 
         while ((r = cis.read(buffer)) > 0) {
             output.write(buffer, 0, r);
