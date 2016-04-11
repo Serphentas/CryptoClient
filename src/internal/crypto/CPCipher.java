@@ -35,6 +35,7 @@ import org.bouncycastle.crypto.tls.AlertDescription;
 import org.bouncycastle.crypto.tls.TlsFatalAlert;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Pack;
+import org.bouncycastle.util.encoders.Hex;
 
 /**
  * General purpose class used for encryption and decryption of files, using
@@ -49,7 +50,7 @@ public class CPCipher {
 
     private final ChaChaEngine cipher;
     private final Poly1305 mac;
-    private static final int BUFFER_SIZE = 4096;
+    private static final int BUFFER_SIZE = 1024;
     private static final byte[] readBuf = new byte[BUFFER_SIZE];
     private static final byte[] chachaBuf = new byte[BUFFER_SIZE];
 
@@ -85,9 +86,14 @@ public class CPCipher {
             cipher.processBytes(readBuf, 0, r, chachaBuf, 0);
             output.write(chachaBuf, 0, r);
             updateMAC(chachaBuf, 0, r);
+            
+  
+            //System.out.println("encbuf " + Hex.toHexString(chachaBuf));
         }
+        System.out.println("readbuf " + Hex.toHexString(readBuf));
 
         mac.doFinal(ciphertextMac, 0);
+        System.out.println("mac " + Hex.toHexString(ciphertextMac));
         output.write(ciphertextMac);
     }
 
@@ -117,19 +123,26 @@ public class CPCipher {
                 // use C in whole to update the MAC and decrypt
                 updateMAC(readBuf, 0, r);
                 cipher.processBytes(readBuf, 0, r, chachaBuf, 0);
+                output.write(chachaBuf, 0, r);
+                /*System.out.println("encbuf " + Hex.toHexString(readBuf));
+                System.out.println("decbuf " + Hex.toHexString(chachaBuf));*/
             } else {
                 // use all but the last 16 bytes from C to update the MAC and decrypt
                 updateMAC(Arrays.copyOfRange(readBuf, 0, r - 16), 0, r - 16);
                 cipher.processBytes(Arrays.copyOfRange(readBuf, 0, r - 16), 0,
                         r - 16, chachaBuf, 0);
+                output.write(chachaBuf, 0, r - 16);
+
                 // copy the last 16 bytes as the original MAC
                 receivedMac = Arrays.copyOfRange(readBuf, r - 16, r);
+                System.out.println("decbuf " + Hex.toHexString(chachaBuf));
+                System.out.println("macR " + Hex.toHexString(receivedMac));
             }
-            output.write(chachaBuf, 0, r - 16);
         }
 
         // check if the two MACs match
         mac.doFinal(computedMac, 0);
+        System.out.println("macC " + Hex.toHexString(computedMac));
         if (!Arrays.constantTimeAreEqual(computedMac, receivedMac)) {
             throw new TlsFatalAlert(AlertDescription.bad_record_mac);
         }

@@ -21,6 +21,8 @@ import internal.crypto.GPCrypto;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public class test {
 
@@ -52,11 +54,17 @@ public class test {
         byte[] key = GPCrypto.randomGen(32), nonce = GPCrypto.randomGen(8);
 
         long time = System.nanoTime();
-        chacha.encrypt(key, nonce, new FileInputStream(new File("E:/test/rand")), new FileOutputStream(new File("E:/test/chachaenc")));
-        System.out.println(1.25 / ((System.nanoTime() - time) / 1e9));
+
+        InputStream fileplain = new FileInputStream(new File("E:/test/test.mp4")),
+                fileencread = new FileInputStream(new File("E:/test/chachaenc"));
+        OutputStream fileenc = new FileOutputStream(new File("E:/test/chachaenc")),
+                filedec = new FileOutputStream(new File("E:/test/chachadec"));
+
+        chacha.encrypt(key, nonce, fileplain, fileenc);
+        System.out.println(238 / ((System.nanoTime() - time) / 1e9) + " MiB/s");
 
         time = System.nanoTime();
-        chacha.decrypt(key, nonce, new FileInputStream(new File("E:/test/chachaenc")), new FileOutputStream(new File("E:/test/chachadec")));
-        System.out.println(1 / ((System.nanoTime() - time) / 1e9));
+        chacha.decrypt(key, nonce, fileencread, filedec);
+        System.out.println(238 / ((System.nanoTime() - time) / 1e9) + " MiB/s");
     }
 }
