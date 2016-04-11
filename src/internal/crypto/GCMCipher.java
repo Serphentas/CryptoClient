@@ -28,7 +28,8 @@ import javax.crypto.spec.SecretKeySpec;
 import org.bouncycastle.crypto.generators.SCrypt;
 
 /**
- * General purpose class used for encryption and decryption of files.
+ * General purpose class used for encryption and decryption of files, using
+ * AES-256 in GCM mode of operation.
  * <p>
  * <b><i>This class is not thread-safe.</i></b>
  *

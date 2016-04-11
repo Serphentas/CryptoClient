@@ -36,6 +36,15 @@ import org.bouncycastle.crypto.tls.TlsFatalAlert;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Pack;
 
+/**
+ * General purpose class used for encryption and decryption of files, using
+ * ChaCha20 w/ Poly1305 as MAC in encrypt-then-MAC scheme
+ * <p>
+ * Based on the ChaCha20Poly1305 class from Bouncy Castle but without the TLS
+ * related code
+ *
+ * @author Serphentas
+ */
 public class CPCipher {
 
     private final ChaChaEngine cipher;
@@ -53,39 +62,64 @@ public class CPCipher {
         return ciphertextLimit - 16;
     }
 
+    /**
+     * Encrypts a given file with ChaCha20 w/ Poly1305 as MAC in
+     * encrypt-then-MAC scheme.
+     * <p>
+     * Reads data from the InputStream and writes the encrypted data to the
+     * OutputStream
+     *
+     * @param key
+     * @param nonce
+     * @param input
+     * @param output
+     * @throws IOException
+     */
     public void encrypt(byte[] key, byte[] nonce, InputStream input, OutputStream output) throws IOException {
         this.cipher.init(true, new ParametersWithIV(new KeyParameter(key), nonce));
         byte[] ciphertextMac = new byte[16];
-        initRecordMAC(cipher);
+        initMAC(cipher);
 
         int r = 0;
         while ((r = input.read(readBuf)) > 0) {
             cipher.processBytes(readBuf, 0, r, chachaBuf, 0);
             output.write(chachaBuf, 0, r);
-            updateRecordMAC(chachaBuf, 0, r);
+            updateMAC(chachaBuf, 0, r);
         }
 
         mac.doFinal(ciphertextMac, 0);
         output.write(ciphertextMac);
     }
 
+    /**
+     * Decrypts a given file with ChaCha20 w/ Poly1305 as MAC in
+     * encrypt-then-MAC scheme.
+     * <p>
+     * Reads data from the InputStream and writes the decrypted data to the
+     * OutputStream
+     *
+     * @param key
+     * @param nonce
+     * @param input
+     * @param output
+     * @throws IOException
+     */
     public void decrypt(byte[] key, byte[] nonce, InputStream input,
             OutputStream output) throws IOException {
         this.cipher.init(false, new ParametersWithIV(new KeyParameter(key), nonce));
         byte[] computedMac = new byte[16], receivedMac = new byte[16];
-
-        initRecordMAC(cipher);
+        initMAC(cipher);
 
         int r = 0;
         while ((r = input.read(readBuf)) > 0) {
             // case when EOF has not been reached
             if (r == BUFFER_SIZE) {
-                // use C in whole, update the MAC and decrypt
-                updateRecordMAC(readBuf, 0, r);
+                // use C in whole to update the MAC and decrypt
+                updateMAC(readBuf, 0, r);
                 cipher.processBytes(readBuf, 0, r, chachaBuf, 0);
             } else {
-                // use all but the last 16 bytes from C, update the MAC and decrypt
-                updateRecordMAC(Arrays.copyOfRange(readBuf, 0, r - 16), 0, r - 16);
+                // use all but the last 16 bytes from C to update the MAC and decrypt
+                updateMAC(Arrays.copyOfRange(readBuf, 0, r - 16), 0, r - 16);
                 cipher.processBytes(Arrays.copyOfRange(readBuf, 0, r - 16), 0,
                         r - 16, chachaBuf, 0);
                 // copy the last 16 bytes as the original MAC
@@ -101,7 +135,12 @@ public class CPCipher {
         }
     }
 
-    private void initRecordMAC(ChaChaEngine cipher) {
+    /**
+     * Initializes Poly1305 with the given instance of ChaCha20Engine
+     *
+     * @param cipher
+     */
+    private void initMAC(ChaChaEngine cipher) {
         byte[] firstBlock = new byte[64];
         cipher.processBytes(firstBlock, 0, firstBlock.length, firstBlock, 0);
 
@@ -112,7 +151,14 @@ public class CPCipher {
         mac.init(macKey);
     }
 
-    private void updateRecordMAC(byte[] buf, int off, int len) {
+    /**
+     * Updates the state of Poly1305
+     *
+     * @param buf array containing the input
+     * @param off the index in the array the data begins at
+     * @param len length of the input starting at off
+     */
+    private void updateMAC(byte[] buf, int off, int len) {
         mac.update(buf, off, len);
 
         byte[] longLen = Pack.longToLittleEndian(len & 0xFFFFFFFFL);
