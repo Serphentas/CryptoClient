@@ -16,6 +16,12 @@
  */
 package internal.network;
 
+import internal.crypto.CPCipher;
+import internal.crypto.GPCrypto;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+
 public class test {
 
     public static void main(String[] args) throws Exception {
@@ -42,7 +48,7 @@ public class test {
         CipherParameters CP = new KeyParameter(K);
         ParametersWithIV PWI = new ParametersWithIV(CP, N);
         cha.init(true, PWI);*/
-        /*CPCipher chacha = new CPCipher();
+        CPCipher chacha = new CPCipher();
         byte[] key = GPCrypto.randomGen(32), nonce = GPCrypto.randomGen(8);
 
         long time = System.nanoTime();
@@ -51,6 +57,6 @@ public class test {
 
         time = System.nanoTime();
         chacha.decrypt(key, nonce, new FileInputStream(new File("E:/test/chachaenc")), new FileOutputStream(new File("E:/test/chachadec")));
-        System.out.println(1 / ((System.nanoTime() - time) / 1e9));*/
+        System.out.println(1 / ((System.nanoTime() - time) / 1e9));
     }
 }

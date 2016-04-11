@@ -1,3 +1,26 @@
+/* 
+ * The MIT License
+ *
+ * Copyright 2016 Serphentas.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package internal.crypto;
 
 import java.io.IOException;
@@ -12,14 +35,14 @@ import org.bouncycastle.crypto.tls.AlertDescription;
 import org.bouncycastle.crypto.tls.TlsFatalAlert;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Pack;
-import org.bouncycastle.util.encoders.Hex;
 
 public class CPCipher {
 
     private final ChaChaEngine cipher;
     private final Poly1305 mac;
-    private static final byte[] readBuf = new byte[2048];
-    private static final byte[] chachaBuf = new byte[2048];
+    private static final int BUFFER_SIZE = 4096;
+    private static final byte[] readBuf = new byte[BUFFER_SIZE];
+    private static final byte[] chachaBuf = new byte[BUFFER_SIZE];
 
     public CPCipher() throws IOException {
         this.cipher = new ChaChaEngine();
@@ -32,46 +55,48 @@ public class CPCipher {
 
     public void encrypt(byte[] key, byte[] nonce, InputStream input, OutputStream output) throws IOException {
         this.cipher.init(true, new ParametersWithIV(new KeyParameter(key), nonce));
-        byte[] macBuf = new byte[16];
+        byte[] ciphertextMac = new byte[16];
         initRecordMAC(cipher);
 
         int r = 0;
         while ((r = input.read(readBuf)) > 0) {
-            cipher.processBytes(readBuf, 0, readBuf.length, chachaBuf, 0);
+            cipher.processBytes(readBuf, 0, r, chachaBuf, 0);
             output.write(chachaBuf, 0, r);
-            updateRecordMAC(chachaBuf, 0, readBuf.length);
-            
-            System.out.println("readbuf " + Hex.toHexString(readBuf));
-            System.out.println("chachabuf " + Hex.toHexString(chachaBuf));
+            updateRecordMAC(chachaBuf, 0, r);
         }
 
-        mac.doFinal(macBuf, 0);
-        System.out.println("encmac " + Hex.toHexString(macBuf));
-        output.write(macBuf);
+        mac.doFinal(ciphertextMac, 0);
+        output.write(ciphertextMac);
     }
 
-    public void decrypt(byte[] key, byte[] nonce, InputStream input, OutputStream output) throws IOException {
+    public void decrypt(byte[] key, byte[] nonce, InputStream input,
+            OutputStream output) throws IOException {
         this.cipher.init(false, new ParametersWithIV(new KeyParameter(key), nonce));
-        byte[] macBuf = new byte[16];
-        /*if (getPlaintextLimit(len) < 0) {
-            throw new TlsFatalAlert(AlertDescription.decode_error);
-        }*/
+        byte[] computedMac = new byte[16], receivedMac = new byte[16];
 
         initRecordMAC(cipher);
 
         int r = 0;
         while ((r = input.read(readBuf)) > 0) {
-            cipher.processBytes(readBuf, 0, readBuf.length, chachaBuf, 0);
-            output.write(chachaBuf, 0, r);
-            updateRecordMAC(readBuf, 0, readBuf.length);
+            // case when EOF has not been reached
+            if (r == BUFFER_SIZE) {
+                // use C in whole, update the MAC and decrypt
+                updateRecordMAC(readBuf, 0, r);
+                cipher.processBytes(readBuf, 0, r, chachaBuf, 0);
+            } else {
+                // use all but the last 16 bytes from C, update the MAC and decrypt
+                updateRecordMAC(Arrays.copyOfRange(readBuf, 0, r - 16), 0, r - 16);
+                cipher.processBytes(Arrays.copyOfRange(readBuf, 0, r - 16), 0,
+                        r - 16, chachaBuf, 0);
+                // copy the last 16 bytes as the original MAC
+                receivedMac = Arrays.copyOfRange(readBuf, r - 16, r);
+            }
+            output.write(chachaBuf, 0, r - 16);
         }
 
-        System.out.println("decbuf " + Hex.toHexString(readBuf));
-
-        mac.doFinal(macBuf, 0);
-        System.out.println("decmac " + Hex.toHexString(macBuf));
-
-        if (!Arrays.constantTimeAreEqual(macBuf, Arrays.copyOfRange(readBuf, 0, 16))) {
+        // check if the two MACs match
+        mac.doFinal(computedMac, 0);
+        if (!Arrays.constantTimeAreEqual(computedMac, receivedMac)) {
             throw new TlsFatalAlert(AlertDescription.bad_record_mac);
         }
     }

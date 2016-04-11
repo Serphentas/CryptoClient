@@ -45,6 +45,7 @@ public final class GCMCipher {
             S_BYTES = 128,
             N_BYTES = 256,
             R_BYTES = 256,
+            BUFFER_SIZE = 4096,
             KDF_N_K = (int) Math.pow(2, 19),
             KDF_p_K = 8,
             KDF_r_K = 1,
@@ -52,12 +53,14 @@ public final class GCMCipher {
             KDF_p_N = 8,
             KDF_r_N = 1,
             SANITIZATION_ITERATION = 1024,
-            S1N1 = S_BYTES + GCM_NONCE_BYTES,
+            V1S1 = S_BYTES,
+            S1N1 = V1S1 + GCM_NONCE_BYTES,
             N1R = S1N1 + R_BYTES + GCM_TAG_BITS / 8,
             RS2 = N1R + S_BYTES,
             S2N2 = RS2 + GCM_NONCE_BYTES;
 
-    private static final byte[] buffer = new byte[4096];
+    private static final byte[] buffer = new byte[BUFFER_SIZE];
+    private static final byte VERSION = 0x00;
 
     private final Cipher cipher;
     private static String password = null;
@@ -110,9 +113,10 @@ public final class GCMCipher {
         final SecretKey K2 = new SecretKeySpec(SCrypt.generate(R, S2, KDF_N_K,
                 KDF_p_K, KDF_r_K, CIPHER_KEY_BITS / 8), 0, CIPHER_KEY_BITS / 8, "AES");
 
-        // writing S1, N1 and E(K1, N1, R) to C
+        // writing V, S1, N1 and E(K1, N1, R) to C
         this.cipher.init(Cipher.ENCRYPT_MODE, K1, new GCMParameterSpec(
                 GCM_TAG_BITS, N1, 0, GCM_NONCE_BYTES));
+        output.write(VERSION);
         output.write(S1);
         output.write(N1);
         output.write(cipher.doFinal(R));
@@ -146,10 +150,11 @@ public final class GCMCipher {
      */
     public void decrypt(InputStream input, OutputStream output) throws Exception {
         // reading Sx & Nx and generating K1
-        byte[] header = new byte[552];
-        input.read(header, 0, 552);
+        byte[] header = new byte[553];
+        input.read(header, 0, 553);
 
-        final byte[] S1 = Arrays.copyOfRange(header, 0, S_BYTES), S2 = Arrays
+        final byte V = header[0];
+        final byte[] S1 = Arrays.copyOfRange(header, 1, V1S1), S2 = Arrays
                 .copyOfRange(header, N1R, RS2);
         final byte[] N1 = Arrays.copyOfRange(header, S_BYTES, S1N1), N2 = Arrays
                 .copyOfRange(header, RS2, S2N2);
