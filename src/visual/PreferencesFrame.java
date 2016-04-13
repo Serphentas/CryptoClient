@@ -144,6 +144,7 @@ public class PreferencesFrame extends javax.swing.JFrame {
         languageLabel.setText("Language");
 
         languageChoice.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "English", "French" }));
+        languageChoice.setEnabled(false);
 
         javax.swing.GroupLayout generalSettingsPanelLayout = new javax.swing.GroupLayout(generalSettingsPanel);
         generalSettingsPanel.setLayout(generalSettingsPanelLayout);
@@ -213,6 +214,7 @@ public class PreferencesFrame extends javax.swing.JFrame {
         parallelCryptoChoiceMenu.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Yes", "No" }));
         parallelCryptoChoiceMenu.setSelectedIndex(1);
         parallelCryptoChoiceMenu.setToolTipText("Warning: uses a lot of memory !");
+        parallelCryptoChoiceMenu.setEnabled(false);
         parallelCryptoChoiceMenu.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 parallelCryptoChoiceMenuActionPerformed(evt);
@@ -228,6 +230,7 @@ public class PreferencesFrame extends javax.swing.JFrame {
 
         parallelCryptoThreadsMenu.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "1", "2", "3", "4", "5", "6" }));
         parallelCryptoThreadsMenu.setSelectedIndex(1);
+        parallelCryptoThreadsMenu.setEnabled(false);
         parallelCryptoThreadsMenu.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 parallelCryptoThreadsMenuActionPerformed(evt);

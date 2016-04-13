@@ -125,9 +125,8 @@ public class LoginForm extends javax.swing.JFrame {
 
     private void loginButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginButtonActionPerformed
         try {
-            //usernameField.getText(), passwordField.getText()
-            if (DataClient.login("test","asd")) {
-                GCMCipher.setPassword("asd");
+            if (DataClient.login(usernameField.getText(), passwordField.getText())) {
+                GCMCipher.setPassword(passwordField.getText());
                 this.dispose();
                 DefaultFrame.main(null);
             } else {
@@ -135,7 +134,6 @@ public class LoginForm extends javax.swing.JFrame {
             }
         } catch (Exception e) {
             ErrorHandler.showError(e);
-            e.printStackTrace();
         }
 
     }//GEN-LAST:event_loginButtonActionPerformed

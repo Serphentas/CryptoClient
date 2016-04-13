@@ -37,7 +37,7 @@ public class DataClient {
     private static FTPClient ftp;
     private static GCMCipher gcmc;
     private static boolean isAtRoot = true;
-    public static final String HOSTNAME = "10.0.0.21";
+    public static final String HOSTNAME = "data.theswissbay.ch";
     public static final int PORT = 21;
 
     /**
