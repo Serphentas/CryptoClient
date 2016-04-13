@@ -66,11 +66,13 @@ public class DataClient {
     public static boolean login(String username, String password) throws IOException {
         if (!ftp.isConnected()) {
             ftp.connect(HOSTNAME, PORT);
+            ftp.setSoTimeout(0);
         }
 
         if (ftp.login(username, password)) {
             ftp.setFileType(FTP.BINARY_FILE_TYPE);
             ftp.enterLocalPassiveMode();
+
             return true;
         } else {
             disconnect();
@@ -97,6 +99,16 @@ public class DataClient {
     public static void cd(String path) throws IOException {
         ftp.changeWorkingDirectory(path);
         isAtRoot = ftp.printWorkingDirectory().equals("/");
+    }
+
+    /**
+     * Returns the current working directory
+     *
+     * @return current working directory
+     * @throws IOException
+     */
+    public static String currentDir() throws IOException {
+        return ftp.printWorkingDirectory();
     }
 
     /**

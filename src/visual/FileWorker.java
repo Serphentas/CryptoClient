@@ -40,6 +40,7 @@ public class FileWorker extends SwingWorker<Integer, String> {
     private static JTable fileTable;
     private static File[] localFiles;
     private static FTPFile[] dirs, remoteFiles;
+    private static String[] buttons = {"Yes", "Yes to all", "No", "Cancel"};
 
     private static void failIfInterrupted() throws InterruptedException {
         if (Thread.currentThread().isInterrupted()) {
@@ -87,28 +88,34 @@ public class FileWorker extends SwingWorker<Integer, String> {
      */
     @Override
     protected Integer doInBackground() throws Exception {
-        Settings.setIsWorking(true);
         publish("[" + new Date() + "] Begin file transfer");
+        Settings.setIsWorking(true);
         int i = 1, returnVal = -1;
+        boolean all = false;
+
         if (isUL) {
             for (File f : localFiles) {
-                if (DataClient.exists(f.getName())) {
-                    int reply = JOptionPane.showConfirmDialog(null,
-                            "File already exists. Overwrite ?",
-                            "Overwrite file", JOptionPane.YES_NO_OPTION);
-                    if (reply == JOptionPane.YES_OPTION) {
-                        DataClient.rm(f.getName(), 0);
-                    }
+                if(returnVal!=3){
+                                    if (!all && DataClient.exists(f.getName())) {
+                    returnVal = JOptionPane.showOptionDialog(null, "File "
+                            + f.getName() + " already exists. Overwrite ?",
+                            "Overwrite file", JOptionPane.DEFAULT_OPTION,
+                            JOptionPane.QUESTION_MESSAGE, null, buttons,
+                            buttons[2]);
+                    all = returnVal == 1;
                 }
 
-                DataClient.send(f, f.getName());
+                if (returnVal < 2) {
+                    DataClient.rm(f.getName(), 0);
+                    DataClient.send(f, f.getName());
+                    publish("[" + new Date() + "] File " + f.getName() + " sent");
+                }
 
-                publish("[" + new Date() + "] File " + f.getName() + " sent");
                 setProgress((i / localFiles.length) * 100);
                 updateTable();
                 i++;
+                }
             }
-
         } else {
             String dlDir = new String();
 
@@ -128,11 +135,26 @@ public class FileWorker extends SwingWorker<Integer, String> {
 
             if (returnVal != JFileChooser.CANCEL_OPTION) {
                 for (int row : rows) {
-                    String s = (String) fileTable.getValueAt(row, 0);
-                    DataClient.receive(s, new File(dlDir + "/" + s));
-                    publish("[" + new Date() + "] File " + s + " received");
-                    setProgress((i / rows.length) * 100);
-                    i++;
+                    if (returnVal != 3) {
+                        String s = (String) fileTable.getValueAt(row, 0);
+                        File destFile = new File(dlDir + "/" + s);
+
+                        if (!all && destFile.isFile() && destFile.exists()) {
+                            returnVal = JOptionPane.showOptionDialog(null, "File "
+                                    + destFile.getName() + " already exists. Overwrite ?",
+                                    "Overwrite file", JOptionPane.DEFAULT_OPTION,
+                                    JOptionPane.QUESTION_MESSAGE, null, buttons,
+                                    buttons[2]);
+                            all = returnVal == 1;
+                        }
+
+                        if (returnVal < 2) {
+                            DataClient.receive(s, destFile);
+                            publish("[" + new Date() + "] File " + s + " received");
+                            setProgress((i / rows.length) * 100);
+                        }
+                        i++;
+                    }
                 }
             }
         }

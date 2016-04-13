@@ -17,7 +17,6 @@
 package internal.network;
 
 import internal.crypto.CPCipher;
-import internal.crypto.GPCrypto;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -50,21 +49,36 @@ public class test {
         CipherParameters CP = new KeyParameter(K);
         ParametersWithIV PWI = new ParametersWithIV(CP, N);
         cha.init(true, PWI);*/
+
         CPCipher chacha = new CPCipher();
-        byte[] key = GPCrypto.randomGen(32), nonce = GPCrypto.randomGen(8);
+        //byte[] key = GPCrypto.randomGen(32), nonce = GPCrypto.randomGen(8);
+        byte[] key = new byte[]{0x00, 0x00},
+                nonce = new byte[]{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-        long time = System.nanoTime();
+        System.out.println(key.length
+                + " " + nonce.length);
 
-        InputStream fileplain = new FileInputStream(new File("E:/test/test.mp4")),
+        InputStream fileplain = new FileInputStream(new File("E:/test/test.7z")),
                 fileencread = new FileInputStream(new File("E:/test/chachaenc"));
         OutputStream fileenc = new FileOutputStream(new File("E:/test/chachaenc")),
                 filedec = new FileOutputStream(new File("E:/test/chachadec"));
 
+        CPCipher.setBufferSize(
+                2048);
+
+        long time = System.nanoTime();
+
         chacha.encrypt(key, nonce, fileplain, fileenc);
-        System.out.println(238 / ((System.nanoTime() - time) / 1e9) + " MiB/s");
+
+        System.out.println(
+                238 / ((System.nanoTime() - time) / 1e9) + " MiB/s");
 
         time = System.nanoTime();
+
         chacha.decrypt(key, nonce, fileencread, filedec);
-        System.out.println(238 / ((System.nanoTime() - time) / 1e9) + " MiB/s");
+
+        System.out.println(
+                238 / ((System.nanoTime() - time) / 1e9) + " MiB/s");
+
     }
 }

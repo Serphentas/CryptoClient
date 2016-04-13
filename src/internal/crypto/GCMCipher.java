@@ -54,14 +54,14 @@ public final class GCMCipher {
             KDF_p_N = 8,
             KDF_r_N = 1,
             SANITIZATION_ITERATION = 1024,
-            V1S1 = S_BYTES,
+            V1S1 = 1 + S_BYTES,
             S1N1 = V1S1 + GCM_NONCE_BYTES,
             N1R = S1N1 + R_BYTES + GCM_TAG_BITS / 8,
             RS2 = N1R + S_BYTES,
             S2N2 = RS2 + GCM_NONCE_BYTES;
 
     private static final byte[] buffer = new byte[BUFFER_SIZE];
-    private static final byte VERSION = 0x00;
+    private static final byte VERSION = 0x0A;
 
     private final Cipher cipher;
     private static String password = null;
@@ -155,9 +155,10 @@ public final class GCMCipher {
         input.read(header, 0, 553);
 
         final byte V = header[0];
+        System.out.println(V);
         final byte[] S1 = Arrays.copyOfRange(header, 1, V1S1), S2 = Arrays
                 .copyOfRange(header, N1R, RS2);
-        final byte[] N1 = Arrays.copyOfRange(header, S_BYTES, S1N1), N2 = Arrays
+        final byte[] N1 = Arrays.copyOfRange(header, V1S1, S1N1), N2 = Arrays
                 .copyOfRange(header, RS2, S2N2);
 
         final SecretKey K1 = new SecretKeySpec(SCrypt.generate(password.getBytes(),

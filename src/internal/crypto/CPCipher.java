@@ -35,7 +35,6 @@ import org.bouncycastle.crypto.tls.AlertDescription;
 import org.bouncycastle.crypto.tls.TlsFatalAlert;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Pack;
-import org.bouncycastle.util.encoders.Hex;
 
 /**
  * General purpose class used for encryption and decryption of files, using
@@ -46,17 +45,19 @@ import org.bouncycastle.util.encoders.Hex;
  *
  * @author Serphentas
  */
-public class CPCipher {
+public final class CPCipher {
 
     private final ChaChaEngine cipher;
     private final Poly1305 mac;
-    private static final int BUFFER_SIZE = 1024;
-    private static final byte[] readBuf = new byte[BUFFER_SIZE];
-    private static final byte[] chachaBuf = new byte[BUFFER_SIZE];
+    private static int BUFFER_SIZE = 1024;
 
     public CPCipher() throws IOException {
         this.cipher = new ChaChaEngine();
         this.mac = new Poly1305();
+    }
+
+    public static void setBufferSize(int newSize) {
+        BUFFER_SIZE = newSize;
     }
 
     public int getPlaintextLimit(int ciphertextLimit) {
@@ -78,7 +79,8 @@ public class CPCipher {
      */
     public void encrypt(byte[] key, byte[] nonce, InputStream input, OutputStream output) throws IOException {
         this.cipher.init(true, new ParametersWithIV(new KeyParameter(key), nonce));
-        byte[] ciphertextMac = new byte[16];
+        byte[] ciphertextMac = new byte[16], readBuf = new byte[BUFFER_SIZE],
+                chachaBuf = new byte[BUFFER_SIZE];
         initMAC(cipher);
 
         int r = 0;
@@ -86,14 +88,9 @@ public class CPCipher {
             cipher.processBytes(readBuf, 0, r, chachaBuf, 0);
             output.write(chachaBuf, 0, r);
             updateMAC(chachaBuf, 0, r);
-            
-  
-            //System.out.println("encbuf " + Hex.toHexString(chachaBuf));
         }
-        System.out.println("readbuf " + Hex.toHexString(readBuf));
 
         mac.doFinal(ciphertextMac, 0);
-        System.out.println("mac " + Hex.toHexString(ciphertextMac));
         output.write(ciphertextMac);
     }
 
@@ -113,7 +110,8 @@ public class CPCipher {
     public void decrypt(byte[] key, byte[] nonce, InputStream input,
             OutputStream output) throws IOException {
         this.cipher.init(false, new ParametersWithIV(new KeyParameter(key), nonce));
-        byte[] computedMac = new byte[16], receivedMac = new byte[16];
+        byte[] computedMac = new byte[16], receivedMac = new byte[16], readBuf
+                = new byte[BUFFER_SIZE], chachaBuf = new byte[BUFFER_SIZE];
         initMAC(cipher);
 
         int r = 0;
@@ -124,8 +122,6 @@ public class CPCipher {
                 updateMAC(readBuf, 0, r);
                 cipher.processBytes(readBuf, 0, r, chachaBuf, 0);
                 output.write(chachaBuf, 0, r);
-                /*System.out.println("encbuf " + Hex.toHexString(readBuf));
-                System.out.println("decbuf " + Hex.toHexString(chachaBuf));*/
             } else {
                 // use all but the last 16 bytes from C to update the MAC and decrypt
                 updateMAC(Arrays.copyOfRange(readBuf, 0, r - 16), 0, r - 16);
@@ -135,14 +131,11 @@ public class CPCipher {
 
                 // copy the last 16 bytes as the original MAC
                 receivedMac = Arrays.copyOfRange(readBuf, r - 16, r);
-                System.out.println("decbuf " + Hex.toHexString(chachaBuf));
-                System.out.println("macR " + Hex.toHexString(receivedMac));
             }
         }
 
         // check if the two MACs match
         mac.doFinal(computedMac, 0);
-        System.out.println("macC " + Hex.toHexString(computedMac));
         if (!Arrays.constantTimeAreEqual(computedMac, receivedMac)) {
             throw new TlsFatalAlert(AlertDescription.bad_record_mac);
         }

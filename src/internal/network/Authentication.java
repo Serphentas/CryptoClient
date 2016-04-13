@@ -25,11 +25,10 @@ import internal.crypto.GPCrypto;
  */
 public abstract class Authentication {
 
-    private static final String AUTH_SERVER_NAME = "localhost";
-    private static final String DATA_SERVER_NAME = "localhost";
-    private static final int AUTH_SERVER_PORT = 440;
-    private static final int DATA_SERVER_PORT = 441;
-
+    private static final String AUTH_SERVER_NAME = "localhost",
+            DATA_SERVER_NAME = "localhost";
+    private static final int AUTH_SERVER_PORT = 440,
+            DATA_SERVER_PORT = 441;
     private static final byte[] token = new byte[48];
 
     /**
