@@ -4,8 +4,8 @@ import java.io.File;
 import java.nio.file.Files;
 import java.security.Security;
 import java.util.Arrays;
-import static junit.framework.Assert.assertTrue;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 public class GCMCipherTest {
@@ -15,7 +15,7 @@ public class GCMCipherTest {
     @Test
     public void testDecrypt() throws Exception {
         Security.addProvider(new BouncyCastleProvider());
-        
+
         gcmc = new GCMCipher();
         File p = new File("testPlaintext");
         File c = new File("testPlaintext.encrypted");
