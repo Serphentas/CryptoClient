@@ -22,8 +22,7 @@ public class test {
         /*String[] arr = new String[]{"-b","10.0.0.21","asd","asd","wpdb.sql","E:/test/wpdb.sql"};
         System.out.println(Hex.toHexString(GPCrypto.randomGen(2048)));
         test2.main(arr);*/
-
- /*CipherKeyGenerator gen = new Poly1305KeyGenerator();
+        /*CipherKeyGenerator gen = new Poly1305KeyGenerator();
         gen.init(new KeyGenerationParameters(new SecureRandom(), 256));
         byte[] key = gen.generateKey(), nonce = GPCrypto.randomGen(16);
         byte[] P = GPCrypto.randomGen(16), C = new byte[16];
@@ -42,8 +41,7 @@ public class test {
         CipherParameters CP = new KeyParameter(K);
         ParametersWithIV PWI = new ParametersWithIV(CP, N);
         cha.init(true, PWI);*/
-
- /*CPCipher chacha = new CPCipher();
+        /*CPCipher chacha = new CPCipher();
         //byte[] key = GPCrypto.randomGen(32), nonce = GPCrypto.randomGen(8);
         byte[] key = new byte[]{0x00, 0x00},
                 nonce = new byte[]{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};

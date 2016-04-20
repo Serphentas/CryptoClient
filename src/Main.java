@@ -15,6 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import internal.LogHandler;
 import internal.network.DataClient;
 import java.security.Security;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -37,13 +38,19 @@ public class Main {
      * @throws Exception
      */
     public static void main(String args[]) throws Exception {
+        //initializing log handler
+        LogHandler.init();
+
         // adding Bouncy Castle as provider
         Security.addProvider(new BouncyCastleProvider());
+        LogHandler.logMessage("Added BC provider");
 
         // starting GUI
         LoginForm.main(null);
+        LogHandler.logMessage("Started LoginForm");
 
-        // initializing I/O handlers
+        // initializing I/O handler
         DataClient.init();
+        LogHandler.logMessage("Initialized DataClient");
     }
 }

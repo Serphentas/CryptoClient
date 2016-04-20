@@ -16,6 +16,7 @@
  */
 package visual;
 
+import internal.LogHandler;
 import internal.Settings;
 import internal.network.DataClient;
 import java.io.File;
@@ -40,7 +41,7 @@ public class FileWorker extends SwingWorker<Integer, String> {
     private static JTable fileTable;
     private static File[] localFiles;
     private static FTPFile[] dirs, remoteFiles;
-    private static String[] buttons = {"Yes", "Yes to all", "No", "Cancel"};
+    private static final String[] buttons = {"Yes", "Yes to all", "No", "Cancel"};
 
     private static void failIfInterrupted() throws InterruptedException {
         if (Thread.currentThread().isInterrupted()) {
@@ -94,29 +95,32 @@ public class FileWorker extends SwingWorker<Integer, String> {
         boolean all = false;
 
         if (isUL) {
+            LogHandler.logMessage("Begin upload");
             for (File f : localFiles) {
-                if(returnVal!=3){
-                                    if (!all && DataClient.exists(f.getName())) {
-                    returnVal = JOptionPane.showOptionDialog(null, "File "
-                            + f.getName() + " already exists. Overwrite ?",
-                            "Overwrite file", JOptionPane.DEFAULT_OPTION,
-                            JOptionPane.QUESTION_MESSAGE, null, buttons,
-                            buttons[2]);
-                    all = returnVal == 1;
-                }
+                if (returnVal != 3) {
+                    if (!all && DataClient.exists(f.getName())) {
+                        returnVal = JOptionPane.showOptionDialog(null, "File "
+                                + f.getName() + " already exists. Overwrite ?",
+                                "Overwrite file", JOptionPane.DEFAULT_OPTION,
+                                JOptionPane.QUESTION_MESSAGE, null, buttons,
+                                buttons[2]);
+                        all = returnVal == 1;
+                    }
 
-                if (returnVal < 2) {
-                    DataClient.rm(f.getName(), 0);
-                    DataClient.send(f, f.getName());
-                    publish("[" + new Date() + "] File " + f.getName() + " sent");
-                }
+                    if (returnVal < 2) {
+                        DataClient.rm(f.getName(), 0);
+                        DataClient.send(f, f.getName());
+                        publish("[" + new Date() + "] File " + f.getName() + " sent");
+                    }
 
-                setProgress((i / localFiles.length) * 100);
-                updateTable();
-                i++;
+                    setProgress((i / localFiles.length) * 100);
+                    updateTable();
+                    i++;
                 }
             }
+            LogHandler.logMessage("Done uploading");
         } else {
+            LogHandler.logMessage("Begin download");
             String dlDir = new String();
 
             if (Settings.isDlDir()) {
@@ -157,6 +161,7 @@ public class FileWorker extends SwingWorker<Integer, String> {
                     }
                 }
             }
+            LogHandler.logMessage("Done downloading");
         }
         publish("[" + new Date() + "] Done");
         Settings.setIsWorking(false);

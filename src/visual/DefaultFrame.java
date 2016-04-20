@@ -16,6 +16,7 @@
  */
 package visual;
 
+import internal.LogHandler;
 import internal.Settings;
 import internal.network.DataClient;
 import java.awt.FileDialog;
@@ -251,6 +252,7 @@ public class DefaultFrame extends javax.swing.JFrame {
 
         actionLogLabel.setText("Action log");
 
+        fileMenu.setMnemonic('F');
         fileMenu.setText("File");
 
         uploadMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_MASK));
@@ -310,6 +312,7 @@ public class DefaultFrame extends javax.swing.JFrame {
 
         menuBar.add(fileMenu);
 
+        editMenu.setMnemonic('E');
         editMenu.setText("Edit");
         editMenu.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -328,6 +331,7 @@ public class DefaultFrame extends javax.swing.JFrame {
 
         menuBar.add(editMenu);
 
+        viewMenu.setMnemonic('V');
         viewMenu.setText("View");
 
         refreshMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F5, 0));
@@ -341,6 +345,7 @@ public class DefaultFrame extends javax.swing.JFrame {
 
         menuBar.add(viewMenu);
 
+        toolsMenu.setMnemonic('T');
         toolsMenu.setText("Tools");
 
         benchmarkMenuItem.setText("Benchmark");
@@ -353,6 +358,7 @@ public class DefaultFrame extends javax.swing.JFrame {
 
         menuBar.add(toolsMenu);
 
+        helpMenu.setMnemonic('H');
         helpMenu.setText("Help");
 
         aboutMenuItem.setText("About");
@@ -406,8 +412,17 @@ public class DefaultFrame extends javax.swing.JFrame {
                 } catch (IOException ex) {
                     ErrorHandler.showError(ex);
                 }
+                LogHandler.logMessage("Exiting");
                 this.dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
             }
+        } else {
+            try {
+                DataClient.disconnect();
+            } catch (IOException ex) {
+                ErrorHandler.showError(ex);
+            }
+            LogHandler.logMessage("Exiting");
+            this.dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
         }
     }//GEN-LAST:event_exitMenuItemActionPerformed
 
@@ -421,12 +436,14 @@ public class DefaultFrame extends javax.swing.JFrame {
             fd.setMultipleMode(true);
             fd.setVisible(true);
             if (fd.getFiles().length != 0) {
+                LogHandler.logMessage("Begin upload");
                 try {
                     FileWorker fwul = new FileWorker(fileTable, actionLogTextArea);
                     FileWorker.setUploadParams(fd.getFiles());
                     fwul.execute();
                 } catch (Exception e) {
                     visual.ErrorHandler.showError(e);
+                    LogHandler.logException("DefaultFrame", "uploadMenuItemActionPerformed", e);
                 }
             }
         }
@@ -463,6 +480,14 @@ public class DefaultFrame extends javax.swing.JFrame {
                 this.dispose();
                 LoginForm.main(null);
             }
+        } else {
+            try {
+                DataClient.disconnect();
+            } catch (IOException ex) {
+                ErrorHandler.showError(ex);
+            }
+            this.dispose();
+            LoginForm.main(null);
         }
     }//GEN-LAST:event_disconnectMenuItemActionPerformed
 
@@ -483,11 +508,13 @@ public class DefaultFrame extends javax.swing.JFrame {
                     "Download file", JOptionPane.INFORMATION_MESSAGE);
         } else {
             try {
+                LogHandler.logMessage("Begin download");
                 FileWorker fwdl = new FileWorker(fileTable, actionLogTextArea);
                 FileWorker.setDownloadParams(fileTable.getSelectedRows());
                 fwdl.execute();
             } catch (Exception e) {
                 visual.ErrorHandler.showError(e);
+                LogHandler.logException("DefaultFrame", "downloadActionPerformed", e);
             }
         }
     }//GEN-LAST:event_downloadActionPerformed
@@ -590,7 +617,7 @@ public class DefaultFrame extends javax.swing.JFrame {
                 } else if (newName != null) {
                     String currName = (String) fileTable.getValueAt(fileTable.
                             getSelectedRows()[0], 0);
-                    DataClient.rename(currName, newName.replaceAll("[^a-zA-Z0-9 ]", ""));
+                    DataClient.rename(currName, newName.replaceAll("[^a-zA-Z0-9. ]", ""));
                     updateFileTable();
                     updateLog("Renamed " + currName + " to " + newName);
                 }
@@ -623,7 +650,6 @@ public class DefaultFrame extends javax.swing.JFrame {
                 if ("Nimbus".equals(info.getName())) {
                     javax.swing.UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
                     break;
-
                 }
             }
         } catch (ClassNotFoundException | InstantiationException |
@@ -640,8 +666,10 @@ public class DefaultFrame extends javax.swing.JFrame {
 
             } catch (Exception ex) {
                 visual.ErrorHandler.showError(ex);
+                LogHandler.logException("DefaultFrame", "main", ex);
             }
         });
+        LogHandler.logMessage("Started DefaultFrame");
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

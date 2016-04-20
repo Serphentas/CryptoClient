@@ -16,6 +16,7 @@
  */
 package internal.crypto;
 
+import internal.LogHandler;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
@@ -102,17 +103,23 @@ public final class GCMCipher {
      * @throws Exception
      */
     public void encrypt(InputStream input, OutputStream output) throws Exception {
+        LogHandler.logMessage("Begin file encryption");
         // generating Sx, Nx, R, Kx
         final byte[] S1 = GPCrypto.randomGen(S_BYTES), S2 = GPCrypto.randomGen(S_BYTES);
+        LogHandler.logMessage("Generated Sx");
         final byte[] R = GPCrypto.randomGen(R_BYTES);
+        LogHandler.logMessage("Generated R");
         final byte[] N = SCrypt.generate(GPCrypto.randomGen(N_BYTES), GPCrypto
                 .randomGen(N_BYTES), KDF_N_N, KDF_p_N, KDF_r_N, 2 * GCM_NONCE_BYTES);
+        LogHandler.logMessage("Generated N");
         final byte[] N1 = Arrays.copyOfRange(N, 0, 12), N2 = Arrays.copyOfRange(N, 12, 24);
         final SecretKey K1 = new SecretKeySpec(SCrypt.generate(password.getBytes(),
                 S1, KDF_N_K, KDF_p_K, KDF_r_K,
                 CIPHER_KEY_BITS / 8), 0, CIPHER_KEY_BITS / 8, "AES");
+        LogHandler.logMessage("Generated K1");
         final SecretKey K2 = new SecretKeySpec(SCrypt.generate(R, S2, KDF_N_K,
                 KDF_p_K, KDF_r_K, CIPHER_KEY_BITS / 8), 0, CIPHER_KEY_BITS / 8, "AES");
+        LogHandler.logMessage("Generated K2");
 
         // writing V, S1, N1 and E(K1, N1, R) to C
         this.cipher.init(Cipher.ENCRYPT_MODE, K1, new GCMParameterSpec(
@@ -121,6 +128,7 @@ public final class GCMCipher {
         output.write(S1);
         output.write(N1);
         output.write(cipher.doFinal(R));
+        LogHandler.logMessage("Wrote V, S1, N1, E(K1,S1,R)");
 
         // cipher initialization
         this.cipher.init(Cipher.ENCRYPT_MODE, K2, new GCMParameterSpec(
@@ -129,17 +137,20 @@ public final class GCMCipher {
         // writing S2, N2 and E(K2, N2, P) to C
         output.write(S2);
         output.write(N2);
+        LogHandler.logMessage("Done with header");
         OutputStream cos = new CipherOutputStream(output, this.cipher);
         int r = 0;
         while ((r = input.read(buffer)) > 0) {
             cos.write(buffer, 0, r);
         }
+        LogHandler.logMessage("Done file encryption");
 
         // erasing cryptographic parameters and closing streams
         eraseParams(S1, S2, N, N1, N2, R, K1, K2);
         cos.close();
         input.close();
         output.close();
+        LogHandler.logMessage("Params erased and streams closed");
     }
 
     /**
@@ -150,12 +161,13 @@ public final class GCMCipher {
      * @throws Exception
      */
     public void decrypt(InputStream input, OutputStream output) throws Exception {
+        LogHandler.logMessage("Beging file decryption");
         // reading Sx & Nx and generating K1
         byte[] header = new byte[553];
         input.read(header, 0, 553);
+        LogHandler.logMessage("Read header");
 
         final byte V = header[0];
-        System.out.println(V);
         final byte[] S1 = Arrays.copyOfRange(header, 1, V1S1), S2 = Arrays
                 .copyOfRange(header, N1R, RS2);
         final byte[] N1 = Arrays.copyOfRange(header, V1S1, S1N1), N2 = Arrays
@@ -164,17 +176,19 @@ public final class GCMCipher {
         final SecretKey K1 = new SecretKeySpec(SCrypt.generate(password.getBytes(),
                 S1, KDF_N_K, KDF_p_K, KDF_r_K,
                 CIPHER_KEY_BITS / 8), 0, CIPHER_KEY_BITS / 8, "AES");
-
+        LogHandler.logMessage("K1 recovered");
         // reading E(K1, N1, R)
         this.cipher.init(Cipher.DECRYPT_MODE, K1, new GCMParameterSpec(
                 GCM_TAG_BITS, N1, 0, GCM_NONCE_BYTES));
         final byte[] R_enc = Arrays.copyOfRange(header, S1N1, N1R);
         final byte[] R = cipher.doFinal(R_enc);
+        LogHandler.logMessage("R recovered");
 
         // generating K2
         final SecretKey K2 = new SecretKeySpec(SCrypt.generate(R, S2, KDF_N_K,
                 KDF_p_K, KDF_r_K, CIPHER_KEY_BITS / 8), 0, CIPHER_KEY_BITS / 8, "AES");
-
+        LogHandler.logMessage("K2 recovered");
+        
         // cipher initialization
         this.cipher.init(Cipher.DECRYPT_MODE, K2, new GCMParameterSpec(
                 GCM_TAG_BITS, N2, 0, GCM_NONCE_BYTES));
@@ -185,12 +199,14 @@ public final class GCMCipher {
         while ((r = input.read(buffer)) > 0) {
             cos.write(buffer, 0, r);
         }
+        LogHandler.logMessage("Done file decryption");    
 
         // erasing cryptographic parameters and closing streams
         eraseParams(S1, S2, N1, N2, R_enc, R, K1, K2);
         cos.close();
         input.close();
         output.close();
+        LogHandler.logMessage("Params erased and streams closed");
     }
 
     private void eraseParams(byte[] S1, byte[] S2, byte[] N, byte[] N1, byte[] N2,

@@ -16,6 +16,7 @@
  */
 package visual;
 
+import internal.LogHandler;
 import internal.crypto.GCMCipher;
 import internal.network.DataClient;
 import java.awt.event.KeyEvent;
@@ -125,9 +126,8 @@ public class LoginForm extends javax.swing.JFrame {
 
     private void loginButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginButtonActionPerformed
         try {
-            //usernameField.getText(), passwordField.getText()
-            if (DataClient.login("test","asd")) {
-                GCMCipher.setPassword("asd");
+            if (DataClient.login(usernameField.getText(), passwordField.getText())) {
+                GCMCipher.setPassword(passwordField.getText());
                 this.dispose();
                 DefaultFrame.main(null);
             } else {
@@ -135,6 +135,7 @@ public class LoginForm extends javax.swing.JFrame {
             }
         } catch (Exception e) {
             ErrorHandler.showError(e);
+            LogHandler.logException("LoginForm", "loginButtonActionPerformed", e);
         }
 
     }//GEN-LAST:event_loginButtonActionPerformed

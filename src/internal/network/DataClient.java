@@ -16,6 +16,7 @@
  */
 package internal.network;
 
+import internal.LogHandler;
 import internal.Settings;
 import internal.crypto.GCMCipher;
 import java.io.File;
@@ -37,8 +38,8 @@ public class DataClient {
     private static FTPClient ftp;
     private static GCMCipher gcmc;
     private static boolean isAtRoot = true;
-    public static final String HOSTNAME = "10.0.0.21";
-    public static final int PORT = 21;
+    public static final String HOSTNAME = "data.theswissbay.ch";
+    public static final int PORT = 7896;
 
     /**
      * Initializes the FTPClient
@@ -49,6 +50,7 @@ public class DataClient {
             gcmc = new GCMCipher();
         } catch (Exception ex) {
             ErrorHandler.showError(ex);
+            LogHandler.logException("DataClient", "init",ex);
         }
     }
 
@@ -67,15 +69,17 @@ public class DataClient {
         if (!ftp.isConnected()) {
             ftp.connect(HOSTNAME, PORT);
             ftp.setSoTimeout(0);
+            LogHandler.logMessage("Connected to server");
         }
 
         if (ftp.login(username, password)) {
             ftp.setFileType(FTP.BINARY_FILE_TYPE);
             ftp.enterLocalPassiveMode();
-
+            LogHandler.logMessage("Logged in");
             return true;
         } else {
             disconnect();
+            LogHandler.logMessage("Bad credentials");
             return false;
         }
     }
@@ -87,6 +91,7 @@ public class DataClient {
      */
     public static void disconnect() throws IOException {
         ftp.disconnect();
+        LogHandler.logMessage("Disconnected");
         Settings.setIsWorking(false);
     }
 
