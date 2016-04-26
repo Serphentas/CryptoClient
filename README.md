@@ -6,4 +6,4 @@ Check the features in the [Wiki](https://github.com/Serphentas/CryptoClient/wiki
 # License
 Copyright 2016-2999 Serphentas
 
-Licensed under CC-BY-SA 4.0, except for the CPCipher class which is licensed under the MIT License.
+Licensed under CC BY-SA 4.0, except for the CPCipher class which is licensed under the MIT License.
