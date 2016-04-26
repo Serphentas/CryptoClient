@@ -1,18 +1,11 @@
 /* 
- * Copyright (C) 2016 Serphentas
+ * Copyright (c) 2016, Serphentas
+ * All rights reserved.
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This work is licensed under the Creative Commons Attribution-ShareAlike 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by-sa/4.0/ or send a letter
+ * to Creative Commons, PO Box 1866, Mountain View, CA 94042, USA.
  */
 package visual;
 
@@ -21,8 +14,8 @@ import internal.Settings;
 import internal.network.DataClient;
 import java.awt.FileDialog;
 import java.awt.event.WindowEvent;
+import java.io.File;
 import java.io.IOException;
-import java.util.Date;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -30,6 +23,7 @@ import javax.swing.table.DefaultTableModel;
 import org.apache.commons.net.ftp.FTPFile;
 
 /**
+ * Main UI
  *
  * @author Serphentas
  */
@@ -37,16 +31,10 @@ public class DefaultFrame extends javax.swing.JFrame {
 
     private FileDialog fd;
 
-    /**
-     * Creates new form defaultFrame
-     *
-     * @throws java.io.IOException
-     */
     public DefaultFrame() throws IOException {
         initComponents();
         setLocationRelativeTo(null);
         updateFileTable();
-        updateLog("Connected to server");
     }
 
     /**
@@ -99,27 +87,30 @@ public class DefaultFrame extends javax.swing.JFrame {
         }
     }
 
-    public static void updateLog(String message) {
-        actionLogTextArea.append("[" + new Date() + "] " + message + "\n");
+    public static void setFileQueueSize(int newRowCount) {
+        DefaultTableModel dtm = (DefaultTableModel) fileQueue.getModel();
+        dtm.setRowCount(dtm.getRowCount() + newRowCount);
+        fileQueue.setModel(dtm);
     }
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        filePopupMenu = new javax.swing.JPopupMenu();
+        fileTablePopupMenu = new javax.swing.JPopupMenu();
         download = new javax.swing.JMenuItem();
         separator0 = new javax.swing.JPopupMenu.Separator();
         move = new javax.swing.JMenuItem();
         separator1 = new javax.swing.JPopupMenu.Separator();
         delete = new javax.swing.JMenuItem();
         rename = new javax.swing.JMenuItem();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        actionLogTextArea = new javax.swing.JTextArea();
+        fileQueuePopupMenu = new javax.swing.JPopupMenu();
+        deleteQueueItem = new javax.swing.JMenuItem();
         jScrollPane2 = new javax.swing.JScrollPane();
         fileTable = new javax.swing.JTable();
-        actionLogLabel = new javax.swing.JLabel();
-        jSeparator4 = new javax.swing.JSeparator();
+        jLabel1 = new javax.swing.JLabel();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        fileQueue = new javax.swing.JTable();
         menuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
         uploadMenuItem = new javax.swing.JMenuItem();
@@ -147,8 +138,8 @@ public class DefaultFrame extends javax.swing.JFrame {
                 downloadActionPerformed(evt);
             }
         });
-        filePopupMenu.add(download);
-        filePopupMenu.add(separator0);
+        fileTablePopupMenu.add(download);
+        fileTablePopupMenu.add(separator0);
 
         move.setText("Move");
         move.addActionListener(new java.awt.event.ActionListener() {
@@ -156,8 +147,8 @@ public class DefaultFrame extends javax.swing.JFrame {
                 moveActionPerformed(evt);
             }
         });
-        filePopupMenu.add(move);
-        filePopupMenu.add(separator1);
+        fileTablePopupMenu.add(move);
+        fileTablePopupMenu.add(separator1);
 
         delete.setMnemonic('r');
         delete.setText("Delete");
@@ -167,7 +158,7 @@ public class DefaultFrame extends javax.swing.JFrame {
                 deleteActionPerformed(evt);
             }
         });
-        filePopupMenu.add(delete);
+        fileTablePopupMenu.add(delete);
 
         rename.setText("Rename");
         rename.addActionListener(new java.awt.event.ActionListener() {
@@ -175,7 +166,15 @@ public class DefaultFrame extends javax.swing.JFrame {
                 renameActionPerformed(evt);
             }
         });
-        filePopupMenu.add(rename);
+        fileTablePopupMenu.add(rename);
+
+        deleteQueueItem.setText("Cancel");
+        deleteQueueItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deleteQueueItemActionPerformed(evt);
+            }
+        });
+        fileQueuePopupMenu.add(deleteQueueItem);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("CryptoClient");
@@ -189,12 +188,6 @@ public class DefaultFrame extends javax.swing.JFrame {
                 formWindowClosed(evt);
             }
         });
-
-        actionLogTextArea.setEditable(false);
-        actionLogTextArea.setColumns(20);
-        actionLogTextArea.setLineWrap(true);
-        actionLogTextArea.setRows(5);
-        jScrollPane1.setViewportView(actionLogTextArea);
 
         fileTable.setAutoCreateRowSorter(true);
         fileTable.setModel(new javax.swing.table.DefaultTableModel(
@@ -239,18 +232,60 @@ public class DefaultFrame extends javax.swing.JFrame {
         });
         jScrollPane2.setViewportView(fileTable);
         if (fileTable.getColumnModel().getColumnCount() > 0) {
+            fileTable.getColumnModel().getColumn(0).setMinWidth(250);
+            fileTable.getColumnModel().getColumn(0).setMaxWidth(999999999);
             fileTable.getColumnModel().getColumn(1).setMinWidth(200);
             fileTable.getColumnModel().getColumn(1).setPreferredWidth(200);
-            fileTable.getColumnModel().getColumn(1).setMaxWidth(200);
-            fileTable.getColumnModel().getColumn(2).setMinWidth(150);
-            fileTable.getColumnModel().getColumn(2).setPreferredWidth(150);
-            fileTable.getColumnModel().getColumn(2).setMaxWidth(150);
+            fileTable.getColumnModel().getColumn(1).setMaxWidth(999999999);
+            fileTable.getColumnModel().getColumn(2).setMinWidth(100);
+            fileTable.getColumnModel().getColumn(2).setPreferredWidth(100);
+            fileTable.getColumnModel().getColumn(2).setMaxWidth(100);
             fileTable.getColumnModel().getColumn(3).setMinWidth(100);
             fileTable.getColumnModel().getColumn(3).setPreferredWidth(100);
             fileTable.getColumnModel().getColumn(3).setMaxWidth(100);
         }
 
-        actionLogLabel.setText("Action log");
+        jLabel1.setText("File queue");
+
+        fileQueue.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "File", "Status", "Action"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.String.class, java.lang.String.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        fileQueue.setRowHeight(20);
+        fileQueue.setShowHorizontalLines(false);
+        fileQueue.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseReleased(java.awt.event.MouseEvent evt) {
+                fileQueueMouseReleased(evt);
+            }
+        });
+        jScrollPane3.setViewportView(fileQueue);
+        if (fileQueue.getColumnModel().getColumnCount() > 0) {
+            fileQueue.getColumnModel().getColumn(1).setMinWidth(150);
+            fileQueue.getColumnModel().getColumn(1).setPreferredWidth(150);
+            fileQueue.getColumnModel().getColumn(1).setMaxWidth(150);
+            fileQueue.getColumnModel().getColumn(2).setMinWidth(100);
+            fileQueue.getColumnModel().getColumn(2).setPreferredWidth(100);
+            fileQueue.getColumnModel().getColumn(2).setMaxWidth(100);
+        }
 
         fileMenu.setMnemonic('F');
         fileMenu.setText("File");
@@ -375,25 +410,22 @@ public class DefaultFrame extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1)
                     .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 828, Short.MAX_VALUE)
+                    .addComponent(jScrollPane3)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(actionLogLabel)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jSeparator4)))
+                        .addComponent(jLabel1)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 458, Short.MAX_VALUE)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 416, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
+                .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(actionLogLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jSeparator4, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 116, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
@@ -427,23 +459,24 @@ public class DefaultFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_exitMenuItemActionPerformed
 
     private void uploadMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadMenuItemActionPerformed
-        if (Settings.isWorking()) {
-            JOptionPane.showMessageDialog(this, "There is already a task running"
-                    + "in the background.\nWait or cancel it and try again.",
-                    "Upload file", JOptionPane.WARNING_MESSAGE);
-        } else {
-            fd = new FileDialog(this, "Upload file", FileDialog.LOAD);
-            fd.setMultipleMode(true);
-            fd.setVisible(true);
-            if (fd.getFiles().length != 0) {
-                LogHandler.logMessage("Begin upload");
+        fd = new FileDialog(this, "Upload file", FileDialog.LOAD);
+        fd.setMultipleMode(true);
+        fd.setVisible(true);
+        if (fd.getFiles().length != 0) {
+            int i = fileQueue.getRowCount();
+            setFileQueueSize(fd.getFiles().length);
+            for (File f : fd.getFiles()) {
+                fileQueue.setValueAt(f.getAbsolutePath(), i, 0);
+                fileQueue.setValueAt("Pending", i, 1);
+                fileQueue.setValueAt("Upload", i, 2);
+                i++;
+            }
+            if (!Settings.isWorking()) {
                 try {
-                    FileWorker fwul = new FileWorker(fileTable, actionLogTextArea);
-                    FileWorker.setUploadParams(fd.getFiles());
-                    fwul.execute();
+                    FileWorker fw = new FileWorker(fileTable, fileQueue);
+                    fw.execute();
                 } catch (Exception e) {
                     visual.ErrorHandler.showError(e);
-                    LogHandler.logException("DefaultFrame", "uploadMenuItemActionPerformed", e);
                 }
             }
         }
@@ -493,7 +526,7 @@ public class DefaultFrame extends javax.swing.JFrame {
 
     private void fileTableMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fileTableMouseReleased
         if (evt.isPopupTrigger()) {
-            filePopupMenu.show(evt.getComponent(), evt.getX(), evt.getY());
+            fileTablePopupMenu.show(evt.getComponent(), evt.getX(), evt.getY());
         }
     }//GEN-LAST:event_fileTableMouseReleased
 
@@ -502,20 +535,29 @@ public class DefaultFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_fileTableMousePressed
 
     private void downloadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_downloadActionPerformed
-        if (Settings.isWorking()) {
-            JOptionPane.showMessageDialog(this, "There is already a task running"
-                    + " in the background.\nWait or cancel it and try again.",
-                    "Download file", JOptionPane.INFORMATION_MESSAGE);
-        } else {
-            try {
-                LogHandler.logMessage("Begin download");
-                FileWorker fwdl = new FileWorker(fileTable, actionLogTextArea);
-                FileWorker.setDownloadParams(fileTable.getSelectedRows());
-                fwdl.execute();
-            } catch (Exception e) {
-                visual.ErrorHandler.showError(e);
-                LogHandler.logException("DefaultFrame", "downloadActionPerformed", e);
+        int i = fileQueue.getRowCount();
+        setFileQueueSize(fileTable.getSelectedRows().length);
+
+        try {
+            for (int row : fileTable.getSelectedRows()) {
+                String currentDir = DataClient.currentDir();
+                System.out.println(DataClient.currentDir());
+                if (!currentDir.endsWith("/")) {
+                    currentDir += "/";
+                }
+                String fileName = currentDir + (String) fileTable.getValueAt(row, 0);
+
+                fileQueue.setValueAt(fileName.substring(5), i, 0);
+                fileQueue.setValueAt("Pending", i, 1);
+                fileQueue.setValueAt("Download", i, 2);
+                i++;
             }
+            if (!Settings.isWorking()) {
+                FileWorker fw = new FileWorker(fileTable, fileQueue);
+                fw.execute();
+            }
+        } catch (Exception e) {
+            visual.ErrorHandler.showError(e);
         }
     }//GEN-LAST:event_downloadActionPerformed
 
@@ -533,10 +575,8 @@ public class DefaultFrame extends javax.swing.JFrame {
                         String s = (String) fileTable.getValueAt(i, 0);
                         if (fileTable.getValueAt(i, 2).equals("File")) {
                             DataClient.rm(s, 0);
-                            updateLog("Deleted file " + s);
                         } else {
                             DataClient.rm(s, 1);
-                            updateLog("Deleted folder " + s);
                         }
                     }
                     updateFileTable();
@@ -565,7 +605,6 @@ public class DefaultFrame extends javax.swing.JFrame {
     private void refreshMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshMenuItemActionPerformed
         try {
             updateFileTable();
-            updateLog("Refreshed table");
         } catch (IOException ex) {
             visual.ErrorHandler.showError(ex);
         }
@@ -581,7 +620,6 @@ public class DefaultFrame extends javax.swing.JFrame {
         try {
             DataClient.mkdir(reply);
             updateFileTable();
-            updateLog("Created folder " + reply);
         } catch (IOException ex) {
             visual.ErrorHandler.showError(ex);
         }
@@ -619,7 +657,6 @@ public class DefaultFrame extends javax.swing.JFrame {
                             getSelectedRows()[0], 0);
                     DataClient.rename(currName, newName.replaceAll("[^a-zA-Z0-9. ]", ""));
                     updateFileTable();
-                    updateLog("Renamed " + currName + " to " + newName);
                 }
             } catch (IOException ex) {
                 visual.ErrorHandler.showError(ex);
@@ -640,6 +677,18 @@ public class DefaultFrame extends javax.swing.JFrame {
         MoveFileFrame.main(null);
 
     }//GEN-LAST:event_moveActionPerformed
+
+    private void deleteQueueItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteQueueItemActionPerformed
+        for (int row : fileQueue.getSelectedRows()) {
+            fileQueue.setValueAt("Cancelled", row, 2);
+        }
+    }//GEN-LAST:event_deleteQueueItemActionPerformed
+
+    private void fileQueueMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fileQueueMouseReleased
+        if (evt.isPopupTrigger()) {
+            fileQueuePopupMenu.show(evt.getComponent(), evt.getX(), evt.getY());
+        }
+    }//GEN-LAST:event_fileQueueMouseReleased
 
     /**
      * @param args the command line arguments
@@ -674,23 +723,24 @@ public class DefaultFrame extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem aboutMenuItem;
-    private javax.swing.JLabel actionLogLabel;
-    private static javax.swing.JTextArea actionLogTextArea;
     private javax.swing.JMenuItem benchmarkMenuItem;
     private javax.swing.JMenuItem delete;
+    private javax.swing.JMenuItem deleteQueueItem;
     private javax.swing.JMenuItem disconnectMenuItem;
     private javax.swing.JMenuItem download;
     private javax.swing.JMenuItem downloadMenuItem;
     private javax.swing.JMenu editMenu;
     private javax.swing.JMenuItem exitMenuItem;
     private javax.swing.JMenu fileMenu;
-    private javax.swing.JPopupMenu filePopupMenu;
+    private static javax.swing.JTable fileQueue;
+    private javax.swing.JPopupMenu fileQueuePopupMenu;
     private static javax.swing.JTable fileTable;
+    private javax.swing.JPopupMenu fileTablePopupMenu;
     private javax.swing.JMenu helpMenu;
-    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JPopupMenu.Separator jSeparator1;
-    private javax.swing.JSeparator jSeparator4;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JMenuItem mkdirMenuItem;
     private javax.swing.JMenuItem move;

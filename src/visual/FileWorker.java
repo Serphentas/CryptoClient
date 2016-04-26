@@ -1,47 +1,34 @@
 /* 
- * Copyright (C) 2016 Serphentas
+ * Copyright (c) 2016, Serphentas
+ * All rights reserved.
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This work is licensed under the Creative Commons Attribution-ShareAlike 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by-sa/4.0/ or send a letter
+ * to Creative Commons, PO Box 1866, Mountain View, CA 94042, USA.
  */
 package visual;
 
-import internal.LogHandler;
 import internal.Settings;
 import internal.network.DataClient;
 import java.io.File;
 import java.io.IOException;
-import java.util.Date;
 import java.util.List;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
-import javax.swing.JTextArea;
 import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 import org.apache.commons.net.ftp.FTPFile;
 
 public class FileWorker extends SwingWorker<Integer, String> {
 
-    private static int[] rows;
-    private static boolean isUL;
-    private static JTextArea log;
     private static JFileChooser fc;
-    private static JTable fileTable;
-    private static File[] localFiles;
+    private static JTable fileTable, fileQueue;
     private static FTPFile[] dirs, remoteFiles;
     private static final String[] buttons = {"Yes", "Yes to all", "No", "Cancel"};
+    private static String filePath, dlDir;
 
     private static void failIfInterrupted() throws InterruptedException {
         if (Thread.currentThread().isInterrupted()) {
@@ -50,57 +37,75 @@ public class FileWorker extends SwingWorker<Integer, String> {
     }
 
     /**
-     * Creates a FileWorker with the given JTable and JTextArea as parameters
+     * Creates a FileWorker with the given file table and file queue as
+     * parameters
      *
-     * @param fileTable JTable to work with
-     * @param log JTextArea to log to
+     * @param fileTable file table to work with
+     * @param fileQueue file queue to work with
      */
-    public FileWorker(JTable fileTable, JTextArea log) {
-        FileWorker.log = log;
+    public FileWorker(JTable fileTable, JTable fileQueue) {
         FileWorker.fileTable = fileTable;
+        FileWorker.fileQueue = fileQueue;
     }
 
-    /**
-     * Sets the upload parameters, so that the doInBackground method will handle
-     * the task properly
-     *
-     * @param files files to upload
-     */
-    public static void setUploadParams(File[] files) {
-        FileWorker.localFiles = files;
-        isUL = true;
-    }
-
-    /**
-     * Sets the download parameters, so that the doInBackground method will
-     * handle the task properly
-     *
-     * @param rows rows from the table to download (i.e. files)
-     */
-    public static void setDownloadParams(int[] rows) {
-        FileWorker.rows = rows;
-        isUL = false;
-    }
-
-    /**
-     * action: 0=upload, 1=download
-     *
-     * @return @throws Exception
-     */
     @Override
     protected Integer doInBackground() throws Exception {
-        publish("[" + new Date() + "] Begin file transfer");
         Settings.setIsWorking(true);
-        int i = 1, returnVal = -1;
-        boolean all = false;
+        int returnVal = -1;
+        boolean all = false, isQueueEmpty = false, existsFile = false,
+                isSetDlDir = false;
 
-        if (isUL) {
-            LogHandler.logMessage("Begin upload");
-            for (File f : localFiles) {
-                if (returnVal != 3) {
-                    if (!all && DataClient.exists(f.getName())) {
+        while (!isQueueEmpty) {
+            fileQueue.setValueAt("In progress", 0, 1);
+            filePath = (String) fileQueue.getValueAt(0, 0);
+
+            if (fileQueue.getValueAt(0, 2).equals("Upload")) {
+                File source = new File(filePath);
+                if (!all && DataClient.exists(source.getName())) {
+                    returnVal = JOptionPane.showOptionDialog(null, "File "
+                            + source.getName() + " already exists. Overwrite ?",
+                            "Overwrite file", JOptionPane.DEFAULT_OPTION,
+                            JOptionPane.QUESTION_MESSAGE, null, buttons,
+                            buttons[2]);
+                    all = returnVal == 1;
+                    existsFile = true;
+                }
+
+                if (returnVal < 2) {
+                    if (existsFile) {
+                        DataClient.rm(source.getName(), 0);
+                        existsFile = false;
+                    }
+                    DataClient.send(source);
+                }
+            } else if (fileQueue.getValueAt(0, 2).equals("Download")){
+                if (Settings.isDlDir()) {
+                    dlDir = Settings.getWorkingDir();
+                    isSetDlDir = true;
+                } else if (!isSetDlDir) {
+                    fc = new JFileChooser();
+                    fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                    fc.setMultiSelectionEnabled(false);
+                    fc.setVisible(true);
+
+                    returnVal = fc.showDialog(new JFrame(), "Choose download folder");
+                    if (returnVal == JFileChooser.APPROVE_OPTION) {
+                        dlDir = fc.getSelectedFile().getPath().replace("\\", "/");
+                        if (!dlDir.endsWith("/")) {
+                            dlDir += "/";
+                        }
+                        isSetDlDir = true;
+                    }
+                }
+
+                if (isSetDlDir) {
+                    filePath = "/data" + (String) fileQueue.getValueAt(0, 0);
+                    File destFile = new File(dlDir + filePath.substring(
+                            filePath.lastIndexOf("/"), filePath.length()));
+
+                    if (!all && destFile.isFile() && destFile.exists()) {
                         returnVal = JOptionPane.showOptionDialog(null, "File "
-                                + f.getName() + " already exists. Overwrite ?",
+                                + destFile.getName() + " already exists. Overwrite ?",
                                 "Overwrite file", JOptionPane.DEFAULT_OPTION,
                                 JOptionPane.QUESTION_MESSAGE, null, buttons,
                                 buttons[2]);
@@ -108,62 +113,18 @@ public class FileWorker extends SwingWorker<Integer, String> {
                     }
 
                     if (returnVal < 2) {
-                        DataClient.rm(f.getName(), 0);
-                        DataClient.send(f, f.getName());
-                        publish("[" + new Date() + "] File " + f.getName() + " sent");
-                    }
-
-                    setProgress((i / localFiles.length) * 100);
-                    updateTable();
-                    i++;
-                }
-            }
-            LogHandler.logMessage("Done uploading");
-        } else {
-            LogHandler.logMessage("Begin download");
-            String dlDir = new String();
-
-            if (Settings.isDlDir()) {
-                dlDir = Settings.getWorkingDir();
-            } else {
-                fc = new JFileChooser();
-                fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                fc.setMultiSelectionEnabled(false);
-                fc.setVisible(true);
-
-                returnVal = fc.showDialog(new JFrame(), "Choose download folder");
-                if (returnVal == JFileChooser.APPROVE_OPTION) {
-                    dlDir = fc.getSelectedFile().getPath().replace("\\", "/");
-                }
-            }
-
-            if (returnVal != JFileChooser.CANCEL_OPTION) {
-                for (int row : rows) {
-                    if (returnVal != 3) {
-                        String s = (String) fileTable.getValueAt(row, 0);
-                        File destFile = new File(dlDir + "/" + s);
-
-                        if (!all && destFile.isFile() && destFile.exists()) {
-                            returnVal = JOptionPane.showOptionDialog(null, "File "
-                                    + destFile.getName() + " already exists. Overwrite ?",
-                                    "Overwrite file", JOptionPane.DEFAULT_OPTION,
-                                    JOptionPane.QUESTION_MESSAGE, null, buttons,
-                                    buttons[2]);
-                            all = returnVal == 1;
-                        }
-
-                        if (returnVal < 2) {
-                            DataClient.receive(s, destFile);
-                            publish("[" + new Date() + "] File " + s + " received");
-                            setProgress((i / rows.length) * 100);
-                        }
-                        i++;
+                        DataClient.receive(filePath, destFile);
                     }
                 }
             }
-            LogHandler.logMessage("Done downloading");
+
+            DefaultTableModel dtm = (DefaultTableModel) fileQueue.getModel();
+            dtm.removeRow(0);
+            fileQueue.setModel(dtm);
+            isQueueEmpty = fileQueue.getRowCount() == 0;
+            DefaultFrame.updateFileTable();
         }
-        publish("[" + new Date() + "] Done");
+
         Settings.setIsWorking(false);
         return 1;
     }
@@ -218,7 +179,7 @@ public class FileWorker extends SwingWorker<Integer, String> {
     @Override
     protected void process(List<String> chunks) {
         chunks.stream().forEach((s) -> {
-            log.append(s + "\n");
+            //log.append(s + "\n");
         });
     }
 }

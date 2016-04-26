@@ -1,18 +1,11 @@
 /* 
- * Copyright (C) 2016 Serphentas
+ * Copyright (c) 2016, Serphentas
+ * All rights reserved.
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This work is licensed under the Creative Commons Attribution-ShareAlike 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by-sa/4.0/ or send a letter
+ * to Creative Commons, PO Box 1866, Mountain View, CA 94042, USA.
  */
 package internal.network;
 
@@ -20,9 +13,9 @@ import internal.LogHandler;
 import internal.Settings;
 import internal.crypto.GCMCipher;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
@@ -39,7 +32,7 @@ public class DataClient {
     private static GCMCipher gcmc;
     private static boolean isAtRoot = true;
     public static final String HOSTNAME = "data.theswissbay.ch";
-    public static final int PORT = 7896;
+    public static final int PORT = 21;
 
     /**
      * Initializes the FTPClient
@@ -50,7 +43,7 @@ public class DataClient {
             gcmc = new GCMCipher();
         } catch (Exception ex) {
             ErrorHandler.showError(ex);
-            LogHandler.logException("DataClient", "init",ex);
+            LogHandler.logException("DataClient", "init", ex);
         }
     }
 
@@ -68,18 +61,16 @@ public class DataClient {
     public static boolean login(String username, String password) throws IOException {
         if (!ftp.isConnected()) {
             ftp.connect(HOSTNAME, PORT);
-            ftp.setSoTimeout(0);
-            LogHandler.logMessage("Connected to server");
+            ftp.setSoTimeout(0);;
         }
 
         if (ftp.login(username, password)) {
             ftp.setFileType(FTP.BINARY_FILE_TYPE);
             ftp.enterLocalPassiveMode();
-            LogHandler.logMessage("Logged in");
+            cd("/data");
             return true;
         } else {
             disconnect();
-            LogHandler.logMessage("Bad credentials");
             return false;
         }
     }
@@ -103,7 +94,7 @@ public class DataClient {
      */
     public static void cd(String path) throws IOException {
         ftp.changeWorkingDirectory(path);
-        isAtRoot = ftp.printWorkingDirectory().equals("/");
+        isAtRoot = ftp.printWorkingDirectory().equals("/data");
     }
 
     /**
@@ -198,6 +189,7 @@ public class DataClient {
      *
      * @param path relative or absolute path to the new directory
      * @return
+     * @throws java.io.IOException
      */
     public static boolean mkdir(String path) throws IOException {
         return ftp.makeDirectory(path);
@@ -207,24 +199,31 @@ public class DataClient {
      * Encrypts and sends a local file to the data server
      *
      * @param inputFile source File
-     * @param remoteFilePath remote file location
      * @throws IOException
      * @throws Exception
      */
-    public static void send(File inputFile, String remoteFilePath) throws IOException, Exception {
-        gcmc.encrypt(new FileInputStream(inputFile), ftp.storeFileStream(remoteFilePath));
+    public static void send(File inputFile) throws IOException, Exception {
+        gcmc.encrypt(inputFile);
         ftp.completePendingCommand();
     }
 
     /**
      * Receives and decrypts a remote file to the local filesystem
      *
-     * @param outputFile destination File
      * @param remoteFilePath remote file location
+     * @param localFile local destination file
      * @throws IOException
      */
-    public static void receive(String remoteFilePath, File outputFile) throws IOException, Exception {
-        gcmc.decrypt(ftp.retrieveFileStream(remoteFilePath), new FileOutputStream(outputFile));
+    public static void receive(String remoteFilePath, File localFile) throws IOException, Exception {
+        gcmc.decrypt(remoteFilePath, localFile);
         ftp.completePendingCommand();
+    }
+
+    public static InputStream getInputStream(String fileName) throws IOException {
+        return ftp.retrieveFileStream(fileName);
+    }
+
+    public static OutputStream getOutputStream(String fileName) throws IOException {
+        return ftp.storeFileStream(fileName);
     }
 }

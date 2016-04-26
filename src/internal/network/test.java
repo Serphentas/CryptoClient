@@ -1,20 +1,15 @@
 /* 
- * Copyright (C) 2016 Serphentas
+ * Copyright (c) 2016, Serphentas
+ * All rights reserved.
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This work is licensed under the Creative Commons Attribution-ShareAlike 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by-sa/4.0/ or send a letter
+ * to Creative Commons, PO Box 1866, Mountain View, CA 94042, USA.
  */
 package internal.network;
+
+import javax.swing.JFileChooser;
 
 public class test {
 
@@ -22,7 +17,7 @@ public class test {
         /*String[] arr = new String[]{"-b","10.0.0.21","asd","asd","wpdb.sql","E:/test/wpdb.sql"};
         System.out.println(Hex.toHexString(GPCrypto.randomGen(2048)));
         test2.main(arr);*/
-        /*CipherKeyGenerator gen = new Poly1305KeyGenerator();
+ /*CipherKeyGenerator gen = new Poly1305KeyGenerator();
         gen.init(new KeyGenerationParameters(new SecureRandom(), 256));
         byte[] key = gen.generateKey(), nonce = GPCrypto.randomGen(16);
         byte[] P = GPCrypto.randomGen(16), C = new byte[16];
@@ -41,7 +36,7 @@ public class test {
         CipherParameters CP = new KeyParameter(K);
         ParametersWithIV PWI = new ParametersWithIV(CP, N);
         cha.init(true, PWI);*/
-        /*CPCipher chacha = new CPCipher();
+ /*CPCipher chacha = new CPCipher();
         //byte[] key = GPCrypto.randomGen(32), nonce = GPCrypto.randomGen(8);
         byte[] key = new byte[]{0x00, 0x00},
                 nonce = new byte[]{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -70,5 +65,44 @@ public class test {
 
         System.out.println(
                 238 / ((System.nanoTime() - time) / 1e9) + " MiB/s");*/
+        
+        // testing collision
+        /*Security.addProvider(new BouncyCastleProvider());
+        Field field = Class.forName("javax.crypto.JceSecurity").
+                getDeclaredField("isRestricted");
+        field.setAccessible(true);
+        field.set(null, java.lang.Boolean.FALSE);
+        String filename="somerandomshityoufaggot", file="gofuckyourselfbitch";
+        
+        System.out.println("original filename " + Hex.toHexString(filename.getBytes("UTF-8")));
+        System.out.println("original file     " + Hex.toHexString(file.getBytes("UTF-8")));
+
+        // instantiating AES-256 w/ GCM from Bouncy Castle
+        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding", "BC");
+        final byte[] shit = SCrypt.generate(GPCrypto.randomGen(128), GPCrypto.randomGen(128), 1024, 8, 1, 32);
+        final SecretKey K = new SecretKeySpec(shit, "AES");
+        final byte[] N = SCrypt.generate(GPCrypto.randomGen(128), GPCrypto.randomGen(128), 1024, 8, 1, 12);
+
+        cipher.init(Cipher.ENCRYPT_MODE, K, new GCMParameterSpec(
+                128, N, 0, 12));
+        byte[] fileNameEnc = cipher.doFinal(filename.getBytes("UTF-8")),
+                fileEnc = cipher.doFinal(file.getBytes("UTF-8"));
+        System.out.println("filnename enc " + Hex.toHexString(fileNameEnc));
+        System.out.println("file enc      " + Hex.toHexString(fileEnc));
+
+        int i = 0;
+        byte[] xored = new byte[fileNameEnc.length];
+        for (byte b : fileNameEnc) {
+            xored[i] = (byte) (b ^ fileEnc[i]);
+        }
+
+        cipher.init(Cipher.DECRYPT_MODE, K, new GCMParameterSpec(
+                128, N, 0, 12));
+        byte[] fileNameDec = cipher.doFinal(fileNameEnc);
+
+        System.out.println("decrypted " + Hex.toHexString(fileNameDec));
+        System.out.println("decrypted " + new String(fileNameDec, "UTF-8"));*/
+        System.out.println(JFileChooser.APPROVE_OPTION);
+        
     }
 }
