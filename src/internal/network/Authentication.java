@@ -9,7 +9,9 @@
  */
 package internal.network;
 
-import internal.crypto.GPCrypto;
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * Contains user authentication methods
@@ -18,11 +20,12 @@ import internal.crypto.GPCrypto;
  */
 public abstract class Authentication {
 
-    private static final String AUTH_SERVER_NAME = "localhost",
-            DATA_SERVER_NAME = "localhost";
-    private static final int AUTH_SERVER_PORT = 440,
-            DATA_SERVER_PORT = 441;
-    private static final byte[] token = new byte[48];
+    private static final String AUTH_SERVER_NAME = "10.0.0.10",
+            DATA_SERVER_NAME = "10.0.0.10";
+    private static final int AUTH_SERVER_PORT = 4400,
+            DATA_SERVER_PORT = 4410;
+    private static final byte[] token_auth = new byte[128],
+            token_data = new byte[128];
 
     /**
      * Authenticates the user against the server using TLS
@@ -30,28 +33,41 @@ public abstract class Authentication {
      * @param username username
      * @param password password
      * @return true if credentials are correct, false if they aren't
-     * @throws Exception
+     * @throws java.io.IOException
+     * @throws java.security.NoSuchAlgorithmException
+     * @throws java.security.KeyManagementException
      */
-    public static boolean login(String username, String password) throws Exception {
+    public static boolean login(String username, String password) throws IOException, NoSuchAlgorithmException, KeyManagementException {
         // initializing the TLSClient to enable user authentication
-        TLSClient.init(AUTH_SERVER_NAME, AUTH_SERVER_PORT);
+        TLSClient auth = new TLSClient(AUTH_SERVER_NAME, AUTH_SERVER_PORT);
 
         // sending credentials
-        TLSClient.write(GPCrypto.SHA384(username));
-        TLSClient.write(GPCrypto.SHA384(password));
+        auth.writeString(username);
+        auth.writeString(password);
 
         // getting token and returning response
-        if (TLSClient.readBoolean()) {
-            TLSClient.readByte(token);
+        if (auth.readBoolean()) {
+            auth.readByte(token_auth);
+            auth.readByte(token_data);
 
-            TLSClient.init(DATA_SERVER_NAME, DATA_SERVER_PORT);
-            TLSClient.write(GPCrypto.SHA384(username));
-            TLSClient.write(token);
+            TLSClient data_ctrl = new TLSClient(DATA_SERVER_NAME, DATA_SERVER_PORT);
+            data_ctrl.writeString(username);
+            data_ctrl.writeBytes(token_auth);
+            final boolean ctrlStatus = data_ctrl.readBoolean();
 
-            return TLSClient.readBoolean();
+            /*TLSClient data_io = new TLSClient(DATA_SERVER_NAME, DATA_SERVER_PORT);
+            data_io.writeString(username);
+            data_io.writeBytes(token_data);
+            final boolean ioStatus = data_io.readBoolean();*/
+            if(ctrlStatus){
+                Control.init(data_ctrl);
+                //IO.init(data_ctrl);
+                return true;
+            } else {
+                return false;
+            }
         } else {
             return false;
         }
     }
-
 }

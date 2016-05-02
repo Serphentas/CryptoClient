@@ -12,6 +12,7 @@ package internal.crypto;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
@@ -29,6 +30,9 @@ import org.bouncycastle.crypto.generators.SCrypt;
 public abstract class GPCrypto {
 
     private static final SecureRandom rand = new SecureRandom();
+    private static final int KDF_N = (int) Math.pow(2, 19),
+            KDF_p = 8,
+            KDF_r = 1;
 
     /**
      * Generates a random array of bytes
@@ -102,13 +106,11 @@ public abstract class GPCrypto {
      *
      * @param password password to derive key from
      * @param salt salt to use for this invocation
-     * @param cost CPU/RAM cost parameter
-     * @param parallelization parallelization parameter
      * @param dkLen output size, in bytes
      * @return key derived from supplied password
-     * @throws Exception
+     * @throws java.io.UnsupportedEncodingException
      */
-    public static byte[] scrypt(String password, byte[] salt, int cost, int parallelization, int dkLen) throws Exception {
-        return SCrypt.generate(password.getBytes("UTF-8"), salt, cost, 128, parallelization, dkLen);
+    public static byte[] scrypt(String password, byte[] salt, int dkLen) throws UnsupportedEncodingException  {
+        return SCrypt.generate(password.getBytes("UTF-8"), salt, KDF_N, KDF_p, KDF_r, dkLen);
     }
 }

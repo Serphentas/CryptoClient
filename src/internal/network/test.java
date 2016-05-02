@@ -9,7 +9,11 @@
  */
 package internal.network;
 
-import javax.swing.JFileChooser;
+import java.security.Security;
+import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 public class test {
 
@@ -65,7 +69,7 @@ public class test {
 
         System.out.println(
                 238 / ((System.nanoTime() - time) / 1e9) + " MiB/s");*/
-        
+
         // testing collision
         /*Security.addProvider(new BouncyCastleProvider());
         Field field = Class.forName("javax.crypto.JceSecurity").
@@ -102,7 +106,60 @@ public class test {
 
         System.out.println("decrypted " + Hex.toHexString(fileNameDec));
         System.out.println("decrypted " + new String(fileNameDec, "UTF-8"));*/
-        System.out.println(JFileChooser.APPROVE_OPTION);
-        
+        // add BC as provider and set the trust store
+        Security.addProvider(new BouncyCastleProvider());
+        System.setProperty("javax.net.ssl.trustStore", "TSBTrustStore");
+        Scanner scanner = new Scanner(System.in);
+        /*for (int i = 0; i < 4; i++) {
+            new Thread(new testasd()).start();
+        }*/
+        if (Authentication.login("asd", "asdasd")) {
+            System.out.println("Client up");
+            System.out.println("Commands:");
+            System.out.println("\tlsdir");
+            System.out.println("\tlsfile");
+            System.out.println("\tcwd");
+            System.out.println("\tcd");
+            System.out.println("\tmkdir");
+            System.out.println("\tdisconnect");
+            boolean asd = true;
+            while (asd) {
+                String cmd = scanner.next();
+                switch (cmd) {
+                    case "lsdir":
+                        Control.lsdir();
+                        break;
+                    case "lsfile":
+                        Control.lsfile();
+                        break;
+                    case "cwd":
+                        Control.cwd();
+                        break;
+                    case "cd":
+                        break;
+                    case "mkdir":
+                        break;
+                    case "disconnect":
+                        asd=false;
+                        Control.disconnect();
+                        break;
+                    case "test":
+                        Control.test();
+                        break;
+                }
+            }
+        }
+    }
+
+    private static class testasd implements Runnable {
+
+        @Override
+        public void run() {
+            try {
+                Authentication.login("asd", "asdasd");
+            } catch (Exception ex) {
+                Logger.getLogger(test.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
     }
 }

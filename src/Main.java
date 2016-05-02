@@ -8,10 +8,9 @@
  * to Creative Commons, PO Box 1866, Mountain View, CA 94042, USA.
  */
 import internal.LogHandler;
-import internal.network.DataClient;
+import internal.network.test;
 import java.security.Security;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import visual.LoginForm;
 
 /**
  * Main method
@@ -35,14 +34,14 @@ public class Main {
 
         // adding Bouncy Castle as provider
         Security.addProvider(new BouncyCastleProvider());
-        LogHandler.logMessage("Added BC provider");
+        System.setProperty("javax.net.ssl.trustStore", "TSBTrustStore");
 
         // starting GUI
-        LoginForm.main(null);
-        LogHandler.logMessage("Started LoginForm");
+        //LoginForm.main(null);
 
         // initializing I/O handler
-        DataClient.init();
-        LogHandler.logMessage("Initialized DataClient");
+        //DataClient.init();
+        
+        test.main(null);
     }
 }

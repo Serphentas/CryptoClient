@@ -11,56 +11,81 @@ package internal.network;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.security.KeyStore;
-import java.security.SecureRandom;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
 
 /**
- * Serves as an SSLSocket factory
+ * Serves as an SSLSocket factory, connecting to the specified server
  *
  * @author Serphentas
  */
-public abstract class TLSClient {
+public class TLSClient {
 
-    private static SSLContext sslContext;
-    private static SSLSocket socket;
-    private static DataInputStream dis;
-    private static DataOutputStream dos;
+    //private static SSLContext sslContext = null;
+    private final SSLSocket socket;
+    private final DataInputStream dis;
+    private final DataOutputStream dos;
 
     /**
-     * Instantiates an SSLSocket (strictly using TLS1.2 and bound to the service
-     * provider server) and its related I/O streams
+     * Instantiates an SSLSocket (strictly using TLSv1.2 and bound to provided
+     * server) and its related I/O streams
      * <p>
      * Must be called before using any of the other methods
      *
-     * @param server hostname of the TLS server to connect to
-     * @param port port of the TLS server
-     * @throws Exception
+     * @param server server hostname
+     * @param port server port
+     * @throws java.security.NoSuchAlgorithmException if no Provider supports a
+     * SSLContextSpi implementation for TLS
+     * @throws java.io.IOException if the socket cannot be created
+     * @throws java.security.KeyManagementException if the SSLContext
+     * initialization fails
      */
-    public static void init(String server, int port) throws Exception {
-        createSSLContext();
+    public TLSClient(String server, int port) throws NoSuchAlgorithmException, IOException, KeyManagementException {
+        // creates the SSLContext needed to instantiate the SSLSocket
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, null, null);
+
+        // creates an SSLSocket bound to the provided server
         socket = (SSLSocket) sslContext.getSocketFactory().createSocket(
                 InetAddress.getByName(server), port);
+
+        // sets the supported TLS protocol and cipher suites
+        socket.setEnabledProtocols(new String[]{"TLSv1.2"});
+        socket.setEnabledCipherSuites(new String[]{
+            "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"});
+
+        // sets the I/O streams
         dis = new DataInputStream(socket.getInputStream());
         dos = new DataOutputStream(socket.getOutputStream());
     }
 
+    public boolean isClosed() {
+        return socket.isClosed();
+    }
+
     /**
-     * Closes the SSLSocket and its related I/O streams, effectively
-     * disconnecting from the service provider
+     * Closes the SSLSocket and its related I/O streams
      *
      * @throws IOException
      */
-    public static void disconnect() throws IOException {
+    public void disconnect() throws IOException {
         socket.close();
         dis.close();
         dos.close();
+    }
+
+    /**
+     * Writes a byte into the SSLSocket
+     *
+     * @param input data to send
+     * @throws IOException
+     */
+    public void writeByte(byte input) throws IOException {
+        dos.write(input);
     }
 
     /**
@@ -69,12 +94,38 @@ public abstract class TLSClient {
      * @param input data to send
      * @throws IOException
      */
-    public static void write(byte[] input) throws IOException {
+    public void writeBytes(byte[] input) throws IOException {
         dos.write(input);
     }
-    
-    public static void writeInt(int input) throws IOException{
+
+    /**
+     * Write an integer into the SSLSocket
+     *
+     * @param input integer to send
+     * @throws IOException
+     */
+    public void writeInt(int input) throws IOException {
         dos.writeInt(input);
+    }
+
+    /**
+     * Write a string into the SSLSocket, using UTF-8 as encoding method
+     *
+     * @param input string to send
+     * @throws IOException
+     */
+    public void writeString(String input) throws IOException {
+        dos.writeUTF(input);
+    }
+
+    /**
+     * Write a string into the SSLSocket as a sequence of characters
+     *
+     * @param input string to send
+     * @throws IOException
+     */
+    public void writeChar(String input) throws IOException {
+        dos.writeChars(input);
     }
 
     /**
@@ -83,8 +134,18 @@ public abstract class TLSClient {
      * @return integer to receive
      * @throws IOException
      */
-    public static int readInt() throws IOException {
+    public int readInt() throws IOException {
         return dis.readInt();
+    }
+
+    /**
+     * Reads a long from the SSLSocket
+     *
+     * @return integer to receive
+     * @throws IOException
+     */
+    public long readLong() throws IOException {
+        return dis.readLong();
     }
 
     /**
@@ -93,7 +154,7 @@ public abstract class TLSClient {
      * @return boolean to receive
      * @throws IOException
      */
-    public static boolean readBoolean() throws IOException {
+    public boolean readBoolean() throws IOException {
         return dis.readBoolean();
     }
 
@@ -101,37 +162,20 @@ public abstract class TLSClient {
      * Reads a byte array from the SSLSocket and writes it in the provided byte
      * array
      *
-     * @param output byte array to write response to
+     * @param output byte array to writeBytes response to
      * @throws IOException
      */
-    public static void readByte(byte[] output) throws IOException {
+    public void readByte(byte[] output) throws IOException {
         dis.read(output);
     }
 
     /**
-     * Reads a String from the SSLSocket
-     * @return String to receive
-     * @throws IOException 
-     */
-    public static String readString() throws IOException {
-        return dis.readUTF();
-    }
-
-    /**
-     * Creates the SSLContext needed to instantiate the SSLSocket
+     * Reads a string from the SSLSocket
      *
-     * @throws Exception
+     * @return string to receive
+     * @throws IOException
      */
-    public static void createSSLContext() throws Exception {
-        KeyStore ks = KeyStore.getInstance("JKS");
-        ks.load(new FileInputStream("ccserver.keystore"), "asdasd".toCharArray());
-
-        TrustManagerFactory tmf = TrustManagerFactory.getInstance(
-                TrustManagerFactory.getDefaultAlgorithm());
-        tmf.init(ks);
-        TrustManager[] tm = tmf.getTrustManagers();
-
-        sslContext = SSLContext.getInstance("TLSv1.2");
-        sslContext.init(null, tm, new SecureRandom());
+    public String readString() throws IOException {
+        return dis.readUTF();
     }
 }
