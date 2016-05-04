@@ -9,10 +9,12 @@
  */
 package visual;
 
-import internal.LogHandler;
 import internal.crypto.GCMCipher;
-import internal.network.DataClient;
+import internal.network.Authentication;
 import java.awt.event.KeyEvent;
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import javax.swing.UIManager;
 
 /**
@@ -119,16 +121,15 @@ public class LoginForm extends javax.swing.JFrame {
 
     private void loginButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginButtonActionPerformed
         try {
-            if (DataClient.login(usernameField.getText(), passwordField.getText())) {
+            if (Authentication.login(usernameField.getText(), passwordField.getText())) {
                 GCMCipher.setPassword(passwordField.getText());
                 this.dispose();
                 DefaultFrame.main(null);
             } else {
                 loginStatusLabel.setText("Wrong login, please check your credentials.");
             }
-        } catch (Exception e) {
+        } catch (IOException | NoSuchAlgorithmException | KeyManagementException e) {
             ErrorHandler.showError(e);
-            LogHandler.logException("LoginForm", "loginButtonActionPerformed", e);
         }
 
     }//GEN-LAST:event_loginButtonActionPerformed

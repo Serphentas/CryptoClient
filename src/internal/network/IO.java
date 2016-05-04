@@ -2,7 +2,7 @@ package internal.network;
 
 import java.io.File;
 
-public class IO {
+public abstract class IO {
 
     private static TLSClient IOSocket;
 

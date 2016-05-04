@@ -11,16 +11,19 @@ package visual;
 
 import internal.LogHandler;
 import internal.Settings;
+import internal.network.Control;
 import internal.network.DataClient;
 import java.awt.FileDialog;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.Map;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
-import org.apache.commons.net.ftp.FTPFile;
 
 /**
  * Main UI
@@ -30,6 +33,9 @@ import org.apache.commons.net.ftp.FTPFile;
 public class DefaultFrame extends javax.swing.JFrame {
 
     private FileDialog fd;
+    private static DefaultTableModel dtmFileTable, dtmFileQueue;
+    private static Iterator<Map.Entry<String, Long>> dirMapIter;
+    private static Iterator<Map.Entry<String, Long[]>> fileMapIter;
 
     public DefaultFrame() throws IOException {
         initComponents();
@@ -43,54 +49,80 @@ public class DefaultFrame extends javax.swing.JFrame {
      * @throws IOException
      */
     public static void updateFileTable() throws IOException {
-        FTPFile[] dirs = DataClient.listDirs(), files = DataClient.listFiles();
-        DefaultTableModel dtm = (DefaultTableModel) fileTable.getModel();
-        int i = 0;
+        Map<String, Long> dirMap = Control.lsdir();
+        Map<String, Long[]> fileMap = Control.lsfile();
+        int i = 0, itemCount = dirMap.size() + fileMap.size();
 
-        if (!DataClient.isAtRoot()) {
-            dtm.setRowCount(files.length + 1);
-            fileTable.setModel(dtm);
+        if (!Control.isAtRoot()) {
+            setFileTableSize(itemCount + 1);
             fileTable.setValueAt("..", i, 0);
             fileTable.setValueAt("", i, 1);
             fileTable.setValueAt("Directory", i, 2);
             fileTable.setValueAt("", i, 3);
             i++;
         } else {
-            dtm.setRowCount(files.length);
-            fileTable.setModel(dtm);
+            setFileTableSize(itemCount);
         }
 
-        for (FTPFile f : dirs) {
-            fileTable.setValueAt(f.getName(), i, 0);
-            fileTable.setValueAt(f.getTimestamp().getTime(), i, 1);
-            fileTable.setValueAt("Directory", i, 2);
-            fileTable.setValueAt("", i, 3);
-            i++;
+        if (!dirMap.isEmpty()) {
+            dirMapIter = dirMap.entrySet().iterator();
+            while (dirMapIter.hasNext()) {
+                Map.Entry<String, Long> entry = dirMapIter.next();
+                fileTable.setValueAt(entry.getKey(), i, 0);
+                fileTable.setValueAt(new Date(entry.getValue()), i, 1);
+                fileTable.setValueAt("Directory", i, 2);
+                fileTable.setValueAt("", i, 3);
+                i++;
+            }
         }
 
-        for (FTPFile f : files) {
-            if (f.isFile()) {
-                fileTable.setValueAt(f.getName(), i, 0);
-                fileTable.setValueAt(f.getTimestamp().getTime(), i, 1);
+        if (!fileMap.isEmpty()) {
+            fileMapIter = fileMap.entrySet().iterator();
+            while (fileMapIter.hasNext()) {
+                Map.Entry<String, Long[]> entry = fileMapIter.next();
+                fileTable.setValueAt(entry.getKey(), i, 0);
+                fileTable.setValueAt(new Date(entry.getValue()[0]), i, 1);
                 fileTable.setValueAt("File", i, 2);
-                String size = null;
-                if (f.getSize() / 1024 < 1024) {
-                    size = f.getSize() / 1024 + " KiB";
-                } else if (f.getSize() / 1048576 < 1024) {
-                    size = f.getSize() / 1048576 + " MiB";
-                } else if (f.getSize() / 1073741824 < 1024) {
-                    size = f.getSize() / 1048576 + " GiB";
-                }
-                fileTable.setValueAt(size, i, 3);
+                fileTable.setValueAt(longToSize(entry.getValue()[1]), i, 3);
                 i++;
             }
         }
     }
 
+    /**
+     * Sets a new row count for the file table
+     *
+     * @param newRowCount new row count
+     */
+    public static void setFileTableSize(int newRowCount) {
+        dtmFileTable = (DefaultTableModel) fileTable.getModel();
+        dtmFileTable.setRowCount(newRowCount);
+        fileTable.setModel(dtmFileTable);
+    }
+
+    /**
+     * Sets a new row count for the file queue
+     *
+     * @param newRowCount new row count
+     */
     public static void setFileQueueSize(int newRowCount) {
-        DefaultTableModel dtm = (DefaultTableModel) fileQueue.getModel();
-        dtm.setRowCount(dtm.getRowCount() + newRowCount);
-        fileQueue.setModel(dtm);
+        dtmFileQueue = (DefaultTableModel) fileQueue.getModel();
+        dtmFileQueue.setRowCount(dtmFileQueue.getRowCount() + newRowCount);
+        fileQueue.setModel(dtmFileQueue);
+    }
+
+    private static String longToSize(long longSize) {
+        String size = new String();
+        if (longSize / 1024 < 1024) {
+            size = longSize / 1024 + " KiB";
+        } else if (longSize / 1048576 < 1024) {
+            size = longSize / 1048576 + " MiB";
+        } else if (longSize / 1073741824 < 1024) {
+            size = longSize / 1073741824 + " GiB";
+        } else if (longSize / Math.pow(1024, 4) < 1024) {
+            size = longSize / Math.pow(1024, 4) + " TiB";
+        }
+        return size;
     }
 
     @SuppressWarnings("unchecked")
@@ -199,7 +231,7 @@ public class DefaultFrame extends javax.swing.JFrame {
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
+                java.lang.String.class, java.lang.Object.class, java.lang.String.class, java.lang.String.class
             };
             boolean[] canEdit = new boolean [] {
                 false, false, false, false
@@ -444,16 +476,14 @@ public class DefaultFrame extends javax.swing.JFrame {
                 } catch (IOException ex) {
                     ErrorHandler.showError(ex);
                 }
-                LogHandler.logMessage("Exiting");
                 this.dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
             }
         } else {
             try {
-                DataClient.disconnect();
+                Control.disconnect();
             } catch (IOException ex) {
                 ErrorHandler.showError(ex);
             }
-            LogHandler.logMessage("Exiting");
             this.dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
         }
     }//GEN-LAST:event_exitMenuItemActionPerformed
@@ -506,7 +536,7 @@ public class DefaultFrame extends javax.swing.JFrame {
                     + "disconnect ?", "Disconnect", JOptionPane.YES_NO_OPTION);
             if (reply == JOptionPane.YES_OPTION) {
                 try {
-                    DataClient.disconnect();
+                    Control.disconnect();
                 } catch (IOException ex) {
                     ErrorHandler.showError(ex);
                 }
@@ -515,7 +545,7 @@ public class DefaultFrame extends javax.swing.JFrame {
             }
         } else {
             try {
-                DataClient.disconnect();
+                Control.disconnect();
             } catch (IOException ex) {
                 ErrorHandler.showError(ex);
             }
@@ -565,22 +595,17 @@ public class DefaultFrame extends javax.swing.JFrame {
         if (Settings.isWorking()) {
             JOptionPane.showMessageDialog(this, "There is already a task running"
                     + " in the background.\nWait or cancel it and try again.",
-                    "Delete file", JOptionPane.INFORMATION_MESSAGE);
+                    "Delete", JOptionPane.INFORMATION_MESSAGE);
         } else {
             int reply = JOptionPane.showConfirmDialog(null,
-                    "Delete selected item(s) ?", "Delete file", JOptionPane.YES_NO_OPTION);
+                    "Delete selected item(s) ?", "Delete", JOptionPane.YES_NO_OPTION);
             if (reply == JOptionPane.YES_OPTION) {
                 try {
                     for (int i : fileTable.getSelectedRows()) {
-                        String s = (String) fileTable.getValueAt(i, 0);
-                        if (fileTable.getValueAt(i, 2).equals("File")) {
-                            DataClient.rm(s, 0);
-                        } else {
-                            DataClient.rm(s, 1);
-                        }
+                        Control.rm((String) fileTable.getValueAt(i, 0));
                     }
                     updateFileTable();
-                } catch (Exception ex) {
+                } catch (IOException ex) {
                     visual.ErrorHandler.showError(ex);
                 }
             }
@@ -591,7 +616,7 @@ public class DefaultFrame extends javax.swing.JFrame {
         if (evt.getClickCount() == 2) {
             try {
                 if (!fileTable.getValueAt(fileTable.getSelectedRow(), 2).equals("File")) {
-                    DataClient.cd((String) fileTable.getValueAt(fileTable.getSelectedRow(), 0));
+                    Control.cd((String) fileTable.getValueAt(fileTable.getSelectedRow(), 0));
                     updateFileTable();
                 } else {
                     downloadActionPerformed(null);
@@ -615,10 +640,10 @@ public class DefaultFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_downloadMenuItemActionPerformed
 
     private void mkdirMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mkdirMenuItemActionPerformed
-        String reply = JOptionPane.showInputDialog(this, "Name:", "New folder",
+        String reply = JOptionPane.showInputDialog(this, "Name", "New folder",
                 JOptionPane.QUESTION_MESSAGE);
         try {
-            DataClient.mkdir(reply);
+            Control.mkdir(reply);
             updateFileTable();
         } catch (IOException ex) {
             visual.ErrorHandler.showError(ex);
@@ -632,34 +657,34 @@ public class DefaultFrame extends javax.swing.JFrame {
     private void renameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_renameActionPerformed
         if (fileTable.getSelectedRows().length == 0) {
             JOptionPane.showMessageDialog(this, "Please select a file or directory.",
-                    "Rename file", JOptionPane.INFORMATION_MESSAGE);
+                    "Rename", JOptionPane.INFORMATION_MESSAGE);
         } else if (fileTable.getSelectedRows().length > 1) {
             JOptionPane.showMessageDialog(this, "Please select only one item.",
-                    "Rename file", JOptionPane.INFORMATION_MESSAGE);
+                    "Rename", JOptionPane.INFORMATION_MESSAGE);
         } else {
-            String newName = JOptionPane.showInputDialog(this, "New name", "Rename "
-                    + "file", JOptionPane.QUESTION_MESSAGE);
+            String newName = JOptionPane.showInputDialog(this, "New name",
+                    "Rename", JOptionPane.QUESTION_MESSAGE);
             boolean nameTaken = false;
 
-            try {
-                for (FTPFile file : DataClient.listFiles()) {
-                    if (file.getName().equals(newName)) {
+            if (newName != null) {
+                try {
+                    if (Control.exists(newName)) {
                         nameTaken = true;
                     }
-                }
 
-                if (nameTaken) {
-                    JOptionPane.showMessageDialog(this, "There already exists a "
-                            + "file with that name.\nPlease choose another one.",
-                            "Rename file", JOptionPane.WARNING_MESSAGE);
-                } else if (newName != null) {
-                    String currName = (String) fileTable.getValueAt(fileTable.
-                            getSelectedRows()[0], 0);
-                    DataClient.rename(currName, newName.replaceAll("[^a-zA-Z0-9. ]", ""));
-                    updateFileTable();
+                    if (nameTaken) {
+                        JOptionPane.showMessageDialog(this, "There already exists a "
+                                + "file with that name.\nPlease choose another one.",
+                                "Rename", JOptionPane.WARNING_MESSAGE);
+                    } else {
+                        String currName = (String) fileTable.getValueAt(fileTable.
+                                getSelectedRows()[0], 0);
+                        Control.rename(currName, newName);
+                        updateFileTable();
+                    }
+                } catch (IOException ex) {
+                    visual.ErrorHandler.showError(ex);
                 }
-            } catch (IOException ex) {
-                visual.ErrorHandler.showError(ex);
             }
         }
     }//GEN-LAST:event_renameActionPerformed

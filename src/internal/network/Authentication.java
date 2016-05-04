@@ -42,8 +42,8 @@ public abstract class Authentication {
         TLSClient auth = new TLSClient(AUTH_SERVER_NAME, AUTH_SERVER_PORT);
 
         // sending credentials
-        auth.writeString(username);
-        auth.writeString(password);
+        auth.writeUTF(username);
+        auth.writeUTF(password);
 
         // getting token and returning response
         if (auth.readBoolean()) {
@@ -51,12 +51,12 @@ public abstract class Authentication {
             auth.readByte(token_data);
 
             TLSClient data_ctrl = new TLSClient(DATA_SERVER_NAME, DATA_SERVER_PORT);
-            data_ctrl.writeString(username);
+            data_ctrl.writeUTF(username);
             data_ctrl.writeBytes(token_auth);
             final boolean ctrlStatus = data_ctrl.readBoolean();
 
             /*TLSClient data_io = new TLSClient(DATA_SERVER_NAME, DATA_SERVER_PORT);
-            data_io.writeString(username);
+            data_io.writeUTF(username);
             data_io.writeBytes(token_data);
             final boolean ioStatus = data_io.readBoolean();*/
             if(ctrlStatus){

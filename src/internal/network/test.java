@@ -9,7 +9,13 @@
  */
 package internal.network;
 
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.security.Security;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -123,28 +129,50 @@ public class test {
             System.out.println("\tmkdir");
             System.out.println("\tdisconnect");
             boolean asd = true;
+            String input;
+            Iterator<Map.Entry<String, Long>> iterDirMap;
+            Iterator<Map.Entry<String, Long[]>> iterFileMap;
             while (asd) {
                 String cmd = scanner.next();
                 switch (cmd) {
                     case "lsdir":
-                        Control.lsdir();
+                        Map<String, Long> dirMap = Control.lsdir();
+
+                        iterDirMap = dirMap.entrySet().iterator();
+                        while (iterDirMap.hasNext()) {
+                            Map.Entry<String, Long> entry = iterDirMap.next();
+                            System.out.println(entry.getKey() + " " + new Date(entry.getValue()));
+                        }
                         break;
                     case "lsfile":
-                        Control.lsfile();
+                        Map<String, Long[]> fileMap = Control.lsfile();
+
+                        iterFileMap = fileMap.entrySet().iterator();
+                        while (iterFileMap.hasNext()) {
+                            Map.Entry<String, Long[]> entry = iterFileMap.next();
+                            System.out.println(entry.getKey() + " " + new Date(
+                                    entry.getValue()[0]) + " " + entry.
+                                    getValue()[1]);
+                        }
                         break;
                     case "cwd":
-                        Control.cwd();
+                        System.out.println(Control.cwd());
                         break;
                     case "cd":
+                        input = scanner.next();
+                        System.out.println(Control.cd(input));
                         break;
                     case "mkdir":
+                        input = scanner.next();
+                        System.out.println(Control.mkdir(input));
+                        break;
+                    case "rm":
+                        input = scanner.next();
+                        System.out.println(Control.rm(input));
                         break;
                     case "disconnect":
-                        asd=false;
+                        asd = false;
                         Control.disconnect();
-                        break;
-                    case "test":
-                        Control.test();
                         break;
                 }
             }
@@ -157,7 +185,7 @@ public class test {
         public void run() {
             try {
                 Authentication.login("asd", "asdasd");
-            } catch (Exception ex) {
+            } catch (IOException | NoSuchAlgorithmException | KeyManagementException ex) {
                 Logger.getLogger(test.class.getName()).log(Level.SEVERE, null, ex);
             }
         }

@@ -114,7 +114,7 @@ public class TLSClient {
      * @param input string to send
      * @throws IOException
      */
-    public void writeString(String input) throws IOException {
+    public void writeUTF(String input) throws IOException {
         dos.writeUTF(input);
     }
 
@@ -175,7 +175,7 @@ public class TLSClient {
      * @return string to receive
      * @throws IOException
      */
-    public String readString() throws IOException {
+    public String readUTF() throws IOException {
         return dis.readUTF();
     }
 }

@@ -303,8 +303,8 @@
               <Table columnCount="4" rowCount="1">
                 <Column editable="false" title="Name" type="java.lang.String"/>
                 <Column editable="false" title="Date modified" type="java.lang.Object"/>
-                <Column editable="false" title="Type" type="java.lang.Object"/>
-                <Column editable="false" title="Size" type="java.lang.Object"/>
+                <Column editable="false" title="Type" type="java.lang.String"/>
+                <Column editable="false" title="Size" type="java.lang.String"/>
               </Table>
             </Property>
             <Property name="toolTipText" type="java.lang.String" value=""/>
