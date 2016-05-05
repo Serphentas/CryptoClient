@@ -9,10 +9,9 @@
  */
 package visual;
 
-import internal.LogHandler;
 import internal.Settings;
 import internal.network.Control;
-import internal.network.DataClient;
+import internal.network.IO;
 import java.awt.FileDialog;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -24,6 +23,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
+import visual.workers.FileWorker;
 
 /**
  * Main UI
@@ -33,6 +33,8 @@ import javax.swing.table.DefaultTableModel;
 public class DefaultFrame extends javax.swing.JFrame {
 
     private FileDialog fd;
+    private String newDirName;
+    private int reply = -1;
     private static DefaultTableModel dtmFileTable, dtmFileQueue;
     private static Iterator<Map.Entry<String, Long>> dirMapIter;
     private static Iterator<Map.Entry<String, Long[]>> fileMapIter;
@@ -49,8 +51,8 @@ public class DefaultFrame extends javax.swing.JFrame {
      * @throws IOException
      */
     public static void updateFileTable() throws IOException {
-        Map<String, Long> dirMap = Control.lsdir();
-        Map<String, Long[]> fileMap = Control.lsfile();
+        Map<String, Long> dirMap = Control.lsdir(Control.cwd());
+        Map<String, Long[]> fileMap = Control.lsfile(Control.cwd());
         int i = 0, itemCount = dirMap.size() + fileMap.size();
 
         if (!Control.isAtRoot()) {
@@ -255,9 +257,6 @@ public class DefaultFrame extends javax.swing.JFrame {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 fileTableMouseClicked(evt);
             }
-            public void mousePressed(java.awt.event.MouseEvent evt) {
-                fileTableMousePressed(evt);
-            }
             public void mouseReleased(java.awt.event.MouseEvent evt) {
                 fileTableMouseReleased(evt);
             }
@@ -381,11 +380,6 @@ public class DefaultFrame extends javax.swing.JFrame {
 
         editMenu.setMnemonic('E');
         editMenu.setText("Edit");
-        editMenu.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                editMenuActionPerformed(evt);
-            }
-        });
 
         preferencesMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_P, java.awt.event.InputEvent.CTRL_MASK));
         preferencesMenuItem.setText("Preferences");
@@ -466,25 +460,25 @@ public class DefaultFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void exitMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitMenuItemActionPerformed
-        if (Settings.isWorking()) {
-            int reply = JOptionPane.showConfirmDialog(this, "There is a task "
-                    + "running in the background.\nAre you sure you want to "
-                    + "exit ?", "Exit", JOptionPane.YES_NO_OPTION);
+        if (reply != JOptionPane.YES_OPTION) {
+            if (Settings.isWorking()) {
+                reply = JOptionPane.showConfirmDialog(this, "There is a task "
+                        + "running in the background.\nAre you sure you want to "
+                        + "exit ?", "Exit", JOptionPane.YES_NO_OPTION);
+            } else {
+                reply = JOptionPane.showConfirmDialog(this, "Are you sure you want"
+                        + " to exit ?", "Exit", JOptionPane.YES_NO_OPTION);
+            }
+
             if (reply == JOptionPane.YES_OPTION) {
                 try {
-                    DataClient.disconnect();
+                    Control.disconnect();
+                    IO.disconnect();
                 } catch (IOException ex) {
                     ErrorHandler.showError(ex);
                 }
                 this.dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
             }
-        } else {
-            try {
-                Control.disconnect();
-            } catch (IOException ex) {
-                ErrorHandler.showError(ex);
-            }
-            this.dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
         }
     }//GEN-LAST:event_exitMenuItemActionPerformed
 
@@ -503,8 +497,7 @@ public class DefaultFrame extends javax.swing.JFrame {
             }
             if (!Settings.isWorking()) {
                 try {
-                    FileWorker fw = new FileWorker(fileTable, fileQueue);
-                    fw.execute();
+                    new FileWorker(fileTable, fileQueue).execute();
                 } catch (Exception e) {
                     visual.ErrorHandler.showError(e);
                 }
@@ -514,12 +507,8 @@ public class DefaultFrame extends javax.swing.JFrame {
 
 
     private void benchmarkMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_benchmarkMenuItemActionPerformed
-        // TODO add your handling code here:
+        ToolsFrame.main(null);
     }//GEN-LAST:event_benchmarkMenuItemActionPerformed
-
-    private void editMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editMenuActionPerformed
-
-    }//GEN-LAST:event_editMenuActionPerformed
 
     private void preferencesMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_preferencesMenuItemActionPerformed
         PreferencesFrame.main(null);
@@ -531,21 +520,18 @@ public class DefaultFrame extends javax.swing.JFrame {
 
     private void disconnectMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_disconnectMenuItemActionPerformed
         if (Settings.isWorking()) {
-            int reply = JOptionPane.showConfirmDialog(this, "There is a task "
+            reply = JOptionPane.showConfirmDialog(this, "There is a task "
                     + "running in the background.\nAre you sure you want to "
                     + "disconnect ?", "Disconnect", JOptionPane.YES_NO_OPTION);
-            if (reply == JOptionPane.YES_OPTION) {
-                try {
-                    Control.disconnect();
-                } catch (IOException ex) {
-                    ErrorHandler.showError(ex);
-                }
-                this.dispose();
-                LoginForm.main(null);
-            }
         } else {
+            reply = JOptionPane.showConfirmDialog(this, "Are you sure you want "
+                    + "to disconnect ?", "Disconnect", JOptionPane.YES_NO_OPTION);
+        }
+
+        if (reply == JOptionPane.YES_OPTION) {
             try {
                 Control.disconnect();
+                IO.disconnect();
             } catch (IOException ex) {
                 ErrorHandler.showError(ex);
             }
@@ -560,31 +546,21 @@ public class DefaultFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_fileTableMouseReleased
 
-    private void fileTableMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fileTableMousePressed
-
-    }//GEN-LAST:event_fileTableMousePressed
-
     private void downloadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_downloadActionPerformed
         int i = fileQueue.getRowCount();
         setFileQueueSize(fileTable.getSelectedRows().length);
 
         try {
             for (int row : fileTable.getSelectedRows()) {
-                String currentDir = DataClient.currentDir();
-                System.out.println(DataClient.currentDir());
-                if (!currentDir.endsWith("/")) {
-                    currentDir += "/";
-                }
-                String fileName = currentDir + (String) fileTable.getValueAt(row, 0);
+                String fileName = Control.cwd() + (String) fileTable.getValueAt(row, 0);
 
-                fileQueue.setValueAt(fileName.substring(5), i, 0);
+                fileQueue.setValueAt(fileName, i, 0);
                 fileQueue.setValueAt("Pending", i, 1);
                 fileQueue.setValueAt("Download", i, 2);
                 i++;
             }
             if (!Settings.isWorking()) {
-                FileWorker fw = new FileWorker(fileTable, fileQueue);
-                fw.execute();
+                new FileWorker(fileTable, fileQueue).execute();
             }
         } catch (Exception e) {
             visual.ErrorHandler.showError(e);
@@ -597,12 +573,13 @@ public class DefaultFrame extends javax.swing.JFrame {
                     + " in the background.\nWait or cancel it and try again.",
                     "Delete", JOptionPane.INFORMATION_MESSAGE);
         } else {
-            int reply = JOptionPane.showConfirmDialog(null,
+            reply = JOptionPane.showConfirmDialog(null,
                     "Delete selected item(s) ?", "Delete", JOptionPane.YES_NO_OPTION);
             if (reply == JOptionPane.YES_OPTION) {
                 try {
+                    String cwd = Control.cwd();
                     for (int i : fileTable.getSelectedRows()) {
-                        Control.rm((String) fileTable.getValueAt(i, 0));
+                        Control.rm(cwd + "/" + (String) fileTable.getValueAt(i, 0));
                     }
                     updateFileTable();
                 } catch (IOException ex) {
@@ -616,7 +593,8 @@ public class DefaultFrame extends javax.swing.JFrame {
         if (evt.getClickCount() == 2) {
             try {
                 if (!fileTable.getValueAt(fileTable.getSelectedRow(), 2).equals("File")) {
-                    Control.cd((String) fileTable.getValueAt(fileTable.getSelectedRow(), 0));
+                    Control.cd(Control.cwd() + "/" + (String) fileTable.
+                            getValueAt(fileTable.getSelectedRow(), 0));
                     updateFileTable();
                 } else {
                     downloadActionPerformed(null);
@@ -640,10 +618,10 @@ public class DefaultFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_downloadMenuItemActionPerformed
 
     private void mkdirMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mkdirMenuItemActionPerformed
-        String reply = JOptionPane.showInputDialog(this, "Name", "New folder",
+        newDirName = JOptionPane.showInputDialog(this, "Name", "New folder",
                 JOptionPane.QUESTION_MESSAGE);
         try {
-            Control.mkdir(reply);
+            Control.mkdir(Control.cwd() + "/" + newDirName);
             updateFileTable();
         } catch (IOException ex) {
             visual.ErrorHandler.showError(ex);
@@ -664,22 +642,19 @@ public class DefaultFrame extends javax.swing.JFrame {
         } else {
             String newName = JOptionPane.showInputDialog(this, "New name",
                     "Rename", JOptionPane.QUESTION_MESSAGE);
-            boolean nameTaken = false;
 
             if (newName != null) {
                 try {
-                    if (Control.exists(newName)) {
-                        nameTaken = true;
-                    }
+                    String cwd = Control.cwd();
 
-                    if (nameTaken) {
+                    if (!Control.exists(cwd + newName)) {
                         JOptionPane.showMessageDialog(this, "There already exists a "
                                 + "file with that name.\nPlease choose another one.",
                                 "Rename", JOptionPane.WARNING_MESSAGE);
                     } else {
                         String currName = (String) fileTable.getValueAt(fileTable.
-                                getSelectedRows()[0], 0);
-                        Control.rename(currName, newName);
+                                getSelectedRow(), 0);
+                        Control.rename(cwd + "/" + currName, cwd + "/" + newName);
                         updateFileTable();
                     }
                 } catch (IOException ex) {
@@ -740,10 +715,8 @@ public class DefaultFrame extends javax.swing.JFrame {
 
             } catch (Exception ex) {
                 visual.ErrorHandler.showError(ex);
-                LogHandler.logException("DefaultFrame", "main", ex);
             }
         });
-        LogHandler.logMessage("Started DefaultFrame");
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

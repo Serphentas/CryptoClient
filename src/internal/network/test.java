@@ -9,16 +9,11 @@
  */
 package internal.network;
 
-import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 import java.security.Security;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 public class test {
@@ -113,12 +108,10 @@ public class test {
         System.out.println("decrypted " + Hex.toHexString(fileNameDec));
         System.out.println("decrypted " + new String(fileNameDec, "UTF-8"));*/
         // add BC as provider and set the trust store
+        
         Security.addProvider(new BouncyCastleProvider());
         System.setProperty("javax.net.ssl.trustStore", "TSBTrustStore");
         Scanner scanner = new Scanner(System.in);
-        /*for (int i = 0; i < 4; i++) {
-            new Thread(new testasd()).start();
-        }*/
         if (Authentication.login("asd", "asdasd")) {
             System.out.println("Client up");
             System.out.println("Commands:");
@@ -136,7 +129,7 @@ public class test {
                 String cmd = scanner.next();
                 switch (cmd) {
                     case "lsdir":
-                        Map<String, Long> dirMap = Control.lsdir();
+                        Map<String, Long> dirMap = Control.lsdir(Control.cwd());
 
                         iterDirMap = dirMap.entrySet().iterator();
                         while (iterDirMap.hasNext()) {
@@ -145,7 +138,7 @@ public class test {
                         }
                         break;
                     case "lsfile":
-                        Map<String, Long[]> fileMap = Control.lsfile();
+                        Map<String, Long[]> fileMap = Control.lsfile(Control.cwd());
 
                         iterFileMap = fileMap.entrySet().iterator();
                         while (iterFileMap.hasNext()) {
@@ -177,17 +170,6 @@ public class test {
                 }
             }
         }
-    }
-
-    private static class testasd implements Runnable {
-
-        @Override
-        public void run() {
-            try {
-                Authentication.login("asd", "asdasd");
-            } catch (IOException | NoSuchAlgorithmException | KeyManagementException ex) {
-                Logger.getLogger(test.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
+        
     }
 }

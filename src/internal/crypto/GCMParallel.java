@@ -55,7 +55,7 @@ public final class GCMParallel implements Runnable {
     @Override
     public void run() {
         try {
-            GCMCipher gcmc = new GCMCipher();
+            //GCMCipher gcmc = new GCMCipher();
             if (mode == 0) {
                 //gcmc.encrypt(input);
             } else {

@@ -1,12 +1,15 @@
 package internal.network;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 public abstract class Control {
 
-    private static TLSClient controlSocket;
+    private static DataOutputStream dos;
+    private static DataInputStream dis;
     private static final byte DISCONNECT = 0x00,
             LSFILE = 0x10,
             LSDIR = 0x11,
@@ -22,10 +25,12 @@ public abstract class Control {
     /**
      * Sets the TLSClient instance bound to the control server
      *
-     * @param controlSocket
+     * @param dos
+     * @param dis
      */
-    public static void init(TLSClient controlSocket) {
-        Control.controlSocket = controlSocket;
+    public static void init(DataOutputStream dos, DataInputStream dis) {
+        Control.dos = dos;
+        Control.dis = dis;
     }
 
     /**
@@ -34,26 +39,27 @@ public abstract class Control {
      * @throws IOException if an I/O error occurs
      */
     public static void disconnect() throws IOException {
-        controlSocket.writeByte(DISCONNECT);
+        dos.writeByte(DISCONNECT);
     }
 
     /**
-     * Lists the files in the current working directory
+     * Lists the files in the specified directory
      *
+     * @param dirPath path to directory
      * @return a map with each file's name and the last modified time, in Epoch
      * seconds
      * @throws IOException if an I/O error occurs
      */
-    public static Map<String, Long[]> lsfile() throws IOException {
+    public static Map<String, Long[]> lsfile(String dirPath) throws IOException {
         Map<String, Long[]> fileMap = new HashMap<>();
 
-        controlSocket.writeByte(LSFILE);
-        int fileCount = controlSocket.readInt();
+        dos.writeByte(LSFILE);
+        dos.writeUTF(dirPath);
+        int fileCount = dis.readInt();
 
         if (fileCount != 0) {
             for (int i = 0; i < fileCount; i++) {
-                fileMap.put(controlSocket.readUTF(), new Long[]{controlSocket.
-                    readLong(), controlSocket.readLong()});
+                fileMap.put(dis.readUTF(), new Long[]{dis.readLong(), dis.readLong()});
             }
         }
 
@@ -61,21 +67,23 @@ public abstract class Control {
     }
 
     /**
-     * Lists the directories in the current working directory
+     * Lists the directories in the specified directory
      *
+     * @param dirPath path to directory
      * @return a map with each directory's name and the last modified time, in
      * Epoch seconds
      * @throws IOException if an I/O error occurs
      */
-    public static Map<String, Long> lsdir() throws IOException {
+    public static Map<String, Long> lsdir(String dirPath) throws IOException {
         Map<String, Long> dirMap = new HashMap<>();
 
-        controlSocket.writeByte(LSDIR);
-        int dirCount = controlSocket.readInt();
+        dos.writeByte(LSDIR);
+        dos.writeUTF(dirPath);
+        int dirCount = dis.readInt();
 
         if (dirCount != 0) {
             for (int i = 0; i < dirCount; i++) {
-                dirMap.put(controlSocket.readUTF(), controlSocket.readLong());
+                dirMap.put(dis.readUTF(), dis.readLong());
             }
         }
 
@@ -90,9 +98,9 @@ public abstract class Control {
      * @throws IOException if an I/O error occurs
      */
     public static boolean cd(String path) throws IOException {
-        controlSocket.writeByte(CD);
-        controlSocket.writeUTF(path);
-        return controlSocket.readBoolean();
+        dos.writeByte(CD);
+        dos.writeUTF(path);
+        return dis.readBoolean();
     }
 
     /**
@@ -102,8 +110,8 @@ public abstract class Control {
      * @throws IOException if an I/O error occurs
      */
     public static String cwd() throws IOException {
-        controlSocket.writeByte(CWD);
-        return controlSocket.readUTF();
+        dos.writeByte(CWD);
+        return dis.readUTF();
     }
 
     /**
@@ -115,9 +123,9 @@ public abstract class Control {
      * @throws IOException if an I/O error occurs
      */
     public static boolean mkdir(String dirName) throws IOException {
-        controlSocket.writeByte(MKDIR);
-        controlSocket.writeUTF(dirName);
-        return controlSocket.readBoolean();
+        dos.writeByte(MKDIR);
+        dos.writeUTF(dirName);
+        return dis.readBoolean();
     }
 
     /**
@@ -129,10 +137,10 @@ public abstract class Control {
      * @throws IOException if an I/O error occurs
      */
     public static boolean rename(String oldName, String newName) throws IOException {
-        controlSocket.writeByte(RENAME);
-        controlSocket.writeUTF(oldName);
-        controlSocket.writeUTF(newName);
-        return controlSocket.readBoolean();
+        dos.writeByte(RENAME);
+        dos.writeUTF(oldName);
+        dos.writeUTF(newName);
+        return dis.readBoolean();
     }
 
     /**
@@ -143,9 +151,9 @@ public abstract class Control {
      * @throws IOException if an I/O error occurs
      */
     public static boolean rm(String fileName) throws IOException {
-        controlSocket.writeByte(RM);
-        controlSocket.writeUTF(fileName);
-        return controlSocket.readBoolean();
+        dos.writeByte(RM);
+        dos.writeUTF(fileName);
+        return dis.readBoolean();
     }
 
     /**
@@ -156,9 +164,9 @@ public abstract class Control {
      * @throws IOException if an I/O error occurs
      */
     public static boolean exists(String fileName) throws IOException {
-        controlSocket.writeByte(EXISTS);
-        controlSocket.writeUTF(fileName);
-        return controlSocket.readBoolean();
+        dos.writeByte(EXISTS);
+        dos.writeUTF(fileName);
+        return dis.readBoolean();
     }
 
     /**
@@ -168,8 +176,8 @@ public abstract class Control {
      * @throws IOException if an I/O error occurs
      */
     public static void mkshare(String fileName) throws IOException {
-        controlSocket.writeByte(MKSHARE);
-        controlSocket.writeUTF(fileName);
+        dos.writeByte(MKSHARE);
+        dos.writeUTF(fileName);
     }
 
     /**
@@ -180,9 +188,9 @@ public abstract class Control {
      * @throws IOException if an I/O error occurs
      */
     public static boolean rmshare(String fileName) throws IOException {
-        controlSocket.writeByte(RMSHARE);
-        controlSocket.writeUTF(fileName);
-        return controlSocket.readBoolean();
+        dos.writeByte(RMSHARE);
+        dos.writeUTF(fileName);
+        return dis.readBoolean();
     }
 
     /**

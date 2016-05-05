@@ -4,14 +4,17 @@
  *
  * This work is licensed under the Creative Commons Attribution-ShareAlike 4.0
  * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by-sa/4.0/ or send a letter
+ * http://creativecommons.org/licenses/by-sa/4.0/ or upload a letter
  * to Creative Commons, PO Box 1866, Mountain View, CA 94042, USA.
  */
 package internal.network;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
+import java.net.InetAddress;
+import javax.net.ssl.SSLSocket;
+import visual.LoginForm;
 
 /**
  * Contains user authentication methods
@@ -21,11 +24,23 @@ import java.security.NoSuchAlgorithmException;
 public abstract class Authentication {
 
     private static final String AUTH_SERVER_NAME = "10.0.0.10",
-            DATA_SERVER_NAME = "10.0.0.10";
-    private static final int AUTH_SERVER_PORT = 4400,
-            DATA_SERVER_PORT = 4410;
+            CTRL_SERVER_NAME = "10.0.0.10",
+            IO_SERVER_NAME = "10.0.0.10";
+    private static final int AUTH_SERVER_PORT = 4410,
+            CTRL_SERVER_PORT = 4411,
+            IO_SERVER_PORT = 4412;
     private static final byte[] token_auth = new byte[128],
             token_data = new byte[128];
+
+    private static SSLSocket authSocket,
+            ctrlSocket,
+            ioSocket;
+    private static DataOutputStream authDos,
+            ctrlDos,
+            ioDos;
+    private static DataInputStream authDis,
+            ctrlDis,
+            ioDis;
 
     /**
      * Authenticates the user against the server using TLS
@@ -37,31 +52,52 @@ public abstract class Authentication {
      * @throws java.security.NoSuchAlgorithmException
      * @throws java.security.KeyManagementException
      */
-    public static boolean login(String username, String password) throws IOException, NoSuchAlgorithmException, KeyManagementException {
-        // initializing the TLSClient to enable user authentication
-        TLSClient auth = new TLSClient(AUTH_SERVER_NAME, AUTH_SERVER_PORT);
+    public static boolean login(String username, String password) throws IOException, Exception {
+        // initializing the authentication connection
+        LoginForm.updateLoginLabel("Connecting to authentication server");
+        authSocket = (SSLSocket) GPTLS.getContext().getSocketFactory().createSocket(
+                InetAddress.getByName(AUTH_SERVER_NAME), AUTH_SERVER_PORT);
+        GPTLS.setTLSParams(authSocket);
+        authDos = new DataOutputStream(authSocket.getOutputStream());
+        authDis = new DataInputStream(authSocket.getInputStream());
 
         // sending credentials
-        auth.writeUTF(username);
-        auth.writeUTF(password);
+        LoginForm.updateLoginLabel("Sending credentials");
+        authDos.writeUTF(username);
+        authDos.writeUTF(password);
 
         // getting token and returning response
-        if (auth.readBoolean()) {
-            auth.readByte(token_auth);
-            auth.readByte(token_data);
+        if (authDis.readBoolean()) {
+            LoginForm.updateLoginLabel("Reading tokens");
+            authDis.readFully(token_auth);
+            authDis.readFully(token_data);
 
-            TLSClient data_ctrl = new TLSClient(DATA_SERVER_NAME, DATA_SERVER_PORT);
-            data_ctrl.writeUTF(username);
-            data_ctrl.writeBytes(token_auth);
-            final boolean ctrlStatus = data_ctrl.readBoolean();
+            LoginForm.updateLoginLabel("Opening I/O and control sockets");
+            ctrlSocket = (SSLSocket) GPTLS.getContext().getSocketFactory().createSocket(
+                    InetAddress.getByName(CTRL_SERVER_NAME), CTRL_SERVER_PORT);
+            GPTLS.setTLSParams(ctrlSocket);
+            ctrlDos = new DataOutputStream(ctrlSocket.getOutputStream());
+            ctrlDis = new DataInputStream(ctrlSocket.getInputStream());
 
-            /*TLSClient data_io = new TLSClient(DATA_SERVER_NAME, DATA_SERVER_PORT);
-            data_io.writeUTF(username);
-            data_io.writeBytes(token_data);
-            final boolean ioStatus = data_io.readBoolean();*/
-            if(ctrlStatus){
-                Control.init(data_ctrl);
-                //IO.init(data_ctrl);
+            ioSocket = (SSLSocket) GPTLS.getContext().getSocketFactory().createSocket(
+                    InetAddress.getByName(IO_SERVER_NAME), IO_SERVER_PORT);
+            GPTLS.setTLSParams(ioSocket);
+            ioDos = new DataOutputStream(ioSocket.getOutputStream());
+            ioDis = new DataInputStream(ioSocket.getInputStream());
+
+            LoginForm.updateLoginLabel("Verifying tokens");
+            ctrlDos.writeUTF(username);
+            ctrlDos.write(token_auth);
+            final boolean ctrlStatus = ctrlDis.readBoolean();
+
+            ioDos.writeUTF(username);
+            ioDos.write(token_data);
+            final boolean ioStatus = ioDis.readBoolean();
+
+            if (ctrlStatus && ioStatus) {
+                LoginForm.updateLoginLabel("Authentication successful");
+                Control.init(ctrlDos, ctrlDis);
+                IO.init(ioDos, ioDis);
                 return true;
             } else {
                 return false;

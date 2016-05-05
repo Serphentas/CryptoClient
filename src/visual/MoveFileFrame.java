@@ -9,12 +9,14 @@
  */
 package visual;
 
-import internal.network.DataClient;
+import internal.network.Control;
 import java.io.IOException;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.Map;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
-import org.apache.commons.net.ftp.FTPFile;
 
 /**
  *
@@ -22,7 +24,8 @@ import org.apache.commons.net.ftp.FTPFile;
  */
 public class MoveFileFrame extends javax.swing.JFrame {
 
-    private static String currDir, currName, newDir, newName;
+    private static Iterator<Map.Entry<String, Long>> dirMapIter;
+    private static String cwd, currName, newDir, newName;
     private static String[] names;
 
     /**
@@ -34,7 +37,7 @@ public class MoveFileFrame extends javax.swing.JFrame {
         initComponents();
         setLocationRelativeTo(null);
         updateMoveDirTable();
-        currDir = DataClient.currentDir();
+        cwd = Control.cwd();
     }
 
     static void setParams(String[] names) {
@@ -42,25 +45,29 @@ public class MoveFileFrame extends javax.swing.JFrame {
     }
 
     private void updateMoveDirTable() throws IOException {
-        FTPFile[] dirs = DataClient.listDirs();
+        Map<String, Long> dirMap = Control.lsdir(Control.cwd());
         DefaultTableModel dtm = (DefaultTableModel) moveDirTable.getModel();
         int i = 0;
 
-        if (!DataClient.isAtRoot()) {
-            dtm.setRowCount(dirs.length + 1);
+        if (!Control.isAtRoot()) {
+            dtm.setRowCount(dirMap.size() + 1);
             moveDirTable.setModel(dtm);
             moveDirTable.setValueAt("..", i, 0);
             moveDirTable.setValueAt("", i, 1);
             i++;
         } else {
-            dtm.setRowCount(dirs.length);
+            dtm.setRowCount(dirMap.size());
             moveDirTable.setModel(dtm);
         }
 
-        for (FTPFile f : dirs) {
-            moveDirTable.setValueAt(f.getName(), i, 0);
-            moveDirTable.setValueAt(f.getTimestamp().getTime(), i, 1);
-            i++;
+        if (!dirMap.isEmpty()) {
+            dirMapIter = dirMap.entrySet().iterator();
+            while (dirMapIter.hasNext()) {
+                Map.Entry<String, Long> entry = dirMapIter.next();
+                moveDirTable.setValueAt(entry.getKey(), i, 0);
+                moveDirTable.setValueAt(new Date(entry.getValue()), i, 1);
+                i++;
+            }
         }
     }
 
@@ -155,9 +162,8 @@ public class MoveFileFrame extends javax.swing.JFrame {
     private void moveDirTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_moveDirTableMouseClicked
         if (evt.getClickCount() == 2) {
             try {
-                newDir = (String) moveDirTable.getValueAt(moveDirTable.getSelectedRow(), 0);
-                DataClient.cd(newDir);
-                newDir = DataClient.currentDir();
+                Control.cd(Control.cwd() + (String) moveDirTable.getValueAt(moveDirTable.getSelectedRow(), 0));
+                newDir = Control.cwd();
                 updateMoveDirTable();
             } catch (IOException ex) {
                 visual.ErrorHandler.showError(ex);
@@ -167,31 +173,17 @@ public class MoveFileFrame extends javax.swing.JFrame {
 
     private void moveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_moveButtonActionPerformed
         try {
-            if (currDir.equals(DataClient.currentDir())) {
+            if (cwd.equals(Control.cwd())) {
                 JOptionPane.showMessageDialog(this, "Can't move to the same "
-                        + "place !", "Move file", JOptionPane.INFORMATION_MESSAGE);
+                        + "place", "Move", JOptionPane.INFORMATION_MESSAGE);
             } else {
                 for (String name : names) {
-                    if (currDir.equals("/")) {
-                        currName = currDir + name;
-                        newName = newDir + "/" + name.substring(name.
-                                lastIndexOf("/") + 1, name.length());
-                    } else {
-                        currName = currDir + "/" + name;
-                        if (newDir.equals("/")) {
-                            newName = newDir + name.substring(name.lastIndexOf(
-                                    "/") + 1, name.length());
-                        } else {
-                            newName = newDir + "/" + name.substring(name.
-                                    lastIndexOf("/") + 1, name.length());
-                        }
-                    }
-                    DataClient.rename(currName, newName);
+                    Control.rename(cwd + name, Control.cwd() + name);
                 }
             }
 
             this.dispose();
-            DataClient.cd(currDir);
+            Control.cd(cwd);
             DefaultFrame.updateFileTable();
         } catch (IOException ex) {
             visual.ErrorHandler.showError(ex);

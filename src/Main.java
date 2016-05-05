@@ -28,9 +28,10 @@ public class Main {
      * @throws Exception
      */
     public static void main(String args[]) throws Exception {
-
         // adding Bouncy Castle as provider
         Security.addProvider(new BouncyCastleProvider());
+        
+        // settings the TrustStore to The Swiss Bay
         System.setProperty("javax.net.ssl.trustStore", "TSBTrustStore");
 
         // starting GUI

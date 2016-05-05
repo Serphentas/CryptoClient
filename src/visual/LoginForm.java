@@ -9,13 +9,9 @@
  */
 package visual;
 
-import internal.crypto.GCMCipher;
-import internal.network.Authentication;
 import java.awt.event.KeyEvent;
-import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 import javax.swing.UIManager;
+import visual.workers.LoginWorker;
 
 /**
  * Lets the user log into his/her account
@@ -30,6 +26,10 @@ public class LoginForm extends javax.swing.JFrame {
     public LoginForm() {
         initComponents();
         setLocationRelativeTo(null);
+    }
+
+    public static void updateLoginLabel(String message) {
+        loginStatusLabel.setText(message);
     }
 
     /**
@@ -120,18 +120,8 @@ public class LoginForm extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void loginButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginButtonActionPerformed
-        try {
-            if (Authentication.login(usernameField.getText(), passwordField.getText())) {
-                GCMCipher.setPassword(passwordField.getText());
-                this.dispose();
-                DefaultFrame.main(null);
-            } else {
-                loginStatusLabel.setText("Wrong login, please check your credentials.");
-            }
-        } catch (IOException | NoSuchAlgorithmException | KeyManagementException e) {
-            ErrorHandler.showError(e);
-        }
-
+        new LoginWorker(usernameField.getText(), passwordField.getText(), this).
+                execute();
     }//GEN-LAST:event_loginButtonActionPerformed
 
     private void passwordFieldKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_passwordFieldKeyPressed
@@ -175,7 +165,7 @@ public class LoginForm extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton loginButton;
-    private javax.swing.JLabel loginStatusLabel;
+    private static javax.swing.JLabel loginStatusLabel;
     private javax.swing.JPasswordField passwordField;
     private javax.swing.JLabel passwordLabel;
     private javax.swing.JFormattedTextField usernameField;

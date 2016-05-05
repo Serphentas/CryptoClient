@@ -7,10 +7,11 @@
  * http://creativecommons.org/licenses/by-sa/4.0/ or send a letter
  * to Creative Commons, PO Box 1866, Mountain View, CA 94042, USA.
  */
-package visual;
+package visual.workers;
 
 import internal.Settings;
-import internal.network.DataClient;
+import internal.network.Control;
+import internal.network.IO;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -21,14 +22,16 @@ import javax.swing.JTable;
 import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 import org.apache.commons.net.ftp.FTPFile;
+import visual.DefaultFrame;
 
 public class FileWorker extends SwingWorker<Integer, String> {
 
-    private static JFileChooser fc;
+    private static final String[] buttons = {"Yes", "Yes to all", "No", "Cancel"};
+
     private static JTable fileTable, fileQueue;
     private static FTPFile[] dirs, remoteFiles;
-    private static final String[] buttons = {"Yes", "Yes to all", "No", "Cancel"};
     private static String filePath, dlDir;
+    private static JFileChooser fc;
 
     private static void failIfInterrupted() throws InterruptedException {
         if (Thread.currentThread().isInterrupted()) {
@@ -52,7 +55,7 @@ public class FileWorker extends SwingWorker<Integer, String> {
     protected Integer doInBackground() throws Exception {
         Settings.setIsWorking(true);
         int returnVal = -1;
-        boolean all = false, isQueueEmpty = false, existsFile = false,
+        boolean yesForAll = false, isQueueEmpty = false, existsFile = false,
                 isSetDlDir = false;
 
         while (!isQueueEmpty) {
@@ -61,24 +64,24 @@ public class FileWorker extends SwingWorker<Integer, String> {
 
             if (fileQueue.getValueAt(0, 2).equals("Upload")) {
                 File source = new File(filePath);
-                if (!all && DataClient.exists(source.getName())) {
+                if (!yesForAll && Control.exists(source.getName())) {
                     returnVal = JOptionPane.showOptionDialog(null, "File "
                             + source.getName() + " already exists. Overwrite ?",
-                            "Overwrite file", JOptionPane.DEFAULT_OPTION,
+                            "Overwrite", JOptionPane.DEFAULT_OPTION,
                             JOptionPane.QUESTION_MESSAGE, null, buttons,
                             buttons[2]);
-                    all = returnVal == 1;
+                    yesForAll = returnVal == 1;
                     existsFile = true;
                 }
 
                 if (returnVal < 2) {
                     if (existsFile) {
-                        DataClient.rm(source.getName(), 0);
+                        Control.rm(source.getName());
                         existsFile = false;
                     }
-                    DataClient.send(source);
+                    IO.upload(source);
                 }
-            } else if (fileQueue.getValueAt(0, 2).equals("Download")){
+            } else if (fileQueue.getValueAt(0, 2).equals("Download")) {
                 if (Settings.isDlDir()) {
                     dlDir = Settings.getWorkingDir();
                     isSetDlDir = true;
@@ -99,21 +102,21 @@ public class FileWorker extends SwingWorker<Integer, String> {
                 }
 
                 if (isSetDlDir) {
-                    filePath = "/data" + (String) fileQueue.getValueAt(0, 0);
+                    filePath = (String) fileQueue.getValueAt(0, 0);
                     File destFile = new File(dlDir + filePath.substring(
                             filePath.lastIndexOf("/"), filePath.length()));
 
-                    if (!all && destFile.isFile() && destFile.exists()) {
+                    if (!yesForAll && destFile.isFile() && destFile.exists()) {
                         returnVal = JOptionPane.showOptionDialog(null, "File "
                                 + destFile.getName() + " already exists. Overwrite ?",
-                                "Overwrite file", JOptionPane.DEFAULT_OPTION,
+                                "Overwrite", JOptionPane.DEFAULT_OPTION,
                                 JOptionPane.QUESTION_MESSAGE, null, buttons,
                                 buttons[2]);
-                        all = returnVal == 1;
+                        yesForAll = returnVal == 1;
                     }
 
                     if (returnVal < 2) {
-                        DataClient.receive(filePath, destFile);
+                        IO.download(filePath, destFile);
                     }
                 }
             }
@@ -131,11 +134,11 @@ public class FileWorker extends SwingWorker<Integer, String> {
 
     private void updateTable() throws IOException {
         int i = 0;
-        dirs = DataClient.listDirs();
-        remoteFiles = DataClient.listFiles();
+        /*dirs = Control.lsdir();
+        remoteFiles = Control.lsfile();*/
         DefaultTableModel dtm = (DefaultTableModel) fileTable.getModel();
 
-        if (!DataClient.isAtRoot()) {
+        if (!Control.isAtRoot()) {
             dtm.setRowCount(remoteFiles.length + 1);
             fileTable.setModel(dtm);
             fileTable.setValueAt("..", i, 0);
