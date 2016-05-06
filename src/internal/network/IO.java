@@ -5,16 +5,20 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
-import javax.net.ssl.SSLSocket;
 import visual.ErrorHandler;
 
+/**
+ * Contains file I/O methods, used for uploading and downloading binary data
+ *
+ * @author Serphentas
+ */
 public abstract class IO {
 
     private static final byte DISCONNECT = 0x00,
             UPLOAD = 0x10,
             DOWNLOAD = 0x11;
+
     private static GCMCipher gcmc;
-    private static SSLSocket IOSocket;
     private static DataOutputStream dos;
     private static DataInputStream dis;
 
@@ -33,7 +37,7 @@ public abstract class IO {
         dos.writeByte(DISCONNECT);
     }
 
-    public static boolean upload(File input) throws Exception{
+    public static boolean upload(File input) throws Exception {
         try {
             dos.writeByte(UPLOAD);
             dos.writeUTF(input.getName());

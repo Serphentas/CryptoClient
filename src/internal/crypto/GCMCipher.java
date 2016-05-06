@@ -113,7 +113,7 @@ public final class GCMCipher {
      * OutputStream
      *
      * @param inputFile
-     * @return
+     * @return true if the file was successfully transferred, else false
      * @throws java.io.IOException
      * @throws java.security.InvalidKeyException
      * @throws java.security.InvalidAlgorithmParameterException
@@ -172,6 +172,7 @@ public final class GCMCipher {
      *
      * @param remoteFilePath
      * @param localFile
+     * @return true if the file was successfully transferred, else false
      * @throws java.io.IOException
      * @throws java.security.InvalidKeyException
      * @throws java.security.InvalidAlgorithmParameterException

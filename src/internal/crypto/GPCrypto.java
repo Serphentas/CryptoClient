@@ -13,9 +13,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
+import java.util.Arrays;
 import org.bouncycastle.crypto.generators.SCrypt;
 
 /**
@@ -103,14 +107,32 @@ public abstract class GPCrypto {
     /**
      * Derives a given string (usually a password) with scrypt, using the
      * following default values:
+     * <ul>
+     * <li>N=2^19</li>
+     * <li>p=8</li>
+     * <li>r=1</li>
+     * </ul>
      *
-     * @param password password to derive key from
+     * @param password secret value to derive the key from
      * @param salt salt to use for this invocation
      * @param dkLen output size, in bytes
      * @return key derived from supplied password
      * @throws java.io.UnsupportedEncodingException
      */
-    public static byte[] scrypt(String password, byte[] salt, int dkLen) throws UnsupportedEncodingException  {
-        return SCrypt.generate(password.getBytes("UTF-8"), salt, KDF_N, KDF_p, KDF_r, dkLen);
+    public static byte[] scrypt(char[] password, byte[] salt, int dkLen) throws UnsupportedEncodingException {
+        byte[] passBytes = charToByte(password),
+                digest = SCrypt.generate(passBytes, salt, KDF_N, KDF_p, KDF_r, dkLen);
+        sanitize(passBytes, 1024);
+        return digest;
+    }
+
+    public static byte[] charToByte(char[] c) {
+        CharBuffer charBuffer = CharBuffer.wrap(c);
+        ByteBuffer byteBuffer = Charset.forName("UTF-8").encode(charBuffer);
+        byte[] bytes = Arrays.copyOfRange(byteBuffer.array(),
+                byteBuffer.position(), byteBuffer.limit());
+        Arrays.fill(charBuffer.array(), '\u0000');
+        sanitize(byteBuffer.array(), 1024);
+        return bytes;
     }
 }

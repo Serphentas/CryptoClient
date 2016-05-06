@@ -135,7 +135,7 @@
             <MenuItem class="javax.swing.JMenuItem" name="exitMenuItem">
               <Properties>
                 <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
-                  <KeyStroke key="Ctrl+W"/>
+                  <KeyStroke key="Ctrl+Q"/>
                 </Property>
                 <Property name="text" type="java.lang.String" value="Exit"/>
               </Properties>
@@ -312,7 +312,7 @@
                   <Editor/>
                   <Renderer/>
                 </Column>
-                <Column maxWidth="999999999" minWidth="200" prefWidth="200" resizable="true">
+                <Column maxWidth="150" minWidth="165" prefWidth="165" resizable="true">
                   <Title/>
                   <Editor/>
                   <Renderer/>

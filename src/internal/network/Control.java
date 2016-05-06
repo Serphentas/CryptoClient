@@ -6,10 +6,14 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Contains methods which allow to probe the control server for information and
+ * also to perform certain file-related tasks, such as mkdir, rm, etc.
+ *
+ * @author Serphentas
+ */
 public abstract class Control {
 
-    private static DataOutputStream dos;
-    private static DataInputStream dis;
     private static final byte DISCONNECT = 0x00,
             LSFILE = 0x10,
             LSDIR = 0x11,
@@ -21,9 +25,12 @@ public abstract class Control {
             EXISTS = 0x17,
             MKSHARE = 0x20,
             RMSHARE = 0x21;
+    
+    private static DataOutputStream dos;
+    private static DataInputStream dis;
 
     /**
-     * Sets the TLSClient instance bound to the control server
+     * Sets the I/O streams bound to the control server
      *
      * @param dos
      * @param dis

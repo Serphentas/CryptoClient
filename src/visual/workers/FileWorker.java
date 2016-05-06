@@ -21,7 +21,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
-import org.apache.commons.net.ftp.FTPFile;
 import visual.DefaultFrame;
 
 public class FileWorker extends SwingWorker<Integer, String> {
@@ -29,7 +28,6 @@ public class FileWorker extends SwingWorker<Integer, String> {
     private static final String[] buttons = {"Yes", "Yes to all", "No", "Cancel"};
 
     private static JTable fileTable, fileQueue;
-    private static FTPFile[] dirs, remoteFiles;
     private static String filePath, dlDir;
     private static JFileChooser fc;
 
@@ -138,7 +136,7 @@ public class FileWorker extends SwingWorker<Integer, String> {
         remoteFiles = Control.lsfile();*/
         DefaultTableModel dtm = (DefaultTableModel) fileTable.getModel();
 
-        if (!Control.isAtRoot()) {
+        /*if (!Control.isAtRoot()) {
             dtm.setRowCount(remoteFiles.length + 1);
             fileTable.setModel(dtm);
             fileTable.setValueAt("..", i, 0);
@@ -176,7 +174,7 @@ public class FileWorker extends SwingWorker<Integer, String> {
                 fileTable.setValueAt(size, i, 3);
                 i++;
             }
-        }
+        }*/
     }
 
     @Override

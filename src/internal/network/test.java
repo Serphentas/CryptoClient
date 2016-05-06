@@ -129,7 +129,8 @@ public class test {
                 String cmd = scanner.next();
                 switch (cmd) {
                     case "lsdir":
-                        Map<String, Long> dirMap = Control.lsdir(Control.cwd());
+                        input = scanner.next();
+                        Map<String, Long> dirMap = Control.lsdir(input);
 
                         iterDirMap = dirMap.entrySet().iterator();
                         while (iterDirMap.hasNext()) {
@@ -138,7 +139,8 @@ public class test {
                         }
                         break;
                     case "lsfile":
-                        Map<String, Long[]> fileMap = Control.lsfile(Control.cwd());
+                        input = scanner.next();
+                        Map<String, Long[]> fileMap = Control.lsfile(input);
 
                         iterFileMap = fileMap.entrySet().iterator();
                         while (iterFileMap.hasNext()) {
@@ -156,16 +158,18 @@ public class test {
                         System.out.println(Control.cd(input));
                         break;
                     case "mkdir":
-                        input = scanner.next();
-                        System.out.println(Control.mkdir(input));
+                        System.out.println(Control.mkdir(scanner.next()));
+                        break;
+                    case "rename":
+                        System.out.println(Control.rename(scanner.next(), scanner.next()));
                         break;
                     case "rm":
-                        input = scanner.next();
-                        System.out.println(Control.rm(input));
+                        System.out.println(Control.rm(scanner.next()));
                         break;
-                    case "disconnect":
+                    case "dc":
                         asd = false;
                         Control.disconnect();
+                        IO.disconnect();
                         break;
                 }
             }

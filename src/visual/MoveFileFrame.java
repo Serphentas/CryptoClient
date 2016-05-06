@@ -25,7 +25,7 @@ import javax.swing.table.DefaultTableModel;
 public class MoveFileFrame extends javax.swing.JFrame {
 
     private static Iterator<Map.Entry<String, Long>> dirMapIter;
-    private static String cwd, currName, newDir, newName;
+    private static String cwd;
     private static String[] names;
 
     /**
@@ -162,8 +162,8 @@ public class MoveFileFrame extends javax.swing.JFrame {
     private void moveDirTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_moveDirTableMouseClicked
         if (evt.getClickCount() == 2) {
             try {
-                Control.cd(Control.cwd() + (String) moveDirTable.getValueAt(moveDirTable.getSelectedRow(), 0));
-                newDir = Control.cwd();
+                Control.cd(Control.cwd() + (String) moveDirTable.getValueAt(
+                        moveDirTable.getSelectedRow(), 0) + "/");
                 updateMoveDirTable();
             } catch (IOException ex) {
                 visual.ErrorHandler.showError(ex);
@@ -180,11 +180,10 @@ public class MoveFileFrame extends javax.swing.JFrame {
                 for (String name : names) {
                     Control.rename(cwd + name, Control.cwd() + name);
                 }
+                this.dispose();
+                Control.cd(cwd);
+                DefaultFrame.updateFileTable();
             }
-
-            this.dispose();
-            Control.cd(cwd);
-            DefaultFrame.updateFileTable();
         } catch (IOException ex) {
             visual.ErrorHandler.showError(ex);
         }

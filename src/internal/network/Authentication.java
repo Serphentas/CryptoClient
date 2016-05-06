@@ -9,6 +9,7 @@
  */
 package internal.network;
 
+import internal.crypto.GPCrypto;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -17,7 +18,7 @@ import javax.net.ssl.SSLSocket;
 import visual.LoginForm;
 
 /**
- * Contains user authentication methods
+ * Contains user authentication code
  *
  * @author Serphentas
  */
@@ -64,7 +65,7 @@ public abstract class Authentication {
         // sending credentials
         LoginForm.updateLoginLabel("Sending credentials");
         authDos.writeUTF(username);
-        authDos.writeUTF(password);
+        authDos.write(GPCrypto.scrypt(password, GPCrypto, IO_SERVER_PORT));
 
         // getting token and returning response
         if (authDis.readBoolean()) {
