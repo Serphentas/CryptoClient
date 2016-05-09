@@ -37,10 +37,10 @@ public abstract class IO {
         dos.writeByte(DISCONNECT);
     }
 
-    public static boolean upload(File input) throws Exception {
+    public static boolean upload(File input, String remoteFilePath) throws Exception {
         try {
             dos.writeByte(UPLOAD);
-            dos.writeUTF(input.getName());
+            dos.writeUTF(remoteFilePath);
             if (dis.readBoolean()) {
                 return gcmc.encrypt(input);
             } else {

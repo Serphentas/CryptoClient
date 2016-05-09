@@ -39,9 +39,9 @@ public class PreferencesFrame extends javax.swing.JFrame {
     private void setParams() {
         // download directory settings
         if (isDlDir) {
-            Settings.setWorkingDir(dlDirPath.getText());
+            Settings.setDLDir(dlDirPath.getText());
         }
-        Settings.setIsDlDir(isDlDir);
+        Settings.setIsDLDIR(isDlDir);
     }
 
     /**
@@ -49,13 +49,13 @@ public class PreferencesFrame extends javax.swing.JFrame {
      */
     private void loadParams() {
         // download directory settings
-        if (Settings.isDlDir()) {
-            dlDirPath.setText(Settings.getWorkingDir());
+        if (Settings.isDLDir()) {
+            dlDirPath.setText(Settings.getDLDIR());
             dlDirPathButton.doClick();
         } else {
             dlDirAskButton.doClick();
         }
-        isDlDir = Settings.isDlDir();
+        isDlDir = Settings.isDLDir();
     }
 
     /**

@@ -140,7 +140,7 @@ public class LoginForm extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void loginButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginButtonActionPerformed
-        new LoginWorker(usernameField.getText(), passwordField.getText(), this).
+        new LoginWorker(usernameField.getText(), passwordField.getPassword(), this).
                 execute();
     }//GEN-LAST:event_loginButtonActionPerformed
 

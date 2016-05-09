@@ -21,7 +21,6 @@ import java.lang.reflect.Field;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.util.Arrays;
-import java.util.logging.Logger;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.CipherOutputStream;
@@ -41,9 +40,6 @@ import org.bouncycastle.crypto.generators.SCrypt;
  */
 public final class GCMCipher {
 
-    private static final Logger log = Logger.getLogger(GCMCipher.class.getName());
-
-    // cryptographic constants
     private static final String CIPHER = "AES/GCM/NoPadding",
             CRYPTO_PROVIDER = "BC";
     private static final int CIPHER_KEY_BITS = 256,
@@ -67,15 +63,15 @@ public final class GCMCipher {
             S2N2 = RS2 + GCM_NONCE_BYTES;
     private static final byte[] buffer = new byte[BUFFER_SIZE];
     private static final byte VERSION = 0x00;
-    private static String password = null;
+    private static char[] pass = null;
 
     private final Cipher cipher;
 
     private final DataOutputStream dos;
     private final DataInputStream dis;
 
-    public static void setPassword(String pass) {
-        password = pass;
+    public static void setPassword(char[] pass) {
+        GCMCipher.pass = pass;
     }
 
     /**
@@ -99,7 +95,7 @@ public final class GCMCipher {
         field.set(null, java.lang.Boolean.FALSE);
 
         // instantiating AES-256 w/ GCM from Bouncy Castle
-        this.cipher = Cipher.getInstance(CIPHER, CRYPTO_PROVIDER);
+        this.cipher = Cipher.getInstance(CIPHER);
 
         // settings the I/O streams
         this.dos = dos;
@@ -132,9 +128,9 @@ public final class GCMCipher {
                 N1 = Arrays.copyOfRange(N, 0, 12),
                 N2 = Arrays.copyOfRange(N, 12, 24),
                 R = GPCrypto.randomGen(R_BYTES);
-        final SecretKey K1 = new SecretKeySpec(SCrypt.generate(password.getBytes(),
-                S1, KDF_N_K, KDF_p_K, KDF_r_K, CIPHER_KEY_BITS / 8), 0,
-                CIPHER_KEY_BITS / 8, "AES"),
+        final SecretKey K1 = new SecretKeySpec(SCrypt.generate(GPCrypto.
+                charToByte(pass), S1, KDF_N_K, KDF_p_K, KDF_r_K, CIPHER_KEY_BITS
+                / 8), 0, CIPHER_KEY_BITS / 8, "AES"),
                 K2 = new SecretKeySpec(SCrypt.generate(R, S2, KDF_N_K, KDF_p_K,
                         KDF_r_K, CIPHER_KEY_BITS / 8), 0, CIPHER_KEY_BITS / 8, "AES");
 
@@ -161,7 +157,7 @@ public final class GCMCipher {
         // erasing cryptographic parameters and closing streams
         eraseByteArrays(S1, S2, N, N1, N2, R);
         eraseKeys(K1, K2);
-        cos.close();
+        //cos.close();
         input.close();
 
         return dis.readBoolean();
@@ -193,9 +189,9 @@ public final class GCMCipher {
                 S2 = Arrays.copyOfRange(header, N1R, RS2),
                 N1 = Arrays.copyOfRange(header, V1S1, S1N1),
                 N2 = Arrays.copyOfRange(header, RS2, S2N2);
-        final SecretKey K1 = new SecretKeySpec(SCrypt.generate(password.getBytes(),
-                S1, KDF_N_K, KDF_p_K, KDF_r_K,
-                CIPHER_KEY_BITS / 8), 0, CIPHER_KEY_BITS / 8, "AES");
+        final SecretKey K1 = new SecretKeySpec(SCrypt.generate(GPCrypto.
+                charToByte(pass), S1, KDF_N_K, KDF_p_K, KDF_r_K, CIPHER_KEY_BITS
+                / 8), 0, CIPHER_KEY_BITS / 8, "AES");
 
         // reading E(K1, N1, R)
         this.cipher.init(Cipher.DECRYPT_MODE, K1, new GCMParameterSpec(
@@ -236,9 +232,9 @@ public final class GCMCipher {
                 N2 = Arrays.copyOfRange(header, RS2, S2N2);
 
         // generating K1 and reading E(K1, N1, R)
-        final SecretKey K1 = new SecretKeySpec(SCrypt.generate(password.getBytes(),
-                S1, KDF_N_K, KDF_p_K, KDF_r_K,
-                CIPHER_KEY_BITS / 8), 0, CIPHER_KEY_BITS / 8, "AES");
+        final SecretKey K1 = new SecretKeySpec(SCrypt.generate(GPCrypto.
+                charToByte(pass), S1, KDF_N_K, KDF_p_K, KDF_r_K, CIPHER_KEY_BITS
+                / 8), 0, CIPHER_KEY_BITS / 8, "AES");
         this.cipher.init(Cipher.DECRYPT_MODE, K1, new GCMParameterSpec(
                 GCM_TAG_BITS, N1, 0, GCM_NONCE_BYTES));
         final byte[] R_enc = Arrays.copyOfRange(header, S1N1, N1R);

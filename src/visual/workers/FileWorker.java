@@ -16,12 +16,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import javax.swing.JFileChooser;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 import visual.DefaultFrame;
+import visual.ErrorHandler;
 
 public class FileWorker extends SwingWorker<Integer, String> {
 
@@ -53,14 +53,17 @@ public class FileWorker extends SwingWorker<Integer, String> {
     protected Integer doInBackground() throws Exception {
         Settings.setIsWorking(true);
         int returnVal = -1;
-        boolean yesForAll = false, isQueueEmpty = false, existsFile = false,
-                isSetDlDir = false;
+        boolean yesForAll = false,
+                isQueueEmpty = false,
+                existsFile = false,
+                isSetDlDir = false,
+                result;
 
         while (!isQueueEmpty) {
-            fileQueue.setValueAt("In progress", 0, 1);
+            fileQueue.setValueAt("In progress", 0, 2);
             filePath = (String) fileQueue.getValueAt(0, 0);
 
-            if (fileQueue.getValueAt(0, 2).equals("Upload")) {
+            if (fileQueue.getValueAt(0, 3).equals("Upload")) {
                 File source = new File(filePath);
                 if (!yesForAll && Control.exists(source.getName())) {
                     returnVal = JOptionPane.showOptionDialog(null, "File "
@@ -74,47 +77,33 @@ public class FileWorker extends SwingWorker<Integer, String> {
 
                 if (returnVal < 2) {
                     if (existsFile) {
-                        Control.rm(source.getName());
+                        Control.rm((String) fileQueue.getValueAt(0, 1));
                         existsFile = false;
                     }
-                    IO.upload(source);
+                    if (!IO.upload(source, (String) fileQueue.getValueAt(0, 1))) {
+                        ErrorHandler.showError("could not upload " + (String) fileQueue.getValueAt(0, 0));
+                    }
                 }
             } else if (fileQueue.getValueAt(0, 2).equals("Download")) {
-                if (Settings.isDlDir()) {
-                    dlDir = Settings.getWorkingDir();
-                    isSetDlDir = true;
-                } else if (!isSetDlDir) {
-                    fc = new JFileChooser();
-                    fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                    fc.setMultiSelectionEnabled(false);
-                    fc.setVisible(true);
+                filePath = (String) fileQueue.getValueAt(0, 0);
+                File destFile = new File(dlDir + filePath.substring(
+                        filePath.lastIndexOf("/"), filePath.length()));
 
-                    returnVal = fc.showDialog(new JFrame(), "Choose download folder");
-                    if (returnVal == JFileChooser.APPROVE_OPTION) {
-                        dlDir = fc.getSelectedFile().getPath().replace("\\", "/");
-                        if (!dlDir.endsWith("/")) {
-                            dlDir += "/";
-                        }
-                        isSetDlDir = true;
-                    }
+                if (!yesForAll && destFile.isFile() && destFile.exists()) {
+                    returnVal = JOptionPane.showOptionDialog(null, "File "
+                            + destFile.getName() + " already exists. Overwrite ?",
+                            "Overwrite", JOptionPane.DEFAULT_OPTION,
+                            JOptionPane.QUESTION_MESSAGE, null, buttons,
+                            buttons[2]);
+                    yesForAll = returnVal == 1;
                 }
-
-                if (isSetDlDir) {
-                    filePath = (String) fileQueue.getValueAt(0, 0);
-                    File destFile = new File(dlDir + filePath.substring(
-                            filePath.lastIndexOf("/"), filePath.length()));
-
-                    if (!yesForAll && destFile.isFile() && destFile.exists()) {
-                        returnVal = JOptionPane.showOptionDialog(null, "File "
-                                + destFile.getName() + " already exists. Overwrite ?",
-                                "Overwrite", JOptionPane.DEFAULT_OPTION,
-                                JOptionPane.QUESTION_MESSAGE, null, buttons,
-                                buttons[2]);
-                        yesForAll = returnVal == 1;
+                
+                if(returnVal < 2){
+                    if(destFile.exists()){
+                        destFile.delete();
                     }
-
-                    if (returnVal < 2) {
-                        IO.download(filePath, destFile);
+                    if(!IO.download(filePath, destFile)){
+                        ErrorHandler.showError("could not download " + (String) fileQueue.getValueAt(0, 0));
                     }
                 }
             }

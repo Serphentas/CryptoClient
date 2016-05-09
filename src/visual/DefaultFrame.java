@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -33,7 +35,7 @@ import visual.workers.FileWorker;
 public class DefaultFrame extends javax.swing.JFrame {
 
     private FileDialog fd;
-    private String newDirName;
+    private String newDirName, cwd;
     private static int exitReply = -1;
     private static DefaultTableModel dtmFileTable, dtmFileQueue;
     private static Iterator<Map.Entry<String, Long>> dirMapIter;
@@ -126,8 +128,8 @@ public class DefaultFrame extends javax.swing.JFrame {
         }
         return size;
     }
-    
-    private String sanitize(String s){
+
+    private String sanitize(String s) {
         s = s.replaceAll("/", "");
         return s.replace("..", "");
     }
@@ -288,14 +290,14 @@ public class DefaultFrame extends javax.swing.JFrame {
 
             },
             new String [] {
-                "File", "Status", "Action"
+                "Source", "Destination", "Status", "Action"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.String.class
+                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
             };
             boolean[] canEdit = new boolean [] {
-                false, false, false
+                false, false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -315,12 +317,13 @@ public class DefaultFrame extends javax.swing.JFrame {
         });
         jScrollPane3.setViewportView(fileQueue);
         if (fileQueue.getColumnModel().getColumnCount() > 0) {
-            fileQueue.getColumnModel().getColumn(1).setMinWidth(150);
-            fileQueue.getColumnModel().getColumn(1).setPreferredWidth(150);
-            fileQueue.getColumnModel().getColumn(1).setMaxWidth(150);
-            fileQueue.getColumnModel().getColumn(2).setMinWidth(100);
-            fileQueue.getColumnModel().getColumn(2).setPreferredWidth(100);
-            fileQueue.getColumnModel().getColumn(2).setMaxWidth(100);
+            fileQueue.getColumnModel().getColumn(0).setPreferredWidth(200);
+            fileQueue.getColumnModel().getColumn(1).setPreferredWidth(200);
+            fileQueue.getColumnModel().getColumn(2).setMinWidth(150);
+            fileQueue.getColumnModel().getColumn(2).setPreferredWidth(150);
+            fileQueue.getColumnModel().getColumn(2).setMaxWidth(150);
+            fileQueue.getColumnModel().getColumn(3).setResizable(false);
+            fileQueue.getColumnModel().getColumn(3).setPreferredWidth(100);
         }
 
         fileMenu.setMnemonic('F');
@@ -487,23 +490,28 @@ public class DefaultFrame extends javax.swing.JFrame {
 
     private void uploadMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadMenuItemActionPerformed
         fd = new FileDialog(this, "Upload file", FileDialog.LOAD);
+        try {
+            cwd = Control.cwd();
+        } catch (IOException ex) {
+            ErrorHandler.showError(ex);
+        }
+
         fd.setMultipleMode(true);
         fd.setVisible(true);
-        if (fd.getFiles().length != 0) {
+        if (fd.getFiles().length > 0) {
             int i = fileQueue.getRowCount();
             setFileQueueSize(fd.getFiles().length);
+
             for (File f : fd.getFiles()) {
                 fileQueue.setValueAt(f.getAbsolutePath(), i, 0);
-                fileQueue.setValueAt("Pending", i, 1);
-                fileQueue.setValueAt("Upload", i, 2);
+                fileQueue.setValueAt(cwd + f.getName(), i, 1);
+                fileQueue.setValueAt("Pending", i, 2);
+                fileQueue.setValueAt("Upload", i, 3);
                 i++;
             }
+
             if (!Settings.isWorking()) {
-                try {
-                    new FileWorker(fileTable, fileQueue).execute();
-                } catch (Exception e) {
-                    visual.ErrorHandler.showError(e);
-                }
+                new FileWorker(fileTable, fileQueue).execute();
             }
         }
     }//GEN-LAST:event_uploadMenuItemActionPerformed
@@ -545,30 +553,60 @@ public class DefaultFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_disconnectMenuItemActionPerformed
 
     private void fileTableMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fileTableMouseReleased
-        if (evt.isPopupTrigger()) {
+        if (evt.isPopupTrigger() && fileTable.getSelectedRowCount() > 0) {
             fileTablePopupMenu.show(evt.getComponent(), evt.getX(), evt.getY());
         }
     }//GEN-LAST:event_fileTableMouseReleased
 
     private void downloadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_downloadActionPerformed
-        int i = fileQueue.getRowCount();
-        setFileQueueSize(fileTable.getSelectedRows().length);
-
         try {
-            for (int row : fileTable.getSelectedRows()) {
-                String fileName = Control.cwd() + (String) fileTable.getValueAt(row, 0);
+            cwd = Control.cwd();
+        } catch (IOException ex) {
+            ErrorHandler.showError(ex);
+        }
 
-                fileQueue.setValueAt(fileName, i, 0);
-                fileQueue.setValueAt("Pending", i, 1);
-                fileQueue.setValueAt("Download", i, 2);
+        boolean isSetDLDIR = false;
+        String dlDir = new String();
+        int i = fileQueue.getRowCount(), reply;
+
+        if (!Settings.isDLDir()) {
+            JFileChooser fc = new JFileChooser();
+            fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            fc.setMultiSelectionEnabled(false);
+            fc.setVisible(true);
+
+            reply = fc.showDialog(new JFrame(), "Choose download folder");
+            if (reply == JFileChooser.APPROVE_OPTION) {
+                dlDir = fc.getSelectedFile().getPath().replace("\\", "/");
+                if (!dlDir.endsWith("/")) {
+                    dlDir += "/";
+                }
+                isSetDLDIR = true;
+            }
+        } else {
+            dlDir = Settings.getDLDIR();
+            isSetDLDIR = true;
+        }
+
+        if (isSetDLDIR && fileTable.getSelectedRows().length > 0) {
+            setFileQueueSize(fileTable.getSelectedRows().length);
+
+            for (int row : fileTable.getSelectedRows()) {
+                fileQueue.setValueAt(cwd + (String) fileTable.getValueAt(
+                        row, 0), i, 0);
+                fileQueue.setValueAt(dlDir + fileTable.getValueAt(row, 0),
+                        i, 1);
+                fileQueue.setValueAt("Pending", i, 2);
+                fileQueue.setValueAt("Download", i, 3);
                 i++;
             }
+
             if (!Settings.isWorking()) {
                 new FileWorker(fileTable, fileQueue).execute();
             }
-        } catch (Exception e) {
-            visual.ErrorHandler.showError(e);
         }
+
+
     }//GEN-LAST:event_downloadActionPerformed
 
     private void deleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteActionPerformed
@@ -581,7 +619,7 @@ public class DefaultFrame extends javax.swing.JFrame {
                     "Delete selected item(s) ?", "Delete", JOptionPane.YES_NO_OPTION);
             if (reply == JOptionPane.YES_OPTION) {
                 try {
-                    String cwd = Control.cwd();
+                    cwd = Control.cwd();
                     for (int i : fileTable.getSelectedRows()) {
                         Control.rm(cwd + (String) fileTable.getValueAt(i, 0));
                     }

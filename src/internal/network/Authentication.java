@@ -53,7 +53,7 @@ public abstract class Authentication {
      * @throws java.security.NoSuchAlgorithmException
      * @throws java.security.KeyManagementException
      */
-    public static boolean login(String username, String password) throws IOException, Exception {
+    public static boolean login(String username, char[] password) throws IOException, Exception {
         // initializing the authentication connection
         LoginForm.updateLoginLabel("Connecting to authentication server");
         authSocket = (SSLSocket) GPTLS.getContext().getSocketFactory().createSocket(
@@ -65,7 +65,7 @@ public abstract class Authentication {
         // sending credentials
         LoginForm.updateLoginLabel("Sending credentials");
         authDos.writeUTF(username);
-        authDos.write(GPCrypto.scrypt(password, GPCrypto, IO_SERVER_PORT));
+        authDos.write(GPCrypto.charToByte(password));
 
         // getting token and returning response
         if (authDis.readBoolean()) {
@@ -106,5 +106,9 @@ public abstract class Authentication {
         } else {
             return false;
         }
+    }
+    
+    public static boolean checkEncryptionPassword(char[] password){
+        return true;
     }
 }

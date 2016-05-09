@@ -1,6 +1,7 @@
 package visual.workers;
 
 import internal.crypto.GCMCipher;
+import internal.crypto.GPCrypto;
 import internal.network.Authentication;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
@@ -12,25 +13,27 @@ import visual.LoginForm;
 
 public class LoginWorker extends SwingWorker<Boolean, Boolean> {
 
-    private final String username, password;
+    private final String username;
+    private final char[] loginPass;
     private final JFrame frame;
 
-    public LoginWorker(String username, String password, JFrame frame) {
+    public LoginWorker(String username, char[] password, JFrame frame) {
         this.username = username;
-        this.password = password;
+        this.loginPass = password;
         this.frame = frame;
     }
 
     @Override
     protected Boolean doInBackground() throws IOException, Exception {
-        return Authentication.login(username, password);
+        return Authentication.login(username, loginPass);
     }
 
     @Override
     protected void done() {
         try {
             if (get()) {
-                GCMCipher.setPassword(password);
+                GCMCipher.setPassword(loginPass.clone());
+                GPCrypto.sanitize(loginPass, 10000);
                 frame.dispose();
                 DefaultFrame.main(null);
             } else {

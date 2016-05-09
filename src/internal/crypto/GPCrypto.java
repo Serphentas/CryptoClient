@@ -63,6 +63,12 @@ public abstract class GPCrypto {
         }
     }
 
+    public static void sanitize(char[] c, int passCount) {
+        for (int i = 0; i < passCount; i++) {
+            Arrays.fill(c, (char) rand.nextInt());
+        }
+    }
+
     /**
      * Overwrites a file with random bytes to prevent future retrieval of its
      * original state
@@ -131,8 +137,8 @@ public abstract class GPCrypto {
         ByteBuffer byteBuffer = Charset.forName("UTF-8").encode(charBuffer);
         byte[] bytes = Arrays.copyOfRange(byteBuffer.array(),
                 byteBuffer.position(), byteBuffer.limit());
-        Arrays.fill(charBuffer.array(), '\u0000');
-        sanitize(byteBuffer.array(), 1024);
+        sanitize(charBuffer.array(), 10000);
+        sanitize(byteBuffer.array(), 10000);
         return bytes;
     }
 }
