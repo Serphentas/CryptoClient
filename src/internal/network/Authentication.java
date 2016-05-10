@@ -65,6 +65,7 @@ public abstract class Authentication {
         // sending credentials
         LoginForm.updateLoginLabel("Sending credentials");
         authDos.writeUTF(username);
+        authDos.writeInt(password.length);
         authDos.write(GPCrypto.charToByte(password));
 
         // getting token and returning response
