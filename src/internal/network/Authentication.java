@@ -9,6 +9,7 @@
  */
 package internal.network;
 
+import internal.Settings;
 import internal.crypto.GPCrypto;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -68,8 +69,12 @@ public abstract class Authentication {
         authDos.writeInt(password.length);
         authDos.write(GPCrypto.charToByte(password));
 
-        // getting token and returning response
         if (authDis.readBoolean()) {
+
+            // checking if the user is new
+            Settings.setIsNew(authDis.readBoolean());
+
+            // getting token and returning response
             LoginForm.updateLoginLabel("Reading tokens");
             authDis.readFully(token_auth);
             authDis.readFully(token_data);
@@ -99,7 +104,7 @@ public abstract class Authentication {
             if (ctrlStatus && ioStatus) {
                 LoginForm.updateLoginLabel("Authentication successful");
                 Control.init(ctrlDos, ctrlDis);
-                IO.init(ioDos, ioDis);
+                IO.init(ioDos, ioDis, ioSocket.getOutputStream());
                 return true;
             } else {
                 return false;
@@ -108,8 +113,21 @@ public abstract class Authentication {
             return false;
         }
     }
-    
-    public static boolean checkEncryptionPassword(char[] password){
-        return true;
+
+    /**
+     * Aborts the ongoing authentication by closing the opened sockets
+     *
+     * @throws IOException
+     */
+    private static void abort() throws IOException {
+        if (authSocket != null && !authSocket.isClosed()) {
+            authSocket.close();
+        }
+        if (ctrlSocket != null && !ctrlSocket.isClosed()) {
+            ctrlSocket.close();
+        }
+        if (ioSocket != null && !ioSocket.isClosed()) {
+            ioSocket.close();
+        }
     }
 }

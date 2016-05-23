@@ -7,9 +7,14 @@
  * http://creativecommons.org/licenses/by-sa/4.0/ or send a letter
  * to Creative Commons, PO Box 1866, Mountain View, CA 94042, USA.
  */
+import internal.Settings;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.security.Security;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import visual.LoginForm;
+import visual.TOSDisclaimer;
 
 /**
  * Main method
@@ -30,11 +35,26 @@ public class Main {
     public static void main(String args[]) throws Exception {
         // adding Bouncy Castle as provider
         Security.addProvider(new BouncyCastleProvider());
-        
+
         // settings the TrustStore to The Swiss Bay
         System.setProperty("javax.net.ssl.trustStore", "TSBTrustStore");
 
-        // starting GUI
-        LoginForm.main(null);
+        // getting the config file and checking in the TOS have been agreed to
+        File config = new File("config");
+        if (config.exists()) {
+            BufferedReader in = new BufferedReader(new FileReader(new File("config")));
+            Settings.setTOSAgreed(in.readLine().equals("agreedTOS=yes"));
+            in.close();
+            Settings.setIsNew(false);
+        } else {
+            Settings.setIsNew(true);
+        }
+
+        if (Settings.isTOSAgreed()) {
+            // starting GUI
+            LoginForm.main(null);
+        } else {
+            TOSDisclaimer.main(null);
+        }
     }
 }

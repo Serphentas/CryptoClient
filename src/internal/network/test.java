@@ -9,13 +9,6 @@
  */
 package internal.network;
 
-import java.security.Security;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Scanner;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-
 public class test {
 
     public static void main(String[] args) throws Exception {
@@ -107,73 +100,26 @@ public class test {
 
         System.out.println("decrypted " + Hex.toHexString(fileNameDec));
         System.out.println("decrypted " + new String(fileNameDec, "UTF-8"));*/
-        // add BC as provider and set the trust store
-        
-        Security.addProvider(new BouncyCastleProvider());
-        System.setProperty("javax.net.ssl.trustStore", "TSBTrustStore");
-        Scanner scanner = new Scanner(System.in);
-        if (Authentication.login("asd", "asdasd")) {
-            System.out.println("Client up");
-            System.out.println("Commands:");
-            System.out.println("\tlsdir");
-            System.out.println("\tlsfile");
-            System.out.println("\tcwd");
-            System.out.println("\tcd");
-            System.out.println("\tmkdir");
-            System.out.println("\tdisconnect");
-            boolean asd = true;
-            String input;
-            Iterator<Map.Entry<String, Long>> iterDirMap;
-            Iterator<Map.Entry<String, Long[]>> iterFileMap;
-            while (asd) {
-                String cmd = scanner.next();
-                switch (cmd) {
-                    case "lsdir":
-                        input = scanner.next();
-                        Map<String, Long> dirMap = Control.lsdir(input);
 
-                        iterDirMap = dirMap.entrySet().iterator();
-                        while (iterDirMap.hasNext()) {
-                            Map.Entry<String, Long> entry = iterDirMap.next();
-                            System.out.println(entry.getKey() + " " + new Date(entry.getValue()));
-                        }
-                        break;
-                    case "lsfile":
-                        input = scanner.next();
-                        Map<String, Long[]> fileMap = Control.lsfile(input);
+ /*File f = new File("Z:/Documents/Coding/CryptoServer/users/asd/key2.asc");
+        System.out.println(f.length());
+        System.out.println(f.length() == (new File(
+                "E:/key2.asc").length() + 553 + 16));*/
 
-                        iterFileMap = fileMap.entrySet().iterator();
-                        while (iterFileMap.hasNext()) {
-                            Map.Entry<String, Long[]> entry = iterFileMap.next();
-                            System.out.println(entry.getKey() + " " + new Date(
-                                    entry.getValue()[0]) + " " + entry.
-                                    getValue()[1]);
-                        }
-                        break;
-                    case "cwd":
-                        System.out.println(Control.cwd());
-                        break;
-                    case "cd":
-                        input = scanner.next();
-                        System.out.println(Control.cd(input));
-                        break;
-                    case "mkdir":
-                        System.out.println(Control.mkdir(scanner.next()));
-                        break;
-                    case "rename":
-                        System.out.println(Control.rename(scanner.next(), scanner.next()));
-                        break;
-                    case "rm":
-                        System.out.println(Control.rm(scanner.next()));
-                        break;
-                    case "dc":
-                        asd = false;
-                        Control.disconnect();
-                        IO.disconnect();
-                        break;
-                }
-            }
-        }
-        
+ /*Security.addProvider(new BouncyCastleProvider());
+        GCMCopy gcm = new GCMCopy();
+        gcm.setPassword(new char[]{'a','s','d'});
+        File src = new File("README.md"),
+                enc = new File("enc"),
+                dec = new File("dec");
+        gcm.encrypt(src, enc);
+        gcm.decrypt(enc, dec);*/
+ /*byte[] salt = new byte[]{0x6A, 0x57, 0x39, 0x6B, 0x78, 0x6A, 0x48, 0x75, 0x44, 0x54, 0x73, 0x3D};
+        System.out.println("begin kdf");
+        System.out.println(Hex.toHexString("jW9kxjHuDTs=".getBytes("UTF-8")));
+        long time = System.nanoTime();
+        System.out.println(Hex.toHexString(SCrypt.generate("fag".getBytes("UTF-8"), salt, 524288, 8, 1, 16)));
+        System.out.println((System.nanoTime() - time) / 1e9);*/
+
     }
 }

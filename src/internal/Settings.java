@@ -16,27 +16,38 @@ package internal;
  */
 public abstract class Settings {
 
-    /*private static boolean parallelCrypto = false;
-    private static int parallelCryptoThreads = 2;*/
+    private static byte version = 0x00;
+    private static int K1_N = 20, K2_N = 19;
     private static String DLDir = null;
-    private static boolean isDLDIR = false;
-    private static boolean isWorking = false;
+    private static boolean isDLDIR = false,
+            isWorking = false,
+            isNew,
+            TOSAgreed = false;
 
-    /*public static boolean isParallelCrypto() {
-        return parallelCrypto;
+    public static void setVersion(byte version) {
+        Settings.version = version;
     }
 
-    public static void setParallelCrypto(boolean newParallelCrypto) {
-        parallelCrypto = newParallelCrypto;
+    public static byte getVersion() {
+        return version;
     }
 
-    public static int getParallelCryptoThreads() {
-        return parallelCryptoThreads;
+    public static void setK1_N(int newVal) {
+        K1_N = newVal;
     }
 
-    public static void setParallelCryptoThreads(int newParallelCryptoThreads) {
-        parallelCryptoThreads = newParallelCryptoThreads;
-    }*/
+    public static void setK2_N(int newVal) {
+        K2_N = newVal;
+    }
+
+    public static int getK1_N() {
+        return K1_N;
+    }
+
+    public static int getK2_N() {
+        return K2_N;
+    }
+
     public static String getDLDIR() {
         return DLDir;
     }
@@ -57,8 +68,25 @@ public abstract class Settings {
     public static void setIsWorking(boolean newVal) {
         isWorking = newVal;
     }
-    
-    public static boolean isWorking(){
+
+    public static boolean isWorking() {
         return isWorking;
     }
+
+    public static void setIsNew(boolean newVal) {
+        isNew = newVal;
+    }
+
+    public static boolean isNew() {
+        return isNew;
+    }
+
+    public static void setTOSAgreed(boolean newVal) {
+        TOSAgreed = newVal;
+    }
+
+    public static boolean isTOSAgreed() {
+        return TOSAgreed;
+    }
+
 }

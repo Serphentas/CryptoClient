@@ -13,7 +13,6 @@ import internal.Settings;
 import internal.network.Control;
 import internal.network.IO;
 import java.awt.FileDialog;
-import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
@@ -36,7 +35,7 @@ public class DefaultFrame extends javax.swing.JFrame {
 
     private FileDialog fd;
     private String newDirName, cwd;
-    private static int exitReply = -1;
+    private static boolean disconnecting = false;
     private static DefaultTableModel dtmFileTable, dtmFileQueue;
     private static Iterator<Map.Entry<String, Long>> dirMapIter;
     private static Iterator<Map.Entry<String, Long[]>> fileMapIter;
@@ -468,23 +467,24 @@ public class DefaultFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void exitMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitMenuItemActionPerformed
+        int reply;
         if (Settings.isWorking()) {
-            exitReply = JOptionPane.showConfirmDialog(this, "There is a task "
+            reply = JOptionPane.showConfirmDialog(this, "There is a task "
                     + "running in the background.\nAre you sure you want to "
                     + "exit ?", "Exit", JOptionPane.YES_NO_OPTION);
-        } else if (exitReply != JOptionPane.YES_OPTION) {
-            exitReply = JOptionPane.showConfirmDialog(this, "Are you sure you want"
+        } else {
+            reply = JOptionPane.showConfirmDialog(this, "Are you sure you want"
                     + " to exit ?", "Exit", JOptionPane.YES_NO_OPTION);
         }
 
-        if (exitReply == JOptionPane.YES_OPTION) {
+        if (reply == JOptionPane.YES_OPTION) {
             try {
                 Control.disconnect();
                 IO.disconnect();
             } catch (IOException ex) {
                 ErrorHandler.showError(ex);
             }
-            this.dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
+            System.exit(0);
         }
     }//GEN-LAST:event_exitMenuItemActionPerformed
 
@@ -526,7 +526,11 @@ public class DefaultFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_preferencesMenuItemActionPerformed
 
     private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
-        exitMenuItemActionPerformed(null);
+        if(!disconnecting){
+            exitMenuItemActionPerformed(null);
+        } else {
+            this.dispose();
+        }
     }//GEN-LAST:event_formWindowClosed
 
     private void disconnectMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_disconnectMenuItemActionPerformed
@@ -544,6 +548,7 @@ public class DefaultFrame extends javax.swing.JFrame {
             try {
                 Control.disconnect();
                 IO.disconnect();
+                disconnecting = true;
             } catch (IOException ex) {
                 ErrorHandler.showError(ex);
             }

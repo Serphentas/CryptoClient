@@ -20,7 +20,9 @@ import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Arrays;
+import javax.crypto.SecretKey;
 import org.bouncycastle.crypto.generators.SCrypt;
+import org.bouncycastle.util.encoders.Hex;
 
 /**
  * General purpose cryptographic class
@@ -34,9 +36,10 @@ import org.bouncycastle.crypto.generators.SCrypt;
 public abstract class GPCrypto {
 
     private static final SecureRandom rand = new SecureRandom();
-    private static final int KDF_N = (int) Math.pow(2, 19),
-            KDF_p = 8,
-            KDF_r = 1;
+    private static final int KDF_N = (int) Math.pow(2, 22),
+            KDF_r = 8,
+            KDF_p = 1,
+            SANITIZATION_COUNT = 10000;
 
     /**
      * Generates a random array of bytes
@@ -51,20 +54,25 @@ public abstract class GPCrypto {
     }
 
     /**
-     * Fills a byte array with random values to prevent future retrieval of its
-     * original state
+     * Fills a byte array 10'000 times with random values to prevent future
+     * retrieval of its original state
      *
      * @param array byte array to sanitize
-     * @param passCount number of passes to make
      */
-    public static void sanitize(byte[] array, int passCount) {
-        for (int i = 0; i < passCount; i++) {
+    public static void sanitize(byte[] array) {
+        for (int i = 0; i < SANITIZATION_COUNT; i++) {
             rand.nextBytes(array);
         }
     }
 
-    public static void sanitize(char[] c, int passCount) {
-        for (int i = 0; i < passCount; i++) {
+    /**
+     * Fills a char array 10'000 times with random values to prevent future
+     * retrieval of its original state
+     *
+     * @param c char array to sanitize
+     */
+    public static void sanitize(char[] c) {
+        for (int i = 0; i < SANITIZATION_COUNT; i++) {
             Arrays.fill(c, (char) rand.nextInt());
         }
     }
@@ -97,6 +105,28 @@ public abstract class GPCrypto {
     }
 
     /**
+     * Overwrites many byte arrays 10'000 times
+     *
+     * @param arrays arrays to overwrite
+     */
+    public static void eraseByteArrays(byte[]... arrays) {
+        for (byte[] array : arrays) {
+            sanitize(array);
+        }
+    }
+
+    /**
+     * Overwrites many SecretKey objects 10'000 times
+     *
+     * @param keys SecretKey objects to overwrite
+     */
+    public static void eraseKeys(SecretKey... keys) {
+        for (SecretKey key : keys) {
+            GPCrypto.sanitize(key.getEncoded());
+        }
+    }
+
+    /**
      * Hashes a given string with SHA384
      * <p>
      * The input is read as a byte array, using UTF-8 as character encoding.
@@ -116,7 +146,7 @@ public abstract class GPCrypto {
      * <ul>
      * <li>N=2^19</li>
      * <li>p=8</li>
-     * <li>r=1</li>
+     * <li>r=4</li>
      * </ul>
      *
      * @param password secret value to derive the key from
@@ -127,18 +157,95 @@ public abstract class GPCrypto {
      */
     public static byte[] scrypt(char[] password, byte[] salt, int dkLen) throws UnsupportedEncodingException {
         byte[] passBytes = charToByte(password),
-                digest = SCrypt.generate(passBytes, salt, KDF_N, KDF_p, KDF_r, dkLen);
-        sanitize(passBytes, 1024);
+                digest = SCrypt.generate(passBytes, salt, KDF_N, KDF_r, KDF_p, dkLen);
+        sanitize(passBytes);
         return digest;
     }
 
+    /**
+     * Converts a char array into a byte array, using UTF-8 as the encoding
+     * charset
+     * <p>
+     * Note: does not change the input char array by processing a clone of it
+     *
+     *
+     * @param c char array to convert
+     * @return byte array representation of the char array
+     */
     public static byte[] charToByte(char[] c) {
-        CharBuffer charBuffer = CharBuffer.wrap(c);
+        CharBuffer charBuffer = CharBuffer.wrap(c.clone());
         ByteBuffer byteBuffer = Charset.forName("UTF-8").encode(charBuffer);
         byte[] bytes = Arrays.copyOfRange(byteBuffer.array(),
                 byteBuffer.position(), byteBuffer.limit());
-        sanitize(charBuffer.array(), 10000);
-        sanitize(byteBuffer.array(), 10000);
+        sanitize(charBuffer.array());
+        sanitize(byteBuffer.array());
         return bytes;
+    }
+
+    /**
+     * Retrieves the SCrypt parameters from a formatted digest in the following
+     * format:
+     * <p>
+     * N$r$p$salt$digest
+     *
+     * @param digest
+     * @return the components of the SCrypt digest:
+     * <ol>
+     * <li>hash</li>
+     * <li>salt</li>
+     * <li>N</li>
+     * <li>r</li>
+     * <li>p</li>
+     * <li>hash size, in bytes</li>
+     * </ol>
+     */
+    public static Object[] decodeDigest(String digest) {
+        String tmp;
+        int N = Integer.parseInt(digest.substring(0, digest.indexOf("$")));
+        tmp = digest.substring(digest.indexOf("$") + 1, digest.length());
+        int r = Integer.parseInt(tmp.substring(0, tmp.indexOf("$")));
+        tmp = tmp.substring(tmp.indexOf("$") + 1, tmp.length());
+        int p = Integer.parseInt(tmp.substring(0, tmp.indexOf("$")));
+        tmp = tmp.substring(tmp.indexOf("$") + 1, tmp.length());
+        String salt = tmp.substring(0, tmp.indexOf("$"));
+        tmp = tmp.substring(tmp.indexOf("$") + 1, tmp.length());
+
+        return new Object[]{tmp, salt, N, r, p, tmp.length() / 2};
+    }
+
+    /**
+     * Formats the hash in the following format:
+     * <p>
+     * N$r$p$salt$digest
+     *
+     * @param hash
+     * @param salt
+     *
+     * @return
+     *
+     * @throws UnsupportedEncodingException
+     */
+    public static String encodeDigest(byte[] hash, byte[] salt) throws UnsupportedEncodingException {
+        return KDF_N + "$" + KDF_r + "$" + KDF_p + "$" + Hex.toHexString(salt) + "$" + Hex.toHexString(hash);
+    }
+
+    /**
+     * Derives a key, i.e. a hash, from a given password, using the following
+     * scrypt parameters:
+     * <ul>
+     * <li>salt=random 32B</li>
+     * <li>N=2^19</li>
+     * <li>r=8</li>
+     * <li>p=4</li>
+     *
+     * </ul>
+     *
+     * @param pass
+     * @return
+     * @throws UnsupportedEncodingException
+     */
+    public static String deriveKey(char[] pass) throws UnsupportedEncodingException {
+        byte[] salt = GPCrypto.randomGen(32);
+        return encodeDigest(scrypt(pass, salt, 32), salt);
     }
 }
