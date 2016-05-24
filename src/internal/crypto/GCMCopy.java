@@ -42,7 +42,7 @@ import org.bouncycastle.util.encoders.Hex;
  *
  * @author Serphentas
  */
-final class GCMCopy {
+public final class GCMCopy {
 
     private static final String CIPHER = "AES/GCM/NoPadding",
             CRYPTO_PROVIDER = "BC";
@@ -51,7 +51,7 @@ final class GCMCopy {
             GCM_TAG_BITS = 128,
             S_BYTES = 64,
             R_BYTES = 64,
-            BUFFER_SIZE = 4096,
+            BUFFER_SIZE = 512,
             KDF_r = 8,
             KDF_p = 1,
             VS1 = S_BYTES,
@@ -63,7 +63,7 @@ final class GCMCopy {
             N2K2N = S2N2 + 1;
     private static int K1_KDF_N = 20,
             K2_KDF_N = 19;
-    private static final byte[] buffer = new byte[BUFFER_SIZE];
+    private static final byte[] buf = new byte[BUFFER_SIZE];
 
     private final Cipher cipher;
 
@@ -95,7 +95,7 @@ final class GCMCopy {
      * Instantiates a Cipher object using AES-256 in GCM mode of operation,
      * allowing subsequent use for file encryption and decryption
      */
-    protected GCMCopy() throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException {
+    public GCMCopy() throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException {
         /*
         suppresses the restriction over keys larger than 128 bits due to the
         JCE Unlimited Strength Jurisdiction Policy
@@ -123,7 +123,7 @@ final class GCMCopy {
      * @throws javax.crypto.BadPaddingException
      * @throws javax.crypto.IllegalBlockSizeException
      */
-    protected void encrypt_V00(File inputFile, File outputFile) throws IOException, InvalidKeyException, InvalidAlgorithmParameterException, BadPaddingException, IllegalBlockSizeException {
+    public void encrypt_V00(File inputFile, File outputFile) throws IOException, InvalidKeyException, InvalidAlgorithmParameterException, BadPaddingException, IllegalBlockSizeException {
         // defining I/O streams
         InputStream input = new FileInputStream(inputFile);
         OutputStream output = new FileOutputStream(outputFile);
@@ -131,7 +131,7 @@ final class GCMCopy {
         // getting the encryption password
         char[] pass = DefaultCipher.getEncryptionPassword();
 
-        // generating Sx, Nx, R, Kx
+        // generating Sx, Nx, R and Kx
         final byte[] S1 = GPCrypto.randomGen(S_BYTES),
                 S2 = GPCrypto.randomGen(S_BYTES),
                 epoch = DatatypeConverter.parseHexBinary(Long.toHexString(NTP.getTime() / 1000)),
@@ -157,19 +157,24 @@ final class GCMCopy {
         output.write(S2);
         output.write(N2);
         output.write(DatatypeConverter.parseHexBinary(Integer.toHexString(K2_KDF_N)));
-
+        
         // encrypting file
         this.cipher.init(Cipher.ENCRYPT_MODE, K2, new GCMParameterSpec(
                 GCM_TAG_BITS, N2, 0, GCM_NONCE_BYTES));
         InputStream cis = new CipherInputStream(input, this.cipher);
 
         int r = 0;
-        while ((r = cis.read(buffer)) != -1) {
-            output.write(buffer, 0, r);
+        System.out.println("file");
+        while ((r = input.read(buf)) != -1) {
+            if (r == buf.length) {
+                output.write(this.cipher.update(buf));
+            } else {
+                output.write(this.cipher.doFinal(Arrays.copyOfRange(buf, 0, r)));
+            }
         }
 
         // erasing cryptographic parameters and closing streams
-        GPCrypto.eraseByteArrays(S1, S2, epoch, N1, N2, R);
+        GPCrypto.eraseByteArrays(S1, S2, epoch, N1, N2, R, buf);
         GPCrypto.eraseKeys(K1, K2);
         GPCrypto.sanitize(pass);
         cis.close();
@@ -188,7 +193,7 @@ final class GCMCopy {
      * @throws javax.crypto.BadPaddingException
      * @throws javax.crypto.IllegalBlockSizeException
      */
-    protected void decrypt_V00(File inputFile, File outputFile) throws IOException, InvalidKeyException, InvalidAlgorithmParameterException, BadPaddingException, IllegalBlockSizeException {
+    public void decrypt_V00(File inputFile, File outputFile) throws IOException, InvalidKeyException, InvalidAlgorithmParameterException, BadPaddingException, IllegalBlockSizeException {
         // defining I/O streams
         OutputStream output = new FileOutputStream(outputFile);
         InputStream input = new FileInputStream(inputFile);
@@ -227,12 +232,17 @@ final class GCMCopy {
                 GCM_TAG_BITS, N2, 0, GCM_NONCE_BYTES));
         InputStream cis = new CipherInputStream(input, this.cipher);
         int r = 0;
-        while ((r = cis.read(buffer)) > 0) {
-            output.write(buffer, 0, r);
+        while ((r = input.read(buf)) != -1) {
+            if (r == buf.length) {
+                output.write(this.cipher.update(buf));
+            } else {
+                output.write(this.cipher.update(Arrays.copyOfRange(buf, 0, r - 16)));
+                output.write(this.cipher.doFinal(Arrays.copyOfRange(buf, r - 16, r)));
+            }
         }
 
         // erasing cryptographic parameters and closing streams
-        GPCrypto.eraseByteArrays(header, S1, S2, N1, N2, R);
+        GPCrypto.eraseByteArrays(header, S1, S2, N1, N2, R, buf);
         GPCrypto.eraseKeys(K1, K2);
         GPCrypto.sanitize(pass);
         cis.close();

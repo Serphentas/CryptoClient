@@ -526,7 +526,7 @@ public class DefaultFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_preferencesMenuItemActionPerformed
 
     private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
-        if(!disconnecting){
+        if (!disconnecting) {
             exitMenuItemActionPerformed(null);
         } else {
             this.dispose();

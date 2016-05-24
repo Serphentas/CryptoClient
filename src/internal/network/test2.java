@@ -1,20 +1,18 @@
 package internal.network;
 
+import internal.crypto.DefaultCipher;
+import internal.crypto.GCMCopy;
 import internal.crypto.GPCrypto;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
+import java.security.Security;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bouncycastle.crypto.generators.SCrypt;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.encoders.Hex;
-import visual.ErrorHandler;
 
 public class test2 {
 
@@ -43,23 +41,15 @@ public class test2 {
  /*for(int i = 0; i<2; i++){
             new Thread(new shit(i)).start();
         }*/
-        File config = new File("shit");
-        try {
-            config.createNewFile();
-            BufferedWriter out = new BufferedWriter(new FileWriter(config));
-            out.write("agreedTOS=yes\n");
-            out.write("get=rekt");
-            out.close();
-
-            BufferedReader in = new BufferedReader(new FileReader(config));
-            String line;
-            while ((line = in.readLine()) != null) {
-                System.out.println(line);
-            }
-            in.close();
-        } catch (IOException ex) {
-            ErrorHandler.showError(ex);
-        }
+        Security.addProvider(new BouncyCastleProvider());
+        GCMCopy gcm = new GCMCopy();
+        DefaultCipher.setEncryptionPassword(new char[]{'a', 's', 'd', 'f', 'a', 's', 'd', 'f', 'a', 's', 'd', 'f', 'a', 's', 'd', 'f', 'a', 's', 'd', 'f'});
+        File src = new File("def"),
+                test = new File("/mnt/zshare/documents/coding/CryptoServer/users/asdasd/README.md"),
+                dec = new File("dec"),
+                enc = new File("enc");
+        //gcm.encrypt_V00(src, enc);
+        gcm.decrypt_V00(test, dec);
 
     }
 

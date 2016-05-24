@@ -26,7 +26,6 @@ import java.security.NoSuchProviderException;
 import java.util.Arrays;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.CipherInputStream;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
@@ -53,7 +52,7 @@ public final class GCMCipher {
             GCM_TAG_BITS = 128,
             S_BYTES = 64,
             R_BYTES = 64,
-            BUFFER_SIZE = 1024,
+            BUFFER_SIZE = 512,
             KDF_r = 8,
             KDF_p = 1,
             VS1 = S_BYTES,
@@ -95,7 +94,6 @@ public final class GCMCipher {
 
     private final DataOutputStream dos;
     private final DataInputStream dis;
-    private final OutputStream os;
 
     /**
      * Instantiates a Cipher object using AES-256 in GCM mode of operation,
@@ -105,7 +103,7 @@ public final class GCMCipher {
      * @param dos
      *
      */
-    protected GCMCipher(DataOutputStream dos, DataInputStream dis, OutputStream os) throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException {
+    protected GCMCipher(DataOutputStream dos, DataInputStream dis) throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException {
         /*
         suppresses the restriction over keys larger than 128 bits due to the
         JCE Unlimited Strength Jurisdiction Policy
@@ -122,7 +120,6 @@ public final class GCMCipher {
         // settings the I/O streams
         this.dos = dos;
         this.dis = dis;
-        this.os = os;
     }
 
     /**
@@ -140,7 +137,7 @@ public final class GCMCipher {
      * @throws javax.crypto.IllegalBlockSizeException
      */
     protected boolean encrypt_V00(File inputFile) throws IOException, InvalidKeyException, InvalidAlgorithmParameterException, BadPaddingException, IllegalBlockSizeException {
-        // defining I/O streams
+        // defining input stream
         InputStream input = new FileInputStream(inputFile);
 
         // getting the encryption password
@@ -164,23 +161,27 @@ public final class GCMCipher {
         // writing header
         this.cipher.init(Cipher.ENCRYPT_MODE, K1, new GCMParameterSpec(
                 GCM_TAG_BITS, N1, 0, GCM_NONCE_BYTES));
-        os.write((byte) 0x00);
-        os.write(S1);
-        os.write(N1);
-        os.write(DatatypeConverter.parseHexBinary(Integer.toHexString(K1_KDF_N)));
-        os.write(cipher.doFinal(R));
-        os.write(S2);
-        os.write(N2);
-        os.write(DatatypeConverter.parseHexBinary(Integer.toHexString(K2_KDF_N)));
+        dos.write((byte) 0x00);
+        dos.write(S1);
+        dos.write(N1);
+        dos.write(DatatypeConverter.parseHexBinary(Integer.toHexString(K1_KDF_N)));
+        dos.write(cipher.doFinal(R));
+        dos.write(S2);
+        dos.write(N2);
+        dos.write(DatatypeConverter.parseHexBinary(Integer.toHexString(K2_KDF_N)));
 
         // encrypting file
         this.cipher.init(Cipher.ENCRYPT_MODE, K2, new GCMParameterSpec(
                 GCM_TAG_BITS, N2, 0, GCM_NONCE_BYTES));
-        InputStream cis = new CipherInputStream(input, this.cipher);
 
         int r = 0;
-        while ((r = cis.read(buf)) != -1) {
-            os.write(buf, 0, r);
+        System.out.println("file");
+        while ((r = input.read(buf)) != -1) {
+            if (r == BUFFER_SIZE) {
+                dos.write(this.cipher.update(buf));
+            } else {
+                dos.write(this.cipher.doFinal(Arrays.copyOfRange(buf, 0, r)));
+            }
         }
 
         // erasing cryptographic parameters and closing streams
@@ -191,12 +192,12 @@ public final class GCMCipher {
 
         return dis.readBoolean();
     }
-    
-        /**
+
+    /**
      * Decrypts a given file with AES-256 in GCM mode of operation
      *
      * @param outputFile
-     * @return 
+     * @return
      * @throws java.io.IOException
      * @throws java.security.InvalidKeyException
      * @throws java.security.InvalidAlgorithmParameterException
@@ -204,7 +205,7 @@ public final class GCMCipher {
      * @throws javax.crypto.IllegalBlockSizeException
      */
     protected boolean decrypt_V00(File outputFile) throws IOException, InvalidKeyException, InvalidAlgorithmParameterException, BadPaddingException, IllegalBlockSizeException {
-        // defining I/O streams
+        // defining output stream
         OutputStream output = new FileOutputStream(outputFile);
 
         // getting the encryption password
@@ -239,10 +240,15 @@ public final class GCMCipher {
         // decrypting file
         this.cipher.init(Cipher.DECRYPT_MODE, K2, new GCMParameterSpec(
                 GCM_TAG_BITS, N2, 0, GCM_NONCE_BYTES));
-        InputStream cis = new CipherInputStream(dis, this.cipher);
+
         int r = 0;
-        while ((r = cis.read(buf)) > 0) {
-            output.write(buf, 0, r);
+        while ((r = dis.read(buf)) > 0) {
+            if (r == BUFFER_SIZE) {
+                output.write(this.cipher.update(buf));
+            } else {
+                output.write(this.cipher.update(Arrays.copyOfRange(buf, 0, r - 16)));
+                output.write(this.cipher.doFinal(Arrays.copyOfRange(buf, r - 16, r)));
+            }
         }
 
         // erasing cryptographic parameters and closing streams
@@ -250,7 +256,7 @@ public final class GCMCipher {
         GPCrypto.eraseKeys(K1, K2);
         GPCrypto.sanitize(pass);
         output.close();
-        
+
         return dis.readBoolean();
     }
 

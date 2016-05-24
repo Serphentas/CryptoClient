@@ -145,7 +145,16 @@ public class LoginWorker extends SwingWorker<Boolean, Boolean> {
                 LoginForm.updateLoginLabel("Login failed, please check your credentials.");
             }
         } catch (InterruptedException | ExecutionException | IOException ex) {
-            ErrorHandler.showError(ex);
+            if (ex.getCause().toString().contains("unable to find valid certification path to requested target")) {
+                ErrorHandler.showError("the server certificate could not be verified.\n\nSomebody might"
+                        + " be trying to perform a MITM attack !");
+            } else if (ex.getMessage().contains("Connection refused")) {
+                ErrorHandler.showError("could not connect to the authentication server.\n\nPlease "
+                        + "check your Internet connection.");
+            } else {
+                ErrorHandler.showError(ex);
+            }
+            LoginForm.updateLoginLabel("");
         }
     }
 }

@@ -1,12 +1,10 @@
 package internal.network;
 
 import internal.crypto.DefaultCipher;
-import internal.crypto.GCMCipher;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import visual.ErrorHandler;
 
 /**
@@ -20,16 +18,13 @@ public abstract class IO {
             UPLOAD = 0x10,
             DOWNLOAD = 0x11;
 
-    private static GCMCipher gcmc;
     private static DataOutputStream dos;
     private static DataInputStream dis;
-    private static OutputStream os;
 
-    public static void init(DataOutputStream dos, DataInputStream dis, OutputStream os) throws IOException, Exception {
-        DefaultCipher.init(dos, dis, os);
+    public static void init(DataOutputStream dos, DataInputStream dis) throws IOException, Exception {
+        DefaultCipher.init(dos, dis);
         IO.dos = dos;
         IO.dis = dis;
-        IO.os = os;
     }
 
     /**
@@ -45,7 +40,6 @@ public abstract class IO {
         try {
             dos.writeByte(UPLOAD);
             dos.writeUTF(remoteFilePath);
-            dos.writeLong(1 + ((input.length() + 16) / 1024));
             int reply = dis.readInt();
             
             if (reply == 0) {

@@ -70,7 +70,6 @@ public abstract class Authentication {
         authDos.write(GPCrypto.charToByte(password));
 
         if (authDis.readBoolean()) {
-
             // checking if the user is new
             Settings.setIsNew(authDis.readBoolean());
 
@@ -104,7 +103,7 @@ public abstract class Authentication {
             if (ctrlStatus && ioStatus) {
                 LoginForm.updateLoginLabel("Authentication successful");
                 Control.init(ctrlDos, ctrlDis);
-                IO.init(ioDos, ioDis, ioSocket.getOutputStream());
+                IO.init(ioDos, ioDis);
                 return true;
             } else {
                 return false;

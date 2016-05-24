@@ -76,6 +76,7 @@ public class LoginForm extends javax.swing.JFrame {
             }
         });
 
+        loginStatusLabel.setFont(new java.awt.Font("DejaVu Sans", 0, 11)); // NOI18N
         loginStatusLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
 
         jMenu1.setText("File");

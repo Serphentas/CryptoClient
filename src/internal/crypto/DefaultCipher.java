@@ -5,7 +5,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -30,7 +29,6 @@ public abstract class DefaultCipher {
     private static char[] encPass;
     private static DataOutputStream dos;
     private static DataInputStream dis;
-    private static OutputStream os;
 
     /**
      * Sets the encryption password
@@ -52,10 +50,9 @@ public abstract class DefaultCipher {
         return encPass.clone();
     }
 
-    public static void init(DataOutputStream dos, DataInputStream dis, OutputStream os) {
+    public static void init(DataOutputStream dos, DataInputStream dis) {
         DefaultCipher.dos = dos;
         DefaultCipher.dis = dis;
-        DefaultCipher.os = os;
     }
 
     /**
@@ -93,10 +90,11 @@ public abstract class DefaultCipher {
      */
     public static boolean encrypt(File input) throws IOException, InvalidKeyException, InvalidAlgorithmParameterException, BadPaddingException, IllegalBlockSizeException, ClassNotFoundException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException {
         boolean reply = false;
+        dos.writeLong(input.length());
 
         switch (Settings.getVersion()) {
             case 0x00:
-                GCMCipher gcm = new GCMCipher(dos, dis, os);
+                GCMCipher gcm = new GCMCipher(dos, dis);
                 GCMCipher.setK1N(Settings.getK1_N());
                 GCMCipher.setK2N(Settings.getK2_N());
                 reply = gcm.encrypt_V00(input);
@@ -146,7 +144,7 @@ public abstract class DefaultCipher {
 
         switch (VERSION) {
             case 0x00:
-                GCMCipher gcm = new GCMCipher(dos, dis, os);
+                GCMCipher gcm = new GCMCipher(dos, dis);
                 reply = gcm.decrypt_V00(output);
         }
 

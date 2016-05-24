@@ -142,6 +142,9 @@
     </Component>
     <Component class="javax.swing.JLabel" name="loginStatusLabel">
       <Properties>
+        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+          <Font name="DejaVu Sans" size="11" style="0"/>
+        </Property>
         <Property name="horizontalAlignment" type="int" value="0"/>
       </Properties>
       <AuxValues>
