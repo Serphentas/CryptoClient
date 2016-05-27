@@ -1,10 +1,10 @@
 package org.gity.internal.network;
 
-import org.gity.internal.crypto.DefaultCipher;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
+import org.gity.internal.crypto.DefaultCipher;
 import org.gity.visual.ErrorHandler;
 
 /**
@@ -17,6 +17,7 @@ public abstract class IO {
     private static final byte DISCONNECT = 0x00,
             UPLOAD = 0x10,
             DOWNLOAD = 0x11;
+    private static final int EXEC_OK = 0;
 
     private static DataOutputStream dos;
     private static DataInputStream dis;
@@ -51,7 +52,7 @@ public abstract class IO {
 
             int reply = dis.readInt();
 
-            if (reply == 0) {
+            if (reply == EXEC_OK) {
                 return DefaultCipher.encrypt(input);
             } else {
                 return reply;
@@ -77,7 +78,7 @@ public abstract class IO {
 
             int reply = dis.readInt();
 
-            if (reply == 0) {
+            if (reply == EXEC_OK) {
                 return DefaultCipher.decrypt(output);
             } else {
                 return reply;

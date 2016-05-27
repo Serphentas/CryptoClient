@@ -9,9 +9,6 @@
  */
 package org.gity.visual.workers;
 
-import org.gity.internal.Settings;
-import org.gity.internal.network.Control;
-import org.gity.internal.network.IO;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -20,6 +17,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
+import org.gity.internal.Settings;
+import org.gity.internal.network.Control;
+import org.gity.internal.network.IO;
 import org.gity.visual.DefaultFrame;
 import org.gity.visual.ErrorHandler;
 
@@ -33,7 +33,11 @@ public class FileWorker extends SwingWorker<Integer, String> {
     private static final String[] buttons = {"Yes", "Yes to all", "No", "Cancel"};
 
     private static JTable fileTable, fileQueue;
-    private static String filePath, dlDir;
+    private static String srcFilePath,
+            dlDir,
+            dstFilePath;
+    private static File dstFile,
+            srcFile;
     private static JFileChooser fc;
 
     private static void failIfInterrupted() throws InterruptedException {
@@ -66,19 +70,20 @@ public class FileWorker extends SwingWorker<Integer, String> {
 
         while (!isQueueEmpty) {
             fileQueue.setValueAt("In progress", 0, 2);
-            filePath = (String) fileQueue.getValueAt(0, 0);
+            srcFilePath = (String) fileQueue.getValueAt(0, 0);
+            dstFilePath = (String) fileQueue.getValueAt(0, 1);
 
             if (fileQueue.getValueAt(0, 3).equals("Upload")) {
-                File source = new File(filePath);
+                srcFile = new File(srcFilePath);
 
-                if (source.length() > 6e10) {
-                    JOptionPane.showMessageDialog(null, "Error: could not upload the file " + source.
+                if (srcFile.length() > 6e10) {
+                    JOptionPane.showMessageDialog(null, "Error: could not upload the file " + srcFile.
                             getName() + ".\nAt the present time, uploads are capped at 60GB.", "Upload file",
                             JOptionPane.ERROR_MESSAGE);
                 } else {
-                    if (!yesForAll && Control.exists(source.getName())) {
+                    if (!yesForAll && Control.exists(dstFilePath)) {
                         returnVal = JOptionPane.showOptionDialog(null, "File "
-                                + source.getName() + " already exists. Overwrite ?",
+                                + srcFile.getName() + " already exists. Overwrite ?",
                                 "Overwrite", JOptionPane.DEFAULT_OPTION,
                                 JOptionPane.QUESTION_MESSAGE, null, buttons,
                                 buttons[2]);
@@ -88,12 +93,12 @@ public class FileWorker extends SwingWorker<Integer, String> {
 
                     if (returnVal < 2) {
                         if (existsFile) {
-                            Control.rm((String) fileQueue.getValueAt(0, 1));
+                            Control.rm(dstFilePath);
                             existsFile = false;
                         }
 
-                        String prefix = "Error: could not upload " + (String) fileQueue.getValueAt(0, 0) + ".\n";
-                        switch (IO.upload(source, (String) fileQueue.getValueAt(0, 1))) {
+                        String prefix = "could not upload " + (String) fileQueue.getValueAt(0, 0) + ".\n";
+                        switch (IO.upload(srcFile, dstFilePath)) {
                             case 2:
                                 ErrorHandler.showError(prefix + "Remote filename is too short.");
                                 break;
@@ -107,12 +112,11 @@ public class FileWorker extends SwingWorker<Integer, String> {
                     }
                 }
             } else if (fileQueue.getValueAt(0, 3).equals("Download")) {
-                filePath = (String) fileQueue.getValueAt(0, 0);
-                File destFile = new File((String) fileQueue.getValueAt(0, 1));
+                dstFile = new File(dstFilePath);
 
-                if (!yesForAll && destFile.isFile() && destFile.exists()) {
+                if (!yesForAll && dstFile.isFile() && dstFile.exists()) {
                     returnVal = JOptionPane.showOptionDialog(null, "File "
-                            + destFile.getName() + " already exists. Overwrite ?",
+                            + dstFile.getName() + " already exists. Overwrite ?",
                             "Overwrite", JOptionPane.DEFAULT_OPTION,
                             JOptionPane.QUESTION_MESSAGE, null, buttons,
                             buttons[2]);
@@ -120,12 +124,12 @@ public class FileWorker extends SwingWorker<Integer, String> {
                 }
 
                 if (returnVal < 2) {
-                    if (destFile.exists()) {
-                        destFile.delete();
+                    if (dstFile.exists()) {
+                        dstFile.delete();
                     }
 
-                    String prefix = "Error: could not download " + (String) fileQueue.getValueAt(0, 0) + ".\n";
-                    switch (IO.download(filePath, destFile)) {
+                    String prefix = "could not download " + (String) fileQueue.getValueAt(0, 0) + ".\n";
+                    switch (IO.download(srcFilePath, dstFile)) {
                         case 2:
                             ErrorHandler.showError(prefix + "Remote filename is too short.");
                             break;

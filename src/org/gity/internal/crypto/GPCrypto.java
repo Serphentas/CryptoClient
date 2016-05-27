@@ -59,8 +59,8 @@ public abstract class GPCrypto {
      *
      * @param array byte array to sanitize
      */
-    public static void sanitize(byte[] array) {
-        for (int i = 0; i < SANITIZATION_COUNT; i++) {
+    public static void sanitize(byte[] array, int iterCnt) {
+        for (int i = 0; i < iterCnt; i++) {
             rand.nextBytes(array);
         }
     }
@@ -111,7 +111,7 @@ public abstract class GPCrypto {
      */
     public static void eraseByteArrays(byte[]... arrays) {
         for (byte[] array : arrays) {
-            sanitize(array);
+            sanitize(array, SANITIZATION_COUNT);
         }
     }
 
@@ -122,7 +122,7 @@ public abstract class GPCrypto {
      */
     public static void eraseKeys(SecretKey... keys) {
         for (SecretKey key : keys) {
-            GPCrypto.sanitize(key.getEncoded());
+            GPCrypto.sanitize(key.getEncoded(), SANITIZATION_COUNT);
         }
     }
 
@@ -158,7 +158,7 @@ public abstract class GPCrypto {
     public static byte[] scrypt(char[] password, byte[] salt, int dkLen) throws UnsupportedEncodingException {
         byte[] passBytes = charToByte(password),
                 digest = SCrypt.generate(passBytes, salt, KDF_N, KDF_r, KDF_p, dkLen);
-        sanitize(passBytes);
+        sanitize(passBytes, SANITIZATION_COUNT);
         return digest;
     }
 
@@ -178,7 +178,7 @@ public abstract class GPCrypto {
         byte[] bytes = Arrays.copyOfRange(byteBuffer.array(),
                 byteBuffer.position(), byteBuffer.limit());
         sanitize(charBuffer.array());
-        sanitize(byteBuffer.array());
+        sanitize(byteBuffer.array(), SANITIZATION_COUNT);
         return bytes;
     }
 

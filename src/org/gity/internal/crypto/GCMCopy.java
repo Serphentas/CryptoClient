@@ -9,7 +9,6 @@
  */
 package org.gity.internal.crypto;
 
-import org.gity.internal.network.NTP;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -24,7 +23,6 @@ import java.security.NoSuchProviderException;
 import java.util.Arrays;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.CipherInputStream;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
@@ -33,6 +31,7 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.xml.bind.DatatypeConverter;
 import org.bouncycastle.crypto.generators.SCrypt;
 import org.bouncycastle.util.encoders.Hex;
+import org.gity.internal.network.NTP;
 
 /**
  * General purpose class used for encryption and decryption of files, using
@@ -61,7 +60,7 @@ public final class GCMCopy {
             RS2 = K1NR + S_BYTES,
             S2N2 = RS2 + GCM_NONCE_BYTES,
             N2K2N = S2N2 + 1;
-    private static int K1_KDF_N = 20,
+    private static int K1_KDF_N = 19,
             K2_KDF_N = 19;
     private static final byte[] buf = new byte[BUFFER_SIZE];
 
@@ -117,6 +116,7 @@ public final class GCMCopy {
      * OutputStream
      *
      * @param inputFile
+     * @param outputFile
      * @throws java.io.IOException
      * @throws java.security.InvalidKeyException
      * @throws java.security.InvalidAlgorithmParameterException
@@ -130,6 +130,8 @@ public final class GCMCopy {
 
         // getting the encryption password
         char[] pass = DefaultCipher.getEncryptionPassword();
+
+        long fileSize = inputFile.length();
 
         // generating Sx, Nx, R and Kx
         final byte[] S1 = GPCrypto.randomGen(S_BYTES),
@@ -157,27 +159,31 @@ public final class GCMCopy {
         output.write(S2);
         output.write(N2);
         output.write(DatatypeConverter.parseHexBinary(Integer.toHexString(K2_KDF_N)));
-        
+
         // encrypting file
         this.cipher.init(Cipher.ENCRYPT_MODE, K2, new GCMParameterSpec(
                 GCM_TAG_BITS, N2, 0, GCM_NONCE_BYTES));
-        InputStream cis = new CipherInputStream(input, this.cipher);
+        int r = 0,
+                counter = 0;
 
-        int r = 0;
-        System.out.println("file");
         while ((r = input.read(buf)) != -1) {
-            if (r == buf.length) {
-                output.write(this.cipher.update(buf));
+            counter++;
+            if (r == BUFFER_SIZE) {
+                if (counter * BUFFER_SIZE != fileSize) {
+                    output.write(this.cipher.update(buf));
+                } else {
+                    output.write(this.cipher.doFinal(buf));
+                }
             } else {
                 output.write(this.cipher.doFinal(Arrays.copyOfRange(buf, 0, r)));
             }
         }
 
         // erasing cryptographic parameters and closing streams
-        GPCrypto.eraseByteArrays(S1, S2, epoch, N1, N2, R, buf);
+        GPCrypto.eraseByteArrays(S1, S2, epoch, N1, N2, R);
+        GPCrypto.sanitize(buf, 1000);
         GPCrypto.eraseKeys(K1, K2);
         GPCrypto.sanitize(pass);
-        cis.close();
         input.close();
         output.close();
     }
@@ -200,6 +206,11 @@ public final class GCMCopy {
 
         // getting the encryption password
         char[] pass = DefaultCipher.getEncryptionPassword();
+
+        long fileSize = inputFile.length(),
+                iterCnt = fileSize / BUFFER_SIZE,
+                percentage = fileSize / 100L,
+                bytesRead = 0L;
 
         // skipping version byte and reading header
         input.skip(1);
@@ -230,22 +241,47 @@ public final class GCMCopy {
         // decrypting file
         this.cipher.init(Cipher.DECRYPT_MODE, K2, new GCMParameterSpec(
                 GCM_TAG_BITS, N2, 0, GCM_NONCE_BYTES));
-        InputStream cis = new CipherInputStream(input, this.cipher);
-        int r = 0;
-        while ((r = input.read(buf)) != -1) {
-            if (r == buf.length) {
-                output.write(this.cipher.update(buf));
-            } else {
+        int r = 0,
+                counter = 0;
+
+        /*while ((r = input.read(buf)) != -1) {
+            counter++;
+            System.out.println(r);
+            if (r == BUFFER_SIZE) {
+                if (counter * BUFFER_SIZE != (fileSize - 235)) {
+                    output.write(this.cipher.update(buf));
+                } else {
+                    output.write(this.cipher.doFinal(buf));
+                }
+            } else if (r != 16) {
                 output.write(this.cipher.update(Arrays.copyOfRange(buf, 0, r - 16)));
                 output.write(this.cipher.doFinal(Arrays.copyOfRange(buf, r - 16, r)));
+            } else {
+                output.write(this.cipher.doFinal(Arrays.copyOfRange(buf, 0, 16)));
+            }
+            cos.write(buf, 0, r);
+        }*/
+
+        for (int i = 0; i < iterCnt; i++) {
+            input.read(buf);
+            if (i != iterCnt) {
+                output.write(this.cipher.update(buf));
+            } else if (fileSize % BUFFER_SIZE == 0) {
+                output.write(this.cipher.doFinal(buf));
             }
         }
 
+        if (fileSize % BUFFER_SIZE != 0) {
+            r = input.read(buf, 0, ((int) fileSize % BUFFER_SIZE) + 16);
+            output.write(this.cipher.update(Arrays.copyOfRange(buf, 0, r - 16)));
+            output.write(this.cipher.doFinal(Arrays.copyOfRange(buf, r - 16, r)));
+        }
+
         // erasing cryptographic parameters and closing streams
-        GPCrypto.eraseByteArrays(header, S1, S2, N1, N2, R, buf);
+        GPCrypto.eraseByteArrays(header, S1, S2, N1, N2, R);
+        GPCrypto.sanitize(buf, 1000);
         GPCrypto.eraseKeys(K1, K2);
         GPCrypto.sanitize(pass);
-        cis.close();
         output.close();
     }
 }

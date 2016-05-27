@@ -20,12 +20,14 @@ public class NTP {
      * <ul>
      * <li>0.ch.pool.ntp.org</li>
      * </ul>
+     * <p>
+     * Waits up to 10 seconds to get a response
      *
      * @return current Unix epoch, in milliseconds
      */
     public static long getTime() {
         NTPUDPClient client = new NTPUDPClient();
-        client.setDefaultTimeout(3000);
+        client.setDefaultTimeout(10000);
         String host = "0.ch.pool.ntp.org";
         long epoch = 0;
 

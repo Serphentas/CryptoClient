@@ -123,9 +123,19 @@ public class DefaultFrame extends javax.swing.JFrame {
         fileQueue.setValueAt(status, 0, 2);
     }
 
+    /**
+     * Converts a file size in Long to a human readable format
+     * <p>
+     * Ex: 12543 bytes -> 12.24 KiB
+     *
+     * @param longSize file size in Long
+     * @return human readable size format
+     */
     private static String longToSize(long longSize) {
         String size = new String();
-        if (longSize / 1024 < 1024) {
+        if (longSize < 1024) {
+            size = longSize + " bytes";
+        } else if (longSize / 1024 < 1024) {
             size = longSize / 1024 + " KiB";
         } else if (longSize / 1048576 < 1024) {
             size = longSize / 1048576 + " MiB";

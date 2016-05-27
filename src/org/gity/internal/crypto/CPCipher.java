@@ -49,7 +49,7 @@ public final class CPCipher {
 
     private final ChaChaEngine cipher;
     private final Poly1305 mac;
-    private static int BUFFER_SIZE = 1024;
+    private static int BUFFER_SIZE = 8192;
 
     public CPCipher() throws IOException {
         this.cipher = new ChaChaEngine();
@@ -65,11 +65,11 @@ public final class CPCipher {
     }
 
     /**
-     * Encrypts a given file with ChaCha20 w/ Poly1305 as MAC in
+     * Encrypts a given file with ChaCha20 w/ Poly1305 as MAC in the
      * encrypt-then-MAC scheme.
      * <p>
-     * Reads data from the InputStream and writes the encrypted data to the
-     * OutputStream
+     * After each chunk of 8KiB, a MAC tag is written out. This means the output
+     * file size is increased by 16B/8192B = 0.001953125%.
      *
      * @param key
      * @param nonce
@@ -84,7 +84,7 @@ public final class CPCipher {
         initMAC(cipher);
 
         int r = 0;
-        while ((r = input.read(readBuf)) > 0) {
+        while ((r = input.read(readBuf)) != -1) {
             cipher.processBytes(readBuf, 0, r, chachaBuf, 0);
             output.write(chachaBuf, 0, r);
             updateMAC(chachaBuf, 0, r);
@@ -115,7 +115,7 @@ public final class CPCipher {
         initMAC(cipher);
 
         int r = 0;
-        while ((r = input.read(readBuf)) > 0) {
+        while ((r = input.read(readBuf)) != -1) {
             // case when EOF has not been reached
             if (r == BUFFER_SIZE) {
                 // use C in whole to update the MAC and decrypt

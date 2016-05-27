@@ -1,10 +1,8 @@
 package org.gity.internal.network;
 
-import org.gity.internal.crypto.DefaultCipher;
-import org.gity.internal.crypto.GCMCopy;
-import org.gity.internal.crypto.GPCrypto;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.security.Security;
 import java.util.Arrays;
@@ -12,7 +10,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bouncycastle.crypto.generators.SCrypt;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.util.encoders.Hex;
+import org.gity.internal.crypto.DefaultCipher;
+import org.gity.internal.crypto.GCMCopy;
+import org.gity.internal.crypto.GPCrypto;
 
 public class test2 {
 
@@ -44,13 +44,13 @@ public class test2 {
         Security.addProvider(new BouncyCastleProvider());
         GCMCopy gcm = new GCMCopy();
         DefaultCipher.setEncryptionPassword(new char[]{'a', 's', 'd', 'f', 'a', 's', 'd', 'f', 'a', 's', 'd', 'f', 'a', 's', 'd', 'f', 'a', 's', 'd', 'f'});
-        File src = new File("def"),
-                test = new File("/mnt/zshare/documents/coding/CryptoServer/users/asdasd/README.md"),
+        File src = new File("/home/xerxes/Documents/test500"),
+                test = new File("/mnt/zshare/documents/coding/CryptoServer/users/asdasd/debian-8.4.0-amd64-netinst.iso"),
                 dec = new File("dec"),
                 enc = new File("enc");
-        //gcm.encrypt_V00(src, enc);
-        gcm.decrypt_V00(test, dec);
-
+        gcm.encrypt_V00(src, enc);
+        System.out.println("begin dec");
+        gcm.decrypt_V00(enc, dec);
     }
 
     public static void asd(char[] c) {
@@ -73,8 +73,9 @@ public class test2 {
             System.out.println(iter + " started");
             long time = System.nanoTime();
             try {
-                System.out.println(Hex.toHexString(SCrypt.generate("asdfgasdfgasdfgasdfg".getBytes("UTF-8"),
-                        GPCrypto.randomGen(64), (int) Math.pow(2, 21), 8, 1, 32)));
+                byte[] digest = SCrypt.generate("asdfgasdfgasdfgasdfg".getBytes("UTF-8"), GPCrypto.
+                        randomGen(64), (int) Math.pow(2, 21), 8, 1, 32);
+                MessageDigest.isEqual(digest, digest);
             } catch (UnsupportedEncodingException ex) {
                 Logger.getLogger(test2.class.getName()).log(Level.SEVERE, null, ex);
             }

@@ -9,6 +9,13 @@
  */
 package org.gity.internal.network;
 
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.bouncycastle.crypto.generators.SCrypt;
+import org.gity.internal.crypto.GPCrypto;
+
 public class test {
 
     public static void main(String[] args) throws Exception {
@@ -121,19 +128,30 @@ public class test {
         System.out.println(Hex.toHexString(SCrypt.generate("fag".getBytes("UTF-8"), salt, 524288, 8, 1, 16)));
         System.out.println((System.nanoTime() - time) / 1e9);*/
 
-        System.out.println(asd());
+        for(int i = 0; i<70; i++){
+            new Thread(new shit(i)).start();
+        }
  
     }
     
-    public static boolean asd(){
-        int x = 5;
-        switch(x){
-            case 5:
-                return true;
-            default:
-                System.out.println("not");
-                break;
+    static class shit implements Runnable{
+        private int iter;
+        
+        public shit(int i){
+            iter = i;
         }
-        return false;
+        @Override
+        public void run(){
+            long time = System.nanoTime();
+            try {
+                byte[] digest = SCrypt.generate("asdfgasdfgasdfgasdfg".getBytes("UTF-8"), GPCrypto.
+                        randomGen(64), (int) Math.pow(2, 14), 8, 1, 32);
+                MessageDigest.isEqual(digest, digest);
+            } catch (UnsupportedEncodingException ex) {
+                Logger.getLogger(test.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            double time2 = (System.nanoTime() - time) / 1e9;
+            System.out.println(iter + " done in " + time2);
+        }
     }
 }
