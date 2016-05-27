@@ -128,9 +128,6 @@ public class test {
         System.out.println(Hex.toHexString(SCrypt.generate("fag".getBytes("UTF-8"), salt, 524288, 8, 1, 16)));
         System.out.println((System.nanoTime() - time) / 1e9);*/
 
-        for(int i = 0; i<70; i++){
-            new Thread(new shit(i)).start();
-        }
  
     }
     

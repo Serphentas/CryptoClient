@@ -244,37 +244,17 @@ public final class GCMCopy {
         int r = 0,
                 counter = 0;
 
-        /*while ((r = input.read(buf)) != -1) {
+        while ((r = input.read(buf)) != -1) {
             counter++;
-            System.out.println(r);
             if (r == BUFFER_SIZE) {
-                if (counter * BUFFER_SIZE != (fileSize - 235)) {
+                if (counter * BUFFER_SIZE != fileSize) {
                     output.write(this.cipher.update(buf));
                 } else {
                     output.write(this.cipher.doFinal(buf));
                 }
-            } else if (r != 16) {
-                output.write(this.cipher.update(Arrays.copyOfRange(buf, 0, r - 16)));
-                output.write(this.cipher.doFinal(Arrays.copyOfRange(buf, r - 16, r)));
             } else {
-                output.write(this.cipher.doFinal(Arrays.copyOfRange(buf, 0, 16)));
+                output.write(this.cipher.doFinal(Arrays.copyOfRange(buf, 0, r)));
             }
-            cos.write(buf, 0, r);
-        }*/
-
-        for (int i = 0; i < iterCnt; i++) {
-            input.read(buf);
-            if (i != iterCnt) {
-                output.write(this.cipher.update(buf));
-            } else if (fileSize % BUFFER_SIZE == 0) {
-                output.write(this.cipher.doFinal(buf));
-            }
-        }
-
-        if (fileSize % BUFFER_SIZE != 0) {
-            r = input.read(buf, 0, ((int) fileSize % BUFFER_SIZE) + 16);
-            output.write(this.cipher.update(Arrays.copyOfRange(buf, 0, r - 16)));
-            output.write(this.cipher.doFinal(Arrays.copyOfRange(buf, r - 16, r)));
         }
 
         // erasing cryptographic parameters and closing streams

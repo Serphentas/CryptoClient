@@ -44,13 +44,16 @@ public class test2 {
         Security.addProvider(new BouncyCastleProvider());
         GCMCopy gcm = new GCMCopy();
         DefaultCipher.setEncryptionPassword(new char[]{'a', 's', 'd', 'f', 'a', 's', 'd', 'f', 'a', 's', 'd', 'f', 'a', 's', 'd', 'f', 'a', 's', 'd', 'f'});
-        File src = new File("/home/xerxes/Documents/test500"),
-                test = new File("/mnt/zshare/documents/coding/CryptoServer/users/asdasd/debian-8.4.0-amd64-netinst.iso"),
+        File src = new File("/home/xerxes/Documents/test520"),
+                test = new File("/mnt/zshare/Softwares/OS/GNU Linux/Debian/x64/debian-8.4.0-amd64-netinst.iso"),
                 dec = new File("dec"),
                 enc = new File("enc");
-        gcm.encrypt_V00(src, enc);
-        System.out.println("begin dec");
+        long time = System.nanoTime();
+        gcm.encrypt_V00(test, enc);
+        System.out.println((System.nanoTime() - time) / 1e9);
+        time = System.nanoTime();
         gcm.decrypt_V00(enc, dec);
+        System.out.println((System.nanoTime() - time) / 1e9);
     }
 
     public static void asd(char[] c) {
