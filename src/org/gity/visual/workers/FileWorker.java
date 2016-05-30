@@ -10,9 +10,7 @@
 package org.gity.visual.workers;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
-import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.SwingWorker;
@@ -32,13 +30,11 @@ public class FileWorker extends SwingWorker<Integer, String> {
 
     private static final String[] buttons = {"Yes", "Yes to all", "No", "Cancel"};
 
-    private static JTable fileTable, fileQueue;
+    private static JTable fileQueue;
     private static String srcFilePath,
-            dlDir,
             dstFilePath;
     private static File dstFile,
             srcFile;
-    private static JFileChooser fc;
 
     private static void failIfInterrupted() throws InterruptedException {
         if (Thread.currentThread().isInterrupted()) {
@@ -47,14 +43,11 @@ public class FileWorker extends SwingWorker<Integer, String> {
     }
 
     /**
-     * Creates a FileWorker with the given file table and file queue as
-     * parameters
+     * Creates a FileWorker with the given file queue as parameter
      *
-     * @param fileTable file table to work with
      * @param fileQueue file queue to work with
      */
-    public FileWorker(JTable fileTable, JTable fileQueue) {
-        FileWorker.fileTable = fileTable;
+    public FileWorker(JTable fileQueue) {
         FileWorker.fileQueue = fileQueue;
     }
 
@@ -64,9 +57,7 @@ public class FileWorker extends SwingWorker<Integer, String> {
         int returnVal = -1;
         boolean yesForAll = false,
                 isQueueEmpty = false,
-                existsFile = false,
-                isSetDlDir = false,
-                result;
+                existsFile = false;
 
         while (!isQueueEmpty) {
             fileQueue.setValueAt("In progress", 0, 2);
@@ -99,7 +90,7 @@ public class FileWorker extends SwingWorker<Integer, String> {
 
                         String prefix = "could not upload " + (String) fileQueue.getValueAt(0, 0) + ".\n";
                         switch (IO.upload(srcFile, dstFilePath)) {
-                            case 2:
+                            case 3:
                                 ErrorHandler.showError(prefix + "Remote filename is too short.");
                                 break;
                             case 1:
@@ -130,17 +121,17 @@ public class FileWorker extends SwingWorker<Integer, String> {
 
                     String prefix = "could not download " + (String) fileQueue.getValueAt(0, 0) + ".\n";
                     switch (IO.download(srcFilePath, dstFile)) {
-                        case 2:
+                        case 3:
                             ErrorHandler.showError(prefix + "Remote filename is too short.");
                             break;
-                        case 1:
+                        case 2:
                             ErrorHandler.showError(prefix + "File does not exist.");
                             break;
                         case -1:
                             ErrorHandler.showError(prefix + "I/O error occured.");
                             break;
                         case -2:
-                            ErrorHandler.showError(prefix + "An I/O problem occured.");
+                            ErrorHandler.showError(prefix + "I/O error occured.");
                             break;
                     }
                 }
@@ -155,53 +146,6 @@ public class FileWorker extends SwingWorker<Integer, String> {
 
         Settings.setIsWorking(false);
         return 1;
-    }
-
-    private void updateTable() throws IOException {
-        int i = 0;
-        /*dirs = Control.lsdir();
-        remoteFiles = Control.lsfile();*/
-        DefaultTableModel dtm = (DefaultTableModel) fileTable.getModel();
-
-        /*if (!Control.isAtRoot()) {
-            dtm.setRowCount(remoteFiles.length + 1);
-            fileTable.setModel(dtm);
-            fileTable.setValueAt("..", i, 0);
-            fileTable.setValueAt("", i, 1);
-            fileTable.setValueAt("Directory", i, 2);
-            fileTable.setValueAt("", i, 3);
-            i++;
-        } else {
-            dtm.setRowCount(remoteFiles.length);
-            fileTable.setModel(dtm);
-        }
-
-        for (FTPFile f : dirs) {
-            fileTable.setValueAt(f.getName(), i, 0);
-            fileTable.setValueAt(f.getTimestamp().getTime(), i, 1);
-            fileTable.setValueAt("Directory", i, 2);
-            fileTable.setValueAt("", i, 3);
-
-            i++;
-        }
-
-        for (FTPFile f : remoteFiles) {
-            if (f.isFile()) {
-                fileTable.setValueAt(f.getName(), i, 0);
-                fileTable.setValueAt(f.getTimestamp().getTime(), i, 1);
-                fileTable.setValueAt("File", i, 2);
-                String size = null;
-                if (f.getSize() / 1024 < 1024) {
-                    size = f.getSize() / 1024 + " KiB";
-                } else if (f.getSize() / 1048576 < 1024) {
-                    size = f.getSize() / 1048576 + " MiB";
-                } else if (f.getSize() / 1073741824 < 1024) {
-                    size = f.getSize() / 1048576 + " GiB";
-                }
-                fileTable.setValueAt(size, i, 3);
-                i++;
-            }
-        }*/
     }
 
     @Override

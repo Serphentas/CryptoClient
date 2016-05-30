@@ -14,6 +14,7 @@ import java.security.MessageDigest;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bouncycastle.crypto.generators.SCrypt;
+import org.bouncycastle.util.encoders.Hex;
 import org.gity.internal.crypto.GPCrypto;
 
 public class test {
@@ -129,6 +130,7 @@ public class test {
         System.out.println((System.nanoTime() - time) / 1e9);*/
 
  
+        System.out.println(Hex.toHexString(GPCrypto.randomGen(32)));
     }
     
     static class shit implements Runnable{

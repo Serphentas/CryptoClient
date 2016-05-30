@@ -530,7 +530,7 @@ public class DefaultFrame extends javax.swing.JFrame {
             }
 
             if (!Settings.isWorking()) {
-                new FileWorker(fileTable, fileQueue).execute();
+                new FileWorker(fileQueue).execute();
             }
         }
     }//GEN-LAST:event_uploadMenuItemActionPerformed
@@ -626,7 +626,7 @@ public class DefaultFrame extends javax.swing.JFrame {
             }
 
             if (!Settings.isWorking()) {
-                new FileWorker(fileTable, fileQueue).execute();
+                new FileWorker(fileQueue).execute();
             }
         }
 

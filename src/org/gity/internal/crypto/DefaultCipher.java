@@ -1,6 +1,5 @@
 package org.gity.internal.crypto;
 
-import org.gity.internal.Settings;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -12,6 +11,7 @@ import java.security.NoSuchProviderException;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import org.gity.internal.Settings;
 
 /**
  * Contains placeholder encryption/decrypt methods, which subsequently call the
@@ -59,7 +59,8 @@ public abstract class DefaultCipher {
      * Encrypt a given file
      *
      * @param input file to encrypt
-     * @return 0 if no error occurred
+     * @return reply code from the server
+     *
      * @throws java.io.IOException if an I/O error occurs
      * @throws java.security.InvalidKeyException if the given key is
      * inappropriate for initializing the cipher
@@ -108,7 +109,7 @@ public abstract class DefaultCipher {
      * Decrypts a given file
      *
      * @param output output file
-     * @return
+     * @return reply code from the server
      *
      * @throws java.io.IOException if an I/O error occurs
      * @throws java.security.InvalidKeyException if the given key is

@@ -56,7 +56,7 @@ public final class GCMCipher {
             GCM_TAG_BITS = 128,
             S_BYTES = 64,
             R_BYTES = 64,
-            BUFFER_SIZE = 32768,
+            BUFFER_SIZE = 8192,
             KDF_r = 8,
             KDF_p = 1,
             VS1 = S_BYTES,
@@ -263,13 +263,12 @@ public final class GCMCipher {
         this.cipher.init(Cipher.DECRYPT_MODE, K2, new GCMParameterSpec(
                 GCM_TAG_BITS, N2, 0, GCM_NONCE_BYTES));
 
-        System.out.println("begin read big");
         for (int i = 0; i < iterCnt; i++) {
             dis.readFully(buf);
 
             if (i != iterCnt) {
                 output.write(this.cipher.update(buf));
-            } else if (i == iterCnt && fileSize % BUFFER_SIZE == 0) {
+            } else if (fileSize % BUFFER_SIZE == 0) {
                 output.write(this.cipher.doFinal(buf));
             }
 
@@ -278,10 +277,8 @@ public final class GCMCipher {
                 DefaultFrame.setFileQueueItemStatus("Uploading (" + bytesRead / percentage + "%)");
             }
         }
-        System.out.println("end read bigs");
 
         if (fileSize % BUFFER_SIZE != 0) {
-            System.out.println("begin remainder");
             int r = dis.read(buf, 0, ((int) fileSize % BUFFER_SIZE) + 16);
             output.write(this.cipher.update(Arrays.copyOfRange(buf, 0, r - GCM_TAG_BITS / 8)));
             output.write(this.cipher.doFinal(Arrays.copyOfRange(buf, r - GCM_TAG_BITS / 8, r)));
@@ -290,7 +287,6 @@ public final class GCMCipher {
             if (bytesRead % percentage > 1) {
                 DefaultFrame.setFileQueueItemStatus("Uploading (" + bytesRead / percentage + "%)");
             }
-            System.out.println("end remainder");
         }
 
         DefaultFrame.setFileQueueItemStatus("Finalizing");
@@ -302,5 +298,9 @@ public final class GCMCipher {
         output.close();
 
         return dis.readInt();
+    }
+
+    public static String getKey(byte[] header) {
+        return "";
     }
 }

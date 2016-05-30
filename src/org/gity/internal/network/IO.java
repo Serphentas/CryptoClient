@@ -8,7 +8,7 @@ import org.gity.internal.crypto.DefaultCipher;
 import org.gity.visual.ErrorHandler;
 
 /**
- * Contains file I/O methods, used for uploading and downloading binary data
+ * Contains file I/O methods, used for uploading/downloading binary data
  *
  * @author Serphentas
  */
@@ -16,7 +16,9 @@ public abstract class IO {
 
     private static final byte DISCONNECT = 0x00,
             UPLOAD = 0x10,
-            DOWNLOAD = 0x11;
+            DOWNLOAD = 0x11,
+            MKSHARE = 0x20,
+            RMSHARE = 0x21;
     private static final int EXEC_OK = 0;
 
     private static DataOutputStream dos;

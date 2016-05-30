@@ -25,7 +25,7 @@ public abstract class Control {
             EXISTS = 0x17,
             MKSHARE = 0x20,
             RMSHARE = 0x21;
-    
+
     private static DataOutputStream dos;
     private static DataInputStream dis;
 
@@ -185,6 +185,11 @@ public abstract class Control {
     public static void mkshare(String fileName) throws IOException {
         dos.writeByte(MKSHARE);
         dos.writeUTF(fileName);
+        
+        String uuid = dis.readUTF();
+        
+        //String key = GCMCipher.getKey(dis.r());
+        
     }
 
     /**
